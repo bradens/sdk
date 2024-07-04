@@ -7219,6 +7219,11 @@ type Query {
   """Get all active short-lived api tokens for this api key"""
   apiTokens: [ApiToken!]!
 
+  """
+  Get the active short-lived api token for this api key by the short-lived token
+  """
+  apiToken(token: String!): ApiToken!
+
   """Returns a list of all networks supported on Defined."""
   getNetworks: [Network!]!
 
@@ -7973,7 +7978,7 @@ type Query {
     The query string to search for. Can match a token or pair contract address or partially match a token's name or symbol. Automatically filters out tokens marked as scams.
     """
     search: String!
-  ): TokenSearchResponse
+  ): TokenSearchResponse @deprecated(reason: "This query is no longer supported and will not return up to date data. Use `filterTokens` instead.")
 
   """Returns a list of decentralized exchange metadata."""
   getExchanges(

@@ -5517,6 +5517,8 @@ export type PrimePoolWithdrawData = {
 
 export type Query = {
   __typename?: 'Query';
+  /** Get the active short-lived api token for this api key by the short-lived token */
+  apiToken: ApiToken;
   /** Get all active short-lived api tokens for this api key */
   apiTokens: Array<ApiToken>;
   /** Returns list of token balances that a wallet has */
@@ -5631,7 +5633,10 @@ export type Query = {
   primeHolders: PrimeHolders;
   /** Returns a list of NFT collections matching a given query string. */
   searchNfts?: Maybe<NftSearchResponse>;
-  /** Returns a list of tokens matching a given query string. */
+  /**
+   * Returns a list of tokens matching a given query string.
+   * @deprecated This query is no longer supported and will not return up to date data. Use `filterTokens` instead.
+   */
   searchTokens?: Maybe<TokenSearchResponse>;
   /** Find a single token by its address & network id. */
   token: EnhancedToken;
@@ -5643,6 +5648,11 @@ export type Query = {
   walletNftCollectionAssets: WalletNftCollectionAssetsResponse;
   /** Returns list of collections and quantity of NFTs held by a given wallet. */
   walletNftCollections: WalletNftCollectionsResponse;
+};
+
+
+export type QueryApiTokenArgs = {
+  token: Scalars['String']['input'];
 };
 
 
