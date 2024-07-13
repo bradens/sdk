@@ -1,8 +1,10 @@
-# Defined SDK
+# Codex SDK
 
-This package exists to help you develop on top of the Defined API (https://docs.defined.fi).
+This package exists to help you develop on top of the Codex API (https://docs.codex.io).
 
 It provides the public schema SDL for you to use. You can use graphql-codegen to generate types and queries for example.
+
+_You will see references to our previous company name, Defined, while we make the switch to Codex._
 
 ## Installation
 
