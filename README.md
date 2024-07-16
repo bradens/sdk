@@ -4,7 +4,10 @@ This package exists to help you develop on top of the Codex API (https://docs.co
 
 It provides the public schema SDL for you to use. You can use graphql-codegen to generate types and queries for example.
 
-_You will see references to our previous company name, Defined, while we make the switch to Codex._
+> [!NOTE]
+> We've changed our name from Defined to Codex.
+> 
+> You will see references to our previous company name, Defined, while we make the switch to Codex.
 
 ## Installation
 
