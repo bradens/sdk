@@ -26,6 +26,16 @@ query FilterTokens(
       change12
       change24
       createdAt
+      exchanges {
+        address
+        color
+        exchangeVersion
+        iconUrl
+        id
+        name
+        networkId
+        tradeUrl
+      }
       high1
       high4
       high12
