@@ -58,6 +58,11 @@ type AddNftPoolEventsOutput {
   events: [NftPoolEvent]!
 }
 
+type AddTokenLifecycleEventsOutput {
+  id: String!
+  events: [TokenLifecycleEvent!]!
+}
+
 enum AlertRecurrence {
   INDEFINITE
   ONCE
@@ -385,6 +390,7 @@ enum ContractLabelSubType {
 """The contract label type."""
 enum ContractLabelType {
   Scam
+  Verified
 }
 
 enum ContractType {
@@ -1931,6 +1937,96 @@ enum link__Purpose {
   EXECUTION
 }
 
+type LiquidityData {
+  """The active liquidity in the pair."""
+  active: String!
+
+  """The inactive liquidity in the pair."""
+  inactive: String!
+}
+
+"""A record of locked liquidity"""
+type LiquidityLock {
+  """The pair address."""
+  pairAddress: String!
+
+  """The network ID the pair is deployed on."""
+  networkId: Int!
+
+  """The wallet address of the owner."""
+  ownerAddress: String!
+
+  """The address of the locker contract."""
+  lockerAddress: String!
+
+  """The unix timestamp for when the lock was created."""
+  createdAt: Int!
+
+  """The unix timestamp for when the lock expires."""
+  unlockAt: Int
+
+  """The protocol with which the liquidity is locked."""
+  lockProtocol: LiquidityLockProtocol!
+
+  """The protocol that created the pair"""
+  liquidityProtocol: LiquidityProtocol!
+
+  """The amount of liquidity locked."""
+  liquidityAmount: String!
+
+  """The inital amount of token0 locked."""
+  initialAmountToken0: String!
+
+  """The inital amount of token1 locked."""
+  initialAmountToken1: String!
+
+  """
+  If the liquidity position is represented by an NFT, this will contain the NFT data.
+  """
+  liquidityNftData: LiquidityNftData
+}
+
+type LiquidityLockConnection {
+  """A list of liquidity locks."""
+  items: [LiquidityLock!]!
+
+  """A cursor for use in pagination."""
+  cursor: String
+}
+
+"""Protocols that can lock liquidity"""
+enum LiquidityLockProtocol {
+  BASECAMP_V1
+  UNCX_V2
+  UNCX_V3
+  BURN
+}
+
+"""Metadata about a pair's liquidity. Includes locked liquidity data."""
+type LiquidityMetadata {
+  """Data about locked liquidity."""
+  lockedLiquidity: LockedLiquidityData!
+
+  """Data about unlocked liquidity."""
+  liquidity: LiquidityData!
+}
+
+"""Liquidity NFT position data"""
+type LiquidityNftData {
+  """The tokenId of the liquidity position nft."""
+  nftTokenId: String!
+
+  """The address of the nft position manager contract."""
+  nftPositionManagerAddress: String!
+}
+
+"""Protocols that create trading pairs"""
+enum LiquidityProtocol {
+  UNISWAP_V3
+  UNISWAP_V2
+  RAYDIUM_V4
+}
+
 """Response returned by `listPairsWithMetadataForToken`."""
 type ListPairsForTokenResponse {
   """A list of pairs containing a given token."""
@@ -1959,6 +2055,30 @@ type ListPairsForTokenValue {
 
   """The token of interest within the pair. Can be `token0` or `token1`."""
   quoteToken: QuoteToken
+}
+
+"""Breakdown of how much and where liquidity is locked."""
+type LockBreakdown {
+  """The protocol with which the liquidity is locked."""
+  lockProtocol: LiquidityLockProtocol!
+
+  """The amount of active liquidity locked."""
+  active: String!
+
+  """The amount of inactive liquidity locked."""
+  inactive: String!
+}
+
+"""Data about locked liquidity."""
+type LockedLiquidityData {
+  """The amount of active liquidity locked."""
+  active: String!
+
+  """The amount of inactive liquidity locked."""
+  inactive: String!
+
+  """A breakdown of how much and where liquidity is locked."""
+  lockBreakdown: [LockBreakdown]!
 }
 
 """The status for a network supported on Defined."""
@@ -2229,6 +2349,9 @@ type NftAsset {
   The number of NFT assets with the same NFT token ID. Only applicable for ERC1155 tokens.
   """
   quantity: String
+
+  """Raw NFT metadata from the smart contract."""
+  rawAssetData: RawNftAssetData
 }
 
 """Attributes for an NFT asset."""
@@ -5544,6 +5667,19 @@ input OneOfNumberConditionInput {
   oneOf: [Int!]!
 }
 
+enum OrderState {
+  CREATED
+  PENDING
+  COMPLETED
+  FAILED
+  EXPIRED
+}
+
+enum OrderType {
+  MANUAL
+  LIMIT
+}
+
 """Metadata for a token pair."""
 type Pair {
   """The contract address of the pair."""
@@ -5950,6 +6086,12 @@ input PairFilters {
 
   """The trade volume in USD in the past 4 hours."""
   volumeUSD4: NumberFilter
+
+  """Filter potential Scams"""
+  potentialScam: Boolean
+
+  """Whether to ignore pairs/tokens not relevant to trending"""
+  trendingIgnored: Boolean
 }
 
 type PairMetadata {
@@ -6038,6 +6180,11 @@ enum PairRankingAttribute {
   sellCount4
   sellCount12
   sellCount24
+  trendingScore
+  trendingScore1
+  trendingScore4
+  trendingScore12
+  trendingScore24
   txnCount1
   txnCount4
   txnCount12
@@ -8009,6 +8156,18 @@ type Query {
     direction: RankingDirection
   ): EventLabelConnection
 
+  """Returns a list of token lifecycle events."""
+  tokenLifecycleEvents(
+    """The maximum number of events to return."""
+    limit: Int
+
+    """The query filters to apply to the results."""
+    query: TokenLifecycleEventsQueryInput!
+
+    """The cursor to use for pagination."""
+    cursor: String
+  ): TokenLifecycleEventConnection
+
   """Find a single token by its address & network id."""
   token(
     """Input for a token ID."""
@@ -8128,6 +8287,29 @@ type Query {
     offset: Int
   ): LatestTokenConnection
 
+  """Returns liquidity locks for a given pair."""
+  liquidityLocks(
+    """The address of the pair."""
+    pairAddress: String!
+
+    """The network id of the pair."""
+    networkId: Int!
+
+    """A cursor for use in pagination."""
+    cursor: String
+  ): LiquidityLockConnection
+
+  """
+  Returns liquidity metadata for a given pair. Includes liquidity lock data.
+  """
+  liquidityMetadata(
+    """The address of the pair."""
+    pairAddress: String!
+
+    """The network id of the pair."""
+    networkId: Int!
+  ): LiquidityMetadata
+
   """Returns community gathered notes."""
   getCommunityNotes(input: CommunityNotesInput): CommunityNotesResponse!
 }
@@ -8139,6 +8321,7 @@ type Quote {
   quoteType: QuoteType!
   tradeFee: String!
   tradeFeeBps: Float!
+  exchange: QuoteExchange!
 }
 
 enum QuoteCurrency {
@@ -8214,6 +8397,28 @@ type RawCallTraceWebhookConditionResult {
 
 input RawCallTraceWebhookConditionResultInput {
   code: StringContainsConditionInput
+}
+
+type RawNftAssetData {
+  """
+  An optional image field that may or may not be present on the requested NFT asset smart contract.
+  """
+  imageUrl: String
+
+  """
+  An optional image field that may or may not be present on the requested NFT asset smart contract.
+  """
+  imageData: String
+
+  """
+  An optional image field that may or may not be present on the requested NFT asset smart contract.
+  """
+  animationUrl: String
+
+  """
+  An optional field that may or may not be present on the requested NFT asset smart contract.
+  """
+  externalUrl: String
 }
 
 type RawTransactionWebhookCondition {
@@ -8785,6 +8990,15 @@ type Subscription {
     id: String
   ): EventLabel
   onSimulateTokenContract(contractAddress: String, networkId: Int!, simulationId: String): SimulateTokenContractResult!
+
+  """Live-streamed token lifecycle events (mints and burns)"""
+  onTokenLifecycleEventsCreated(
+    """The token contract address."""
+    address: String
+
+    """The network ID the token is deployed on."""
+    networkId: Int
+  ): AddTokenLifecycleEventsOutput!
 }
 
 """Event data for a token swap event."""
@@ -9097,6 +9311,18 @@ type SymbolResponse {
   The list of time frames supported for the symbol in other charting endpoints, eg. getBars.
   """
   supported_resolutions: [String!]!
+}
+
+"""Token burn event data."""
+type TokenBurnEventData {
+  """The amount of tokens burned."""
+  amount: String!
+
+  """The new total supply for the token."""
+  totalSupply: String
+
+  """The new circulating supply for the token."""
+  circulatingSupply: String
 }
 
 """Response returned by `filterTokens`."""
@@ -9428,6 +9654,15 @@ input TokenFilters {
   Whether to include tokens that have been flagged as scams. Default: false
   """
   includeScams: Boolean
+
+  """Only include verified tokens"""
+  isVerified: Boolean
+
+  """Filter potential Scams"""
+  potentialScam: Boolean
+
+  """Whether to ignore pairs/tokens not relevant to trending"""
+  trendingIgnored: Boolean
 }
 
 """Metadata for a token."""
@@ -9479,6 +9714,85 @@ input TokenInput {
 
   """The network ID the token is deployed on."""
   networkId: Int!
+}
+
+"""
+Events that occur during a token's lifecycle. Only Mint and Burn events right now.
+"""
+type TokenLifecycleEvent {
+  """The token's contract address."""
+  tokenAddress: String!
+
+  """The network ID that the token is deployed on."""
+  networkId: Int!
+
+  """The hash of the block where the transaction occurred."""
+  blockHash: String!
+
+  """The block number for the transaction."""
+  blockNumber: Int!
+
+  """
+  The ID of the event (`address:networkId`). For example, `0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2:1`.
+  """
+  id: String!
+
+  """The index of the log in the block."""
+  logIndex: Int!
+
+  """The wallet address that performed the transaction."""
+  maker: String
+
+  """The unix timestamp for when the transaction occurred."""
+  timestamp: Int!
+
+  """The unique hash for the transaction."""
+  transactionHash: String!
+
+  """The index of the transaction within the block."""
+  transactionIndex: Int!
+
+  """The type of event."""
+  eventType: TokenLifecycleEventType!
+
+  """The event data, depends on the type of event"""
+  data: TokenLifecycleEventData!
+}
+
+"""Response returned by `TokenLifecycleEvents`."""
+type TokenLifecycleEventConnection {
+  items: [TokenLifecycleEvent]!
+  cursor: String
+}
+
+"""Event data for a token's lifecycle."""
+union TokenLifecycleEventData = TokenBurnEventData | TokenMintEventData
+
+"""Input type of `TokenLifecycleEvents` query."""
+input TokenLifecycleEventsQueryInput {
+  """The token contract address to filter by."""
+  address: String!
+
+  """The networkId to filter by."""
+  networkId: Int!
+}
+
+"""Event types for a token. Mint or Burn."""
+enum TokenLifecycleEventType {
+  MINT
+  BURN
+}
+
+"""Token mint event data."""
+type TokenMintEventData {
+  """The amount of tokens minted."""
+  amount: String!
+
+  """The new total supply for the token."""
+  totalSupply: String
+
+  """The new circulating supply for the token."""
+  circulatingSupply: String
 }
 
 """The token of interest within a pair. Can be `token0` or `token1`."""
@@ -9570,6 +9884,11 @@ enum TokenRankingAttribute {
   sellCount4
   sellCount12
   sellCount24
+  trendingScore
+  trendingScore1
+  trendingScore4
+  trendingScore12
+  trendingScore24
   txnCount1
   txnCount4
   txnCount12
@@ -9876,8 +10195,6 @@ enum WebhookNftEventType {
 
 enum WebhookType {
   PRICE_EVENT
-  DECODED_CALL
-  DECODED_LOG
   RAW_CALL_TRACE
   NFT_EVENT
   TOKEN_PAIR_EVENT

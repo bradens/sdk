@@ -56,6 +56,12 @@ export type AddNftPoolEventsOutput = {
   poolAddress: Scalars['String']['output'];
 };
 
+export type AddTokenLifecycleEventsOutput = {
+  __typename?: 'AddTokenLifecycleEventsOutput';
+  events: Array<TokenLifecycleEvent>;
+  id: Scalars['String']['output'];
+};
+
 export enum AlertRecurrence {
   Indefinite = 'INDEFINITE',
   Once = 'ONCE'
@@ -317,7 +323,8 @@ export enum ContractLabelSubType {
 
 /** The contract label type. */
 export enum ContractLabelType {
-  Scam = 'Scam'
+  Scam = 'Scam',
+  Verified = 'Verified'
 }
 
 export enum ContractType {
@@ -1558,6 +1565,84 @@ export type LatestTokenSimResults = {
   sellTax?: Maybe<Scalars['String']['output']>;
 };
 
+export type LiquidityData = {
+  __typename?: 'LiquidityData';
+  /** The active liquidity in the pair. */
+  active: Scalars['String']['output'];
+  /** The inactive liquidity in the pair. */
+  inactive: Scalars['String']['output'];
+};
+
+/** A record of locked liquidity */
+export type LiquidityLock = {
+  __typename?: 'LiquidityLock';
+  /** The unix timestamp for when the lock was created. */
+  createdAt: Scalars['Int']['output'];
+  /** The inital amount of token0 locked. */
+  initialAmountToken0: Scalars['String']['output'];
+  /** The inital amount of token1 locked. */
+  initialAmountToken1: Scalars['String']['output'];
+  /** The amount of liquidity locked. */
+  liquidityAmount: Scalars['String']['output'];
+  /** If the liquidity position is represented by an NFT, this will contain the NFT data. */
+  liquidityNftData?: Maybe<LiquidityNftData>;
+  /** The protocol that created the pair */
+  liquidityProtocol: LiquidityProtocol;
+  /** The protocol with which the liquidity is locked. */
+  lockProtocol: LiquidityLockProtocol;
+  /** The address of the locker contract. */
+  lockerAddress: Scalars['String']['output'];
+  /** The network ID the pair is deployed on. */
+  networkId: Scalars['Int']['output'];
+  /** The wallet address of the owner. */
+  ownerAddress: Scalars['String']['output'];
+  /** The pair address. */
+  pairAddress: Scalars['String']['output'];
+  /** The unix timestamp for when the lock expires. */
+  unlockAt?: Maybe<Scalars['Int']['output']>;
+};
+
+export type LiquidityLockConnection = {
+  __typename?: 'LiquidityLockConnection';
+  /** A cursor for use in pagination. */
+  cursor?: Maybe<Scalars['String']['output']>;
+  /** A list of liquidity locks. */
+  items: Array<LiquidityLock>;
+};
+
+/** Protocols that can lock liquidity */
+export enum LiquidityLockProtocol {
+  BasecampV1 = 'BASECAMP_V1',
+  Burn = 'BURN',
+  UncxV2 = 'UNCX_V2',
+  UncxV3 = 'UNCX_V3'
+}
+
+/** Metadata about a pair's liquidity. Includes locked liquidity data. */
+export type LiquidityMetadata = {
+  __typename?: 'LiquidityMetadata';
+  /** Data about unlocked liquidity. */
+  liquidity: LiquidityData;
+  /** Data about locked liquidity. */
+  lockedLiquidity: LockedLiquidityData;
+};
+
+/** Liquidity NFT position data */
+export type LiquidityNftData = {
+  __typename?: 'LiquidityNftData';
+  /** The address of the nft position manager contract. */
+  nftPositionManagerAddress: Scalars['String']['output'];
+  /** The tokenId of the liquidity position nft. */
+  nftTokenId: Scalars['String']['output'];
+};
+
+/** Protocols that create trading pairs */
+export enum LiquidityProtocol {
+  RaydiumV4 = 'RAYDIUM_V4',
+  UniswapV2 = 'UNISWAP_V2',
+  UniswapV3 = 'UNISWAP_V3'
+}
+
 /** Response returned by `listPairsWithMetadataForToken`. */
 export type ListPairsForTokenResponse = {
   __typename?: 'ListPairsForTokenResponse';
@@ -1582,6 +1667,28 @@ export type ListPairsForTokenValue = {
   token: EnhancedToken;
   /** The volume for the pair in USD. */
   volume: Scalars['String']['output'];
+};
+
+/** Breakdown of how much and where liquidity is locked. */
+export type LockBreakdown = {
+  __typename?: 'LockBreakdown';
+  /** The amount of active liquidity locked. */
+  active: Scalars['String']['output'];
+  /** The amount of inactive liquidity locked. */
+  inactive: Scalars['String']['output'];
+  /** The protocol with which the liquidity is locked. */
+  lockProtocol: LiquidityLockProtocol;
+};
+
+/** Data about locked liquidity. */
+export type LockedLiquidityData = {
+  __typename?: 'LockedLiquidityData';
+  /** The amount of active liquidity locked. */
+  active: Scalars['String']['output'];
+  /** The amount of inactive liquidity locked. */
+  inactive: Scalars['String']['output'];
+  /** A breakdown of how much and where liquidity is locked. */
+  lockBreakdown: Array<Maybe<LockBreakdown>>;
 };
 
 /** The status for a network supported on Defined. */
@@ -1773,6 +1880,8 @@ export type NftAsset = {
   originalImage?: Maybe<Scalars['String']['output']>;
   /** The number of NFT assets with the same NFT token ID. Only applicable for ERC1155 tokens. */
   quantity?: Maybe<Scalars['String']['output']>;
+  /** Raw NFT metadata from the smart contract. */
+  rawAssetData?: Maybe<RawNftAssetData>;
   /** The token ID of the NFT asset. */
   tokenId: Scalars['String']['output'];
   /** The URI provided by the smart contract. Typically JSON that contains metadata. */
@@ -4253,6 +4362,19 @@ export type OneOfNumberConditionInput = {
   oneOf: Array<Scalars['Int']['input']>;
 };
 
+export enum OrderState {
+  Completed = 'COMPLETED',
+  Created = 'CREATED',
+  Expired = 'EXPIRED',
+  Failed = 'FAILED',
+  Pending = 'PENDING'
+}
+
+export enum OrderType {
+  Limit = 'LIMIT',
+  Manual = 'MANUAL'
+}
+
 /** Metadata for a token pair. */
 export type Pair = {
   __typename?: 'Pair';
@@ -4474,6 +4596,8 @@ export type PairFilters = {
   lowPrice24?: InputMaybe<NumberFilter>;
   /** The list of network IDs to filter by. */
   network?: InputMaybe<Array<InputMaybe<Scalars['Int']['input']>>>;
+  /** Filter potential Scams */
+  potentialScam?: InputMaybe<Scalars['Boolean']['input']>;
   /** The token price in USD. */
   price?: InputMaybe<NumberFilter>;
   /** The percent price change in the past hour. Decimal format. */
@@ -4494,6 +4618,8 @@ export type PairFilters = {
   sellCount24?: InputMaybe<NumberFilter>;
   /** The list of token contract addresses to filter by. */
   tokenAddress?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  /** Whether to ignore pairs/tokens not relevant to trending */
+  trendingIgnored?: InputMaybe<Scalars['Boolean']['input']>;
   /** The number of transactions in the past hour. */
   txnCount1?: InputMaybe<NumberFilter>;
   /** The number of transactions in the past 4 hours. */
@@ -4623,6 +4749,11 @@ export enum PairRankingAttribute {
   SellCount4 = 'sellCount4',
   SellCount12 = 'sellCount12',
   SellCount24 = 'sellCount24',
+  TrendingScore = 'trendingScore',
+  TrendingScore1 = 'trendingScore1',
+  TrendingScore4 = 'trendingScore4',
+  TrendingScore12 = 'trendingScore12',
+  TrendingScore24 = 'trendingScore24',
   TxnCount1 = 'txnCount1',
   TxnCount4 = 'txnCount4',
   TxnCount12 = 'txnCount12',
@@ -5615,6 +5746,10 @@ export type Query = {
   getWebhooks?: Maybe<GetWebhooksResponse>;
   /** Returns list of wallets that hold a given token, ordered by holdings descending. Also has the unique count of holders for that token */
   holders: HoldersResponse;
+  /** Returns liquidity locks for a given pair. */
+  liquidityLocks?: Maybe<LiquidityLockConnection>;
+  /** Returns liquidity metadata for a given pair. Includes liquidity lock data. */
+  liquidityMetadata?: Maybe<LiquidityMetadata>;
   /** Returns a list of token metadata. */
   listFavoriteTokens?: Maybe<Array<TokenWithMetadata>>;
   /** Returns a list of pairs containing a given token. */
@@ -5640,6 +5775,8 @@ export type Query = {
   searchTokens?: Maybe<TokenSearchResponse>;
   /** Find a single token by its address & network id. */
   token: EnhancedToken;
+  /** Returns a list of token lifecycle events. */
+  tokenLifecycleEvents?: Maybe<TokenLifecycleEventConnection>;
   /** Returns a list of token simple chart data (sparklines) for the given tokens. */
   tokenSparklines: Array<TokenSparkline>;
   /** Find a list of tokens by their addresses & network id, with pagination. */
@@ -6026,6 +6163,19 @@ export type QueryHoldersArgs = {
 };
 
 
+export type QueryLiquidityLocksArgs = {
+  cursor?: InputMaybe<Scalars['String']['input']>;
+  networkId: Scalars['Int']['input'];
+  pairAddress: Scalars['String']['input'];
+};
+
+
+export type QueryLiquidityMetadataArgs = {
+  networkId: Scalars['Int']['input'];
+  pairAddress: Scalars['String']['input'];
+};
+
+
 export type QueryListFavoriteTokensArgs = {
   keys: Array<Scalars['String']['input']>;
   networkFilter?: InputMaybe<Array<Scalars['Int']['input']>>;
@@ -6100,6 +6250,13 @@ export type QueryTokenArgs = {
 };
 
 
+export type QueryTokenLifecycleEventsArgs = {
+  cursor?: InputMaybe<Scalars['String']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  query: TokenLifecycleEventsQueryInput;
+};
+
+
 export type QueryTokenSparklinesArgs = {
   input: TokenSparklineInput;
 };
@@ -6121,6 +6278,7 @@ export type QueryWalletNftCollectionsArgs = {
 
 export type Quote = {
   __typename?: 'Quote';
+  exchange: QuoteExchange;
   poolFee?: Maybe<Scalars['String']['output']>;
   poolFeeBps?: Maybe<Scalars['Float']['output']>;
   quoteType: QuoteType;
@@ -6207,6 +6365,18 @@ export type RawCallTraceWebhookConditionResult = {
 
 export type RawCallTraceWebhookConditionResultInput = {
   code?: InputMaybe<StringContainsConditionInput>;
+};
+
+export type RawNftAssetData = {
+  __typename?: 'RawNftAssetData';
+  /** An optional image field that may or may not be present on the requested NFT asset smart contract. */
+  animationUrl?: Maybe<Scalars['String']['output']>;
+  /** An optional field that may or may not be present on the requested NFT asset smart contract. */
+  externalUrl?: Maybe<Scalars['String']['output']>;
+  /** An optional image field that may or may not be present on the requested NFT asset smart contract. */
+  imageData?: Maybe<Scalars['String']['output']>;
+  /** An optional image field that may or may not be present on the requested NFT asset smart contract. */
+  imageUrl?: Maybe<Scalars['String']['output']>;
 };
 
 export type RawTransactionWebhookCondition = {
@@ -6631,6 +6801,8 @@ export type Subscription = {
   /** Live-streamed price updates for a token. */
   onPriceUpdated?: Maybe<Price>;
   onSimulateTokenContract: SimulateTokenContractResult;
+  /** Live-streamed token lifecycle events (mints and burns) */
+  onTokenLifecycleEventsCreated: AddTokenLifecycleEventsOutput;
 };
 
 
@@ -6711,6 +6883,12 @@ export type SubscriptionOnSimulateTokenContractArgs = {
   contractAddress?: InputMaybe<Scalars['String']['input']>;
   networkId: Scalars['Int']['input'];
   simulationId?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type SubscriptionOnTokenLifecycleEventsCreatedArgs = {
+  address?: InputMaybe<Scalars['String']['input']>;
+  networkId?: InputMaybe<Scalars['Int']['input']>;
 };
 
 /** Event data for a token swap event. */
@@ -6895,6 +7073,17 @@ export type SymbolResponse = {
   ticker: Scalars['String']['output'];
 };
 
+/** Token burn event data. */
+export type TokenBurnEventData = {
+  __typename?: 'TokenBurnEventData';
+  /** The amount of tokens burned. */
+  amount: Scalars['String']['output'];
+  /** The new circulating supply for the token. */
+  circulatingSupply?: Maybe<Scalars['String']['output']>;
+  /** The new total supply for the token. */
+  totalSupply?: Maybe<Scalars['String']['output']>;
+};
+
 /** Response returned by `filterTokens`. */
 export type TokenFilterConnection = {
   __typename?: 'TokenFilterConnection';
@@ -7057,6 +7246,8 @@ export type TokenFilters = {
   holders?: InputMaybe<NumberFilter>;
   /** Whether to include tokens that have been flagged as scams. Default: false */
   includeScams?: InputMaybe<Scalars['Boolean']['input']>;
+  /** Only include verified tokens */
+  isVerified?: InputMaybe<Scalars['Boolean']['input']>;
   /** The unix timestamp for the token's last transaction. */
   lastTransaction?: InputMaybe<NumberFilter>;
   /** The amount of liquidity in the token's top pair. */
@@ -7073,6 +7264,8 @@ export type TokenFilters = {
   marketCap?: InputMaybe<NumberFilter>;
   /** The list of network IDs to filter by. Applied in conjunction with `exchangeId` filter using an OR condition. When used together, the query returns results that match either the specified exchanges or the specified network. */
   network?: InputMaybe<Array<InputMaybe<Scalars['Int']['input']>>>;
+  /** Filter potential Scams */
+  potentialScam?: InputMaybe<Scalars['Boolean']['input']>;
   /** The token price in USD. */
   priceUSD?: InputMaybe<NumberFilter>;
   /** The number of sells in the past hour. */
@@ -7083,6 +7276,8 @@ export type TokenFilters = {
   sellCount12?: InputMaybe<NumberFilter>;
   /** The number of sells in the past 24 hours. */
   sellCount24?: InputMaybe<NumberFilter>;
+  /** Whether to ignore pairs/tokens not relevant to trending */
+  trendingIgnored?: InputMaybe<Scalars['Boolean']['input']>;
   /** The number of transactions in the past hour. */
   txnCount1?: InputMaybe<NumberFilter>;
   /** The number of transactions in the past 4 hours. */
@@ -7162,6 +7357,70 @@ export type TokenInput = {
   address: Scalars['String']['input'];
   /** The network ID the token is deployed on. */
   networkId: Scalars['Int']['input'];
+};
+
+/** Events that occur during a token's lifecycle. Only Mint and Burn events right now. */
+export type TokenLifecycleEvent = {
+  __typename?: 'TokenLifecycleEvent';
+  /** The hash of the block where the transaction occurred. */
+  blockHash: Scalars['String']['output'];
+  /** The block number for the transaction. */
+  blockNumber: Scalars['Int']['output'];
+  /** The event data, depends on the type of event */
+  data: TokenLifecycleEventData;
+  /** The type of event. */
+  eventType: TokenLifecycleEventType;
+  /** The ID of the event (`address:networkId`). For example, `0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2:1`. */
+  id: Scalars['String']['output'];
+  /** The index of the log in the block. */
+  logIndex: Scalars['Int']['output'];
+  /** The wallet address that performed the transaction. */
+  maker?: Maybe<Scalars['String']['output']>;
+  /** The network ID that the token is deployed on. */
+  networkId: Scalars['Int']['output'];
+  /** The unix timestamp for when the transaction occurred. */
+  timestamp: Scalars['Int']['output'];
+  /** The token's contract address. */
+  tokenAddress: Scalars['String']['output'];
+  /** The unique hash for the transaction. */
+  transactionHash: Scalars['String']['output'];
+  /** The index of the transaction within the block. */
+  transactionIndex: Scalars['Int']['output'];
+};
+
+/** Response returned by `TokenLifecycleEvents`. */
+export type TokenLifecycleEventConnection = {
+  __typename?: 'TokenLifecycleEventConnection';
+  cursor?: Maybe<Scalars['String']['output']>;
+  items: Array<Maybe<TokenLifecycleEvent>>;
+};
+
+/** Event data for a token's lifecycle. */
+export type TokenLifecycleEventData = TokenBurnEventData | TokenMintEventData;
+
+/** Event types for a token. Mint or Burn. */
+export enum TokenLifecycleEventType {
+  Burn = 'BURN',
+  Mint = 'MINT'
+}
+
+/** Input type of `TokenLifecycleEvents` query. */
+export type TokenLifecycleEventsQueryInput = {
+  /** The token contract address to filter by. */
+  address: Scalars['String']['input'];
+  /** The networkId to filter by. */
+  networkId: Scalars['Int']['input'];
+};
+
+/** Token mint event data. */
+export type TokenMintEventData = {
+  __typename?: 'TokenMintEventData';
+  /** The amount of tokens minted. */
+  amount: Scalars['String']['output'];
+  /** The new circulating supply for the token. */
+  circulatingSupply?: Maybe<Scalars['String']['output']>;
+  /** The new total supply for the token. */
+  totalSupply?: Maybe<Scalars['String']['output']>;
 };
 
 /** The token of interest within a pair. Can be `token0` or `token1`. */
@@ -7255,6 +7514,11 @@ export enum TokenRankingAttribute {
   SellCount4 = 'sellCount4',
   SellCount12 = 'sellCount12',
   SellCount24 = 'sellCount24',
+  TrendingScore = 'trendingScore',
+  TrendingScore1 = 'trendingScore1',
+  TrendingScore4 = 'trendingScore4',
+  TrendingScore12 = 'trendingScore12',
+  TrendingScore24 = 'trendingScore24',
   TxnCount1 = 'txnCount1',
   TxnCount4 = 'txnCount4',
   TxnCount12 = 'txnCount12',
@@ -7505,8 +7769,6 @@ export enum WebhookNftEventType {
 }
 
 export enum WebhookType {
-  DecodedCall = 'DECODED_CALL',
-  DecodedLog = 'DECODED_LOG',
   NftEvent = 'NFT_EVENT',
   PriceEvent = 'PRICE_EVENT',
   RawCallTrace = 'RAW_CALL_TRACE',
