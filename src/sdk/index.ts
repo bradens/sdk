@@ -16,7 +16,7 @@ import { Subscribe } from "./Subscribe";
 
 export type CleanupFunction = () => void;
 
-export class Defined {
+export class Codex {
   private client: GraphQLClient;
   private wsClient: GraphQLWsClient;
   public queries: Query;
@@ -25,8 +25,8 @@ export class Defined {
 
   constructor(
     private apiKey: string,
-    private apiUrl: string = `https://graph.defined.fi/graphql`,
-    private apiRealtimeUrl: string = `wss://realtime-api.defined.fi/graphql`,
+    private apiUrl: string = `https://graph.codex.io/graphql`,
+    private apiRealtimeUrl: string = `wss://graph.codex.io/graphql`,
   ) {
     invariant(this.apiKey, "apiKey must be defined");
     this.queries = new Query(this);

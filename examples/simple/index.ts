@@ -1,9 +1,9 @@
-import { Defined } from "@definedfi/sdk";
+import { Codex } from "@codex-data/sdk";
 
 // import { AlertRecurrence } from "../../dist/sdk/generated/graphql";
 import { AlertRecurrence, Network } from "../../src/resources/graphql";
 
-const sdk = new Defined(process.env.DEFINED_API_KEY || "");
+const sdk = new Codex(process.env.CODEX_API_KEY || "");
 
 sdk
   .send<{ getNetworks: Network[] }>(

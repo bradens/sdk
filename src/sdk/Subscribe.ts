@@ -26,10 +26,10 @@ import {
   SubscriptionOnPairMetadataUpdatedArgs,
   SubscriptionOnPriceUpdatedArgs,
 } from "./generated/graphql";
-import { Defined } from "./index";
+import { Codex } from "./index";
 
 export class Subscribe {
-  constructor(private sdk: Defined) {}
+  constructor(private sdk: Codex) {}
   tokenPrices = async (
     vars: SubscriptionOnPriceUpdatedArgs,
     sink: Sink<ExecutionResult<OnPriceUpdatedSubscription>>,

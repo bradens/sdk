@@ -29,10 +29,10 @@ import {
   QueryListTopTokensArgs,
   QueryTokenArgs,
 } from "./generated/graphql";
-import { Defined } from "./index";
+import { Codex } from "./index";
 
 export class Query {
-  constructor(private sdk: Defined) {}
+  constructor(private sdk: Codex) {}
   pairEvents = async (vars: PairEventsQueryVariables) =>
     this.sdk.query(PairEventsDocument, vars);
   sparklines = async (vars: GetSparklinesQueryVariables) =>

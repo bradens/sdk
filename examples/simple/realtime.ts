@@ -1,8 +1,8 @@
-import { Defined } from '@definedfi/sdk/dist/sdk'
+import { Codex } from '@codex-data/sdk/dist/sdk'
 import { Price, SubscriptionOnPriceUpdatedArgs } from '../../src/resources/graphql'
 import { ExecutionResult, Sink } from 'graphql-ws'
 
-const sdk = new Defined(process.env.DEFINED_API_KEY || "")
+const sdk = new Codex(process.env.CODEX_API_KEY || "")
 
 const sink: Sink<ExecutionResult<Price>> = {
   next: ({ data }) => {

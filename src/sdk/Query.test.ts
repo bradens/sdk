@@ -1,8 +1,8 @@
 import { Event } from "../resources/graphql";
-import { Defined } from "./index";
+import { Codex } from "./index";
 
 describe("Query", () => {
-  const sdk = new Defined("dummy-key");
+  const sdk = new Codex("dummy-key");
 
   it("should set up queries", async () => {
     jest.spyOn(sdk, "query").mockResolvedValue({

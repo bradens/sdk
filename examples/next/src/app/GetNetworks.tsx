@@ -1,8 +1,8 @@
-import { Defined } from "@definedfi/sdk/dist/sdk";
-import { Network } from "@definedfi/sdk/src/resources/graphql";
+import { Codex } from "@codex-data/sdk/dist/sdk";
+import { Network } from "@codex-data/sdk/src/resources/graphql";
 
 async function getData() {
-  const sdk = new Defined(process.env.NEXT_PUBLIC_DEFINED_API_KEY || "");
+  const sdk = new Codex(process.env.NEXT_PUBLIC_CODEX_API_KEY || "");
   const res = await sdk.send<{ getNetworks: Network[] }>(
     `query { getNetworks { id, name } }`,
   );

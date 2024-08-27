@@ -1,6 +1,6 @@
-import { Defined } from "@definedfi/sdk/dist/sdk";
+import { Codex } from "@codex-data/sdk/dist/sdk";
 
-const sdk = new Defined(process.env.DEFINED_API_KEY || "");
+const sdk = new Codex(process.env.CODEX_API_KEY || "");
 
 sdk.subscriptions.tokenPrices(
   {

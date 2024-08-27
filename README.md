@@ -6,16 +6,16 @@ It provides the public schema SDL for you to use. You can use graphql-codegen to
 
 > [!NOTE]
 > We've changed our name from Defined to Codex.
-> 
+>
 > You will see references to our previous company name, Defined, while we make the switch to Codex.
 
 ## Installation
 
 | packager                      | command                   |
 | ----------------------------- | ------------------------- |
-| [npm](https://www.npmjs.com/) | `npm add @definedfi/sdk`  |
-| [yarn](https://yarnpkg.com/)  | `yarn add @definedfi/sdk` |
-| [bun](https://bun.sh/)        | `bun add @definedfi/sdk`  |
+| [npm](https://www.npmjs.com/) | `npm add @codex-data/sdk`  |
+| [yarn](https://yarnpkg.com/)  | `yarn add @codex-data/sdk` |
+| [bun](https://bun.sh/)        | `bun add @codex-data/sdk`  |
 
 ## Usage
 
@@ -24,9 +24,9 @@ Follow one of the examples in the [examples](/examples) directory, or simply run
 Fetch a token.
 
 ```typescript
-import { Defined } from "@definedfi/sdk";
+import { Codex } from "@codex-data/sdk";
 
-const sdk = new Defined(MY_API_KEY);
+const sdk = new Codex(MY_API_KEY);
 
 sdk.queries
   .token({
@@ -42,9 +42,9 @@ Use your own GraphQL selections
 
 ```typescript
 import { Network } from "../../src/resources/graphql";
-import { Defined } from "@definedfi/sdk/dist/sdk";
+import { Codex } from "@codex-data/sdk/dist/sdk";
 
-const sdk = new Defined(process.env.DEFINED_API_KEY || "");
+const sdk = new Codex(process.env.CODEX_API_KEY || "");
 
 sdk
   .send<{ getNetworks: Network[] }>(
@@ -62,7 +62,7 @@ sdk
 
 ## Running the examples
 
-You'll need to have [`curl`](https://curl.se/) installed in order to build this locally, as it fetches the schema from the Defined API.
+You'll need to have [`curl`](https://curl.se/) installed in order to build this locally, as it fetches the schema from the Codex API.
 
 You need to provide an API key in order for the examples to work. We have [bun](https://bun.sh) in use for development here.
 
@@ -77,7 +77,7 @@ This performs a simple inline graphql request, and uses a user-provided query an
 
 - `cd examples/simple`
 - `bun i`
-- `DEFINED_API_KEY=xyz bun run index.ts`
+- `CODEX_API_KEY=xyz bun run index.ts`
 
 You can define your own GraphQL queries and use those with codegen (see next section). The pre-defined queries we provide in the
 examples do not include all of the fields for every query.
@@ -89,7 +89,7 @@ This shows how to use graphql-codegen to generate query types and get a fully ty
 - `cd examples/codegen`
 - `bun i`
 - `bun run codegen`
-- `DEFINED_API_KEY=xyz bun run src/index.ts`
+- `CODEX_API_KEY=xyz bun run src/index.ts`
 
 ### Next
 
@@ -97,7 +97,7 @@ This shows how you could use it in a NextJS project.
 
 - `cd examples/next`
 - `bun i`
-- `NEXT_PUBLIC_DEFINED_API_KEY=xyz bun run dev`
+- `NEXT_PUBLIC_CODEX_API_KEY=xyz bun run dev`
 
 ## Contributing
 

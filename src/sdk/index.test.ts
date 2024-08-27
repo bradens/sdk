@@ -1,6 +1,6 @@
 import { DocumentNode } from "graphql";
 
-import { Defined } from "./index";
+import { Codex } from "./index";
 
 const getNetworksDocument = {
   kind: "Document",
@@ -32,10 +32,10 @@ const getNetworksDocument = {
 const getNetworksString = `query GetNetworks { getNetworks { id } }`;
 const subscribePriceUpdatedString = `subscription onPriceUpdated($address: String!, $networkId: Int!) { onPriceUpdated(address: $address, networkId: $networkId) { address networkId priceUsd timestamp } }`;
 
-describe("Defined", () => {
-  let sdk: Defined;
+describe("Codex", () => {
+  let sdk: Codex;
   beforeEach(() => {
-    sdk = new Defined("dummy-key");
+    sdk = new Codex("dummy-key");
   });
 
   describe("query", () => {

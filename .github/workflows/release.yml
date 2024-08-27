@@ -20,4 +20,4 @@ jobs:
       - run: bun run build
       - run: npm publish --access public
         env:
-          NPM_TOKEN: ${{secrets.DEFINED_SDK_NPM_TOKEN}}
+          NPM_TOKEN: ${{secrets.CODEX_SDK_NPM_TOKEN}}

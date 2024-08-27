@@ -1,5 +1,5 @@
 {
-  "name": "@definedfi/sdk",
+  "name": "@codex-data/sdk",
   "version": "0.5.7",
   "engines": {
     "node": ">=17.5.0"
@@ -8,7 +8,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "bun run fetch:schema && bun run codegen && bun run tsc",
-    "fetch:schema": "curl -s https://graph.defined.fi/schema/latest.graphql --output src/resources/schema.graphql",
+    "fetch:schema": "curl -s https://graph.codex.io/schema/latest.graphql --output src/resources/schema.graphql",
     "codegen": "graphql-codegen --config codegen.ts",
     "prepack": "cp src/resources/* dist/resources/",
     "lint": "eslint --ext .ts src",
@@ -26,11 +26,11 @@
     "blockchain",
     "api"
   ],
-  "repository": "github:definedfi/sdk",
-  "author": "Defined.fi",
+  "repository": "github:codex-data/sdk",
+  "author": "Codex",
   "license": "MIT",
-  "homepage": "https://docs.defined.fi",
-  "description": "The Defined.fi SDK for JavaScript/Typescript. It provides generated types and convenient ways to access the graphql api.",
+  "homepage": "https://docs.codex.io",
+  "description": "The Codex SDK for JavaScript/Typescript. It provides generated types and convenient ways to access the graphql api.",
   "dependencies": {
     "@types/jest": "^29.5.4",
     "@types/node": "^20.5.7",

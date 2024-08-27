@@ -1,6 +1,6 @@
-import { Defined } from '../../../src/sdk';
-import { graphql } from './gql/gql';
-import { NetworksQuery, NetworksQueryVariables } from './gql/graphql';
+import { Codex } from "../../../src/sdk";
+import { graphql } from "./gql/gql";
+import { NetworksQuery, NetworksQueryVariables } from "./gql/graphql";
 
 const doc = graphql(`
   query Networks {
@@ -11,10 +11,8 @@ const doc = graphql(`
   }
 `);
 
-const sdk = new Defined(process.env.DEFINED_API_KEY || "");
+const sdk = new Codex(process.env.CODEX_API_KEY || "");
 
-sdk.query<NetworksQuery, NetworksQueryVariables>(doc).then(res => {
-  console.log("Fetched res", res)
-})
-
-
+sdk.query<NetworksQuery, NetworksQueryVariables>(doc).then((res) => {
+  console.log("Fetched res", res);
+});
