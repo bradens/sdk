@@ -1,1 +1,1 @@
-query GetUniV3TicksQuery($limit: Int, $networkId: Int!, $offset: Int, $poolAddress: String!) { getUniV3Ticks (limit: $limit, networkId: $networkId, offset: $offset, poolAddress: $poolAddress) { count, offset, results { liquidityNet, price0, price1, tick } } }
+query GetUniV3Ticks($limit: Int, $networkId: Int!, $offset: Int, $poolAddress: String!) { getUniV3Ticks (limit: $limit, networkId: $networkId, offset: $offset, poolAddress: $poolAddress) { count, offset, results { liquidityNet, price0, price1, tick } } }

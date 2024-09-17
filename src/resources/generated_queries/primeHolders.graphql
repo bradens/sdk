@@ -1,1 +1,1 @@
-query PrimeHoldersQuery($cursor: String) { primeHolders (cursor: $cursor) { count, cursor, items { balance, firstHeldTimestamp, shiftedBalance, tokenId, walletId } } }
+query PrimeHolders($cursor: String) { primeHolders (cursor: $cursor) { count, cursor, items { balance, firstHeldTimestamp, shiftedBalance, tokenId, walletId } } }

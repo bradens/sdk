@@ -1,18 +1,19 @@
 import fs from "fs";
 import * as gql from "gql-query-builder";
+import VariableOptions from "gql-query-builder/build/VariableOptions";
 import path from "path";
 
 type SchemaTypeDefinition = {
   kind:
-  | "NON_NULL"
-  | "SCALAR"
-  | "LIST"
-  | "OBJECT"
-  | "INPUT_OBJECT"
-  | "ENUM"
-  | "UNION"
-  | undefined
-  | null;
+    | "NON_NULL"
+    | "SCALAR"
+    | "LIST"
+    | "OBJECT"
+    | "INPUT_OBJECT"
+    | "ENUM"
+    | "UNION"
+    | undefined
+    | null;
   name?: string | null;
   ofType?: SchemaTypeDefinition | null;
 };
@@ -21,58 +22,18 @@ type SchemaType = {
   name: string;
   description?: string | null;
   type: SchemaTypeDefinition;
+  fields?: SchemaType[];
 };
+
+type Fields = Array<string | { [key: string]: Fields }>;
 
 function capitalize(str: string) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-export const typeObjectToString = (type: SchemaTypeDefinition): string => {
-  if (type.kind === "SCALAR" || type.kind === "OBJECT") {
-    return type.name!;
-  }
-
-  if (type.kind === "NON_NULL") {
-    return typeObjectToString(type.ofType!) + "!";
-  }
-
-  if (type.kind === "LIST") {
-    return `[${typeObjectToString(type.ofType!)}]`;
-  }
-
-  return "";
-};
-
-// This one transforms the args into the type wraps (e.g. query(input: MyQueryInput!) { ... })
-export const transformArgsToInputWrapper = (args: SchemaType[]): string => {
-  if (args.length === 0) return "";
-
-  return `(${args
-    .map((arg: SchemaType) => `${arg.name}: ${typeObjectToString(arg.type)}`)
-    .join(", ")})`;
-};
-
-export const resolveToFirstObjectType = (
-  type: SchemaTypeDefinition,
-): SchemaTypeDefinition => {
-  if (type.kind === "OBJECT" || type.kind === "SCALAR") return type;
-  if (type.kind === "NON_NULL" || type.kind === "LIST")
-    return resolveToFirstObjectType(type.ofType!);
-  throw new Error("not sure what to do with");
-};
-
-export const transformTypeToSelectionSet = (
-  type: SchemaTypeDefinition,
-): string => {
-  // Resolve down to the first object type
-  return "";
-};
-
-type Fields = Array<string | { [key: string]: Fields }>;
-
 export const getLeafType = (
   type: SchemaTypeDefinition,
-  allTypes: any[],
+  allTypes: SchemaType[],
   result: Fields,
   currentName: string,
   level = 0,
@@ -87,9 +48,10 @@ export const getLeafType = (
   if (type.kind === "OBJECT") {
     // For each of the fields of the subtype, resolve them
     const subType = allTypes.find((t) => t.name === type.name);
-    // const subTypeLeaves = subType.fields.map((f: any) => f.name);
-    const subTypeLeaves = subType.fields
-      .map((f: any) => getLeafType(f.type, allTypes, [], f.name, level + 1))
+    const subTypeLeaves = (subType?.fields ?? [])
+      .map((f: SchemaType) =>
+        getLeafType(f.type, allTypes, [], f.name, level + 1),
+      )
       .flat();
     return [
       ...result,
@@ -108,7 +70,10 @@ export const getLeafType = (
   throw new Error(`Unknown type ${type.name} ${type.kind}`);
 };
 
-export const getLeafArgs = (type: SchemaTypeDefinition, result: any): any => {
+export const getLeafArgs = (
+  type: SchemaTypeDefinition,
+  result: VariableOptions,
+): VariableOptions => {
   if (
     type.kind === "NON_NULL" &&
     ["INPUT_OBJECT", "SCALAR", "OBJECT", "ENUM"].includes(
@@ -137,13 +102,16 @@ export const getLeafArgs = (type: SchemaTypeDefinition, result: any): any => {
   throw new Error(`Unknown type ${type.name} ${type.kind}`);
 };
 
-export function parseVariables(allTypes: any[], args: any) {
-  const parsedVariables = args.reduce((acc: any, arg: any) => {
-    return {
-      ...acc,
-      [arg.name]: getLeafArgs(arg.type, {}),
-    };
-  }, {});
+export function parseVariables(args: SchemaType[]) {
+  const parsedVariables = args.reduce(
+    (acc: VariableOptions, arg: SchemaType) => {
+      return {
+        ...acc,
+        [arg.name]: getLeafArgs(arg.type, {}),
+      };
+    },
+    {},
+  );
   return parsedVariables;
 }
 
@@ -160,19 +128,13 @@ async function run() {
 
   const schemaJson = await res.json();
 
-  // console.debug("Schema", schemaJson);
-  //
-  // find the main query type
   const types = schemaJson.__schema.types;
 
-  const queryType = types.find((type: any) => type.name === "Query");
+  const queryType = types.find((type: SchemaType) => type.name === "Query");
 
-  const queries = queryType.fields.map((field: any) => {
+  for (const field of queryType.fields) {
     const args = field.args;
-
-    // if (field.name === "getDetailedPairsStats") debugger;
-
-    const parsedVariables = parseVariables(types, args);
+    const parsedVariables = parseVariables(args);
     const parsedFields = getLeafType(field.type, types, [], "").filter(Boolean);
 
     const queryBuilderObject = gql.query({
@@ -183,7 +145,7 @@ async function run() {
       fields: parsedFields.length ? parsedFields : undefined,
     });
 
-    // console.log("Query", queryBuilderObject);
+    console.log(`Writing file: ${field.name}.graphql`);
 
     fs.writeFileSync(
       path.resolve(
@@ -191,15 +153,13 @@ async function run() {
         "..",
         "resources",
         "generated_queries",
-        `${field.name}.graphql`,
+        `${capitalize(field.name)}.graphql`,
       ),
-      `query ${capitalize(field.name)}Query${queryBuilderObject.query
+      `query ${capitalize(field.name)}${queryBuilderObject.query
         .toString()
         .slice(6)}`,
     );
-
-    return queryBuilderObject;
-  });
+  }
 }
 
 run().then(() => process.exit());

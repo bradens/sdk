@@ -1,1 +1,1 @@
-query GetTokenCountQuery { getTokenCount   }
+query GetTokenCount { getTokenCount   }

@@ -1,1 +1,1 @@
-query LiquidityMetadataQuery($networkId: Int!, $pairAddress: String!) { liquidityMetadata (networkId: $networkId, pairAddress: $pairAddress) { liquidity { active, inactive }, lockedLiquidity { active, inactive, lockBreakdown { active, inactive, lockProtocol } } } }
+query LiquidityMetadata($networkId: Int!, $pairAddress: String!) { liquidityMetadata (networkId: $networkId, pairAddress: $pairAddress) { liquidity { active, inactive }, lockedLiquidity { active, inactive, lockBreakdown { active, inactive, lockProtocol } } } }

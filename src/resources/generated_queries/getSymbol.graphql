@@ -1,1 +1,1 @@
-query GetSymbolQuery($currencyCode: String, $symbol: String!) { getSymbol (currencyCode: $currencyCode, symbol: $symbol) { currency_code, description, name, original_currency_code, pricescale, supported_resolutions, ticker } }
+query GetSymbol($currencyCode: String, $symbol: String!) { getSymbol (currencyCode: $currencyCode, symbol: $symbol) { currency_code, description, name, original_currency_code, pricescale, supported_resolutions, ticker } }

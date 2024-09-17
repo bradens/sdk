@@ -1,1 +1,1 @@
-query ChartUrlsQuery($input: ChartInput!) { chartUrls (input: $input) { pair { url } } }
+query ChartUrls($input: ChartInput!) { chartUrls (input: $input) { pair { url } } }

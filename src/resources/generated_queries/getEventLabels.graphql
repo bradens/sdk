@@ -1,1 +1,1 @@
-query GetEventLabelsQuery($cursor: String, $direction: RankingDirection, $id: String!, $limit: Int) { getEventLabels (cursor: $cursor, direction: $direction, id: $id, limit: $limit) { cursor, items { id, label, logIndex, networkId, timestamp, transactionHash, transactionIndex } } }
+query GetEventLabels($cursor: String, $direction: RankingDirection, $id: String!, $limit: Int) { getEventLabels (cursor: $cursor, direction: $direction, id: $id, limit: $limit) { cursor, items { id, label, logIndex, networkId, timestamp, transactionHash, transactionIndex } } }

@@ -1,1 +1,1 @@
-query PrimeBalanceQuery($walletAddress: String!) { primeBalance (walletAddress: $walletAddress) { cursor, items { balance, firstHeldTimestamp, shiftedBalance, tokenId, walletId } } }
+query PrimeBalance($walletAddress: String!) { primeBalance (walletAddress: $walletAddress) { cursor, items { balance, firstHeldTimestamp, shiftedBalance, tokenId, walletId } } }
