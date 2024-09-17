@@ -1,5 +1,0 @@
-subscription OnTokenLifecycleEventsCreated($address: String, $networkId: Int) {
-  onTokenLifecycleEventsCreated (address: $address, networkId: $networkId) {
-    events { blockHash, blockNumber, eventType, id, logIndex, maker, networkId, timestamp, tokenAddress, transactionHash, transactionIndex }, id
-  }
-}

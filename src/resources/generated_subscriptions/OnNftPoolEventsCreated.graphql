@@ -1,5 +1,0 @@
-subscription OnNftPoolEventsCreated($collectionAddress: String, $exchangeAddress: String, $networkId: Int, $poolAddress: String) {
-  onNftPoolEventsCreated (collectionAddress: $collectionAddress, exchangeAddress: $exchangeAddress, networkId: $networkId, poolAddress: $poolAddress) {
-    collectionAddress, events { blockHash, blockNumber, collectionAddress, collectionId, eventType, exchangeAddress, id, logIndex, maker, networkId, poolAddress, poolType, timestamp, tokenAddress, transactionHash, transactionIndex }, exchangeAddress, id, networkId, poolAddress
-  }
-}

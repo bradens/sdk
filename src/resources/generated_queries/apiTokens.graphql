@@ -1,9 +1,0 @@
-query ApiTokens {
-  apiTokens {
-    expiresTimeString
-    id
-    remaining
-    requestLimit
-    token
-  }
-}

@@ -1,6 +1,7 @@
 import fs from "fs";
 import * as gql from "gql-query-builder";
 import VariableOptions from "gql-query-builder/build/VariableOptions";
+import { mkdirp } from "mkdirp";
 import path from "path";
 
 type SchemaTypeDefinition = {
@@ -150,14 +151,15 @@ async function run() {
       fields: parsedFields.length ? parsedFields : undefined,
     });
     console.log(`Writing mutation: ${field.name}.graphql`);
+    const mutationsFolderPath = path.join(
+      __dirname,
+      "..",
+      "resources",
+      "generated_mutations",
+    );
+    mkdirp(mutationsFolderPath);
     fs.writeFileSync(
-      path.resolve(
-        __dirname,
-        "..",
-        "resources",
-        "generated_mutations",
-        `${capitalize(field.name)}.graphql`,
-      ),
+      path.join(mutationsFolderPath, `${capitalize(field.name)}.graphql`),
       `mutation ${capitalize(field.name)}${mutationBuilderObject.query
         .toString()
         .slice("mutation ".length)}`,
@@ -177,14 +179,15 @@ async function run() {
       fields: parsedFields.length ? parsedFields : undefined,
     });
     console.log(`Writing subscription: ${field.name}.graphql`);
+    const subscriptionsFolderPath = path.join(
+      __dirname,
+      "..",
+      "resources",
+      "generated_subscriptions",
+    );
+    mkdirp(subscriptionsFolderPath);
     fs.writeFileSync(
-      path.resolve(
-        __dirname,
-        "..",
-        "resources",
-        "generated_subscriptions",
-        `${capitalize(field.name)}.graphql`,
-      ),
+      path.join(subscriptionsFolderPath, `${capitalize(field.name)}.graphql`),
       `subscription ${capitalize(field.name)}${subscriptionBuilderObject.query
         .toString()
         .slice("subscription ".length)}`,
@@ -204,14 +207,16 @@ async function run() {
       fields: parsedFields.length ? parsedFields : undefined,
     });
     console.log(`Writing query: ${field.name}.graphql`);
+
+    const queriesFolderPath = path.join(
+      __dirname,
+      "..",
+      "resources",
+      "generated_queries",
+    );
+    mkdirp(queriesFolderPath);
     fs.writeFileSync(
-      path.resolve(
-        __dirname,
-        "..",
-        "resources",
-        "generated_queries",
-        `${capitalize(field.name)}.graphql`,
-      ),
+      path.join(queriesFolderPath, `${capitalize(field.name)}.graphql`),
       `query ${capitalize(field.name)}${queryBuilderObject.query
         .toString()
         .slice("query ".length)}`,

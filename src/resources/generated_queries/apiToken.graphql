@@ -1,9 +1,0 @@
-query ApiToken($token: String!) {
-  apiToken(token: $token) {
-    expiresTimeString
-    id
-    remaining
-    requestLimit
-    token
-  }
-}

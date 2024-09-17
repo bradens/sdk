@@ -1,9 +1,0 @@
-mutation CreateApiTokens($input: CreateApiTokensInput!) {
-  createApiTokens(input: $input) {
-    expiresTimeString
-    id
-    remaining
-    requestLimit
-    token
-  }
-}

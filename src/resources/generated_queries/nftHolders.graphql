@@ -1,1 +1,0 @@
-query NftHolders($input: NftHoldersInput!) { nftHolders (input: $input) { count, cursor, items { balance, collectionId, walletAddress }, status } }

@@ -1,1 +1,0 @@
-query GetTokenInfo($address: String!, $networkId: Int!) { getTokenInfo (address: $address, networkId: $networkId) { address, circulatingSupply, cmcId, description, id, imageLargeUrl, imageSmallUrl, imageThumbUrl, isScam, name, networkId, symbol, totalSupply } }

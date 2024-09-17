@@ -1,7 +1,0 @@
-query ChartUrls($input: ChartInput!) {
-  chartUrls(input: $input) {
-    pair {
-      url
-    }
-  }
-}
