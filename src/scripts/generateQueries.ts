@@ -120,17 +120,76 @@ export function parseVariables(args: SchemaType[]) {
  * and generates a query ts file for query.
  */
 async function run() {
-  console.log("Generating queries...");
+  console.log("Generating...");
 
+  // Fetch schema from remote
   const res = await fetch(`https://graph.codex.io/schema/latest.json`, {
     method: "GET",
   });
-
   const schemaJson = await res.json();
 
   const types = schemaJson.__schema.types;
-
+  const mutationType = types.find(
+    (type: SchemaType) => type.name === "Mutation",
+  );
   const queryType = types.find((type: SchemaType) => type.name === "Query");
+  const subscriptionType = types.find(
+    (type: SchemaType) => type.name === "Subscription",
+  );
+
+  for (const field of mutationType.fields) {
+    const args = field.args;
+    const parsedVariables = parseVariables(args);
+    const parsedFields = getLeafType(field.type, types, [], "").filter(Boolean);
+
+    const mutationBuilderObject = gql.mutation({
+      operation: field.name,
+      variables: Object.keys(parsedVariables).length
+        ? parsedVariables
+        : undefined,
+      fields: parsedFields.length ? parsedFields : undefined,
+    });
+    console.log(`Writing mutation: ${field.name}.graphql`);
+    fs.writeFileSync(
+      path.resolve(
+        __dirname,
+        "..",
+        "resources",
+        "generated_mutations",
+        `${capitalize(field.name)}.graphql`,
+      ),
+      `mutation ${capitalize(field.name)}${mutationBuilderObject.query
+        .toString()
+        .slice("mutation ".length)}`,
+    );
+  }
+
+  for (const field of subscriptionType.fields) {
+    const args = field.args;
+    const parsedVariables = parseVariables(args);
+    const parsedFields = getLeafType(field.type, types, [], "").filter(Boolean);
+
+    const subscriptionBuilderObject = gql.subscription({
+      operation: field.name,
+      variables: Object.keys(parsedVariables).length
+        ? parsedVariables
+        : undefined,
+      fields: parsedFields.length ? parsedFields : undefined,
+    });
+    console.log(`Writing subscription: ${field.name}.graphql`);
+    fs.writeFileSync(
+      path.resolve(
+        __dirname,
+        "..",
+        "resources",
+        "generated_subscriptions",
+        `${capitalize(field.name)}.graphql`,
+      ),
+      `subscription ${capitalize(field.name)}${subscriptionBuilderObject.query
+        .toString()
+        .slice("subscription ".length)}`,
+    );
+  }
 
   for (const field of queryType.fields) {
     const args = field.args;
@@ -144,9 +203,7 @@ async function run() {
         : undefined,
       fields: parsedFields.length ? parsedFields : undefined,
     });
-
-    console.log(`Writing file: ${field.name}.graphql`);
-
+    console.log(`Writing query: ${field.name}.graphql`);
     fs.writeFileSync(
       path.resolve(
         __dirname,
@@ -157,7 +214,7 @@ async function run() {
       ),
       `query ${capitalize(field.name)}${queryBuilderObject.query
         .toString()
-        .slice(6)}`,
+        .slice("query ".length)}`,
     );
   }
 }

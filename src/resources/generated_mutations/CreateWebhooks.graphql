@@ -1,0 +1,5 @@
+mutation CreateWebhooks($input: CreateWebhooksInput!) {
+      createWebhooks (input: $input) {
+    nftEventWebhooks { alertRecurrence, bucketId, bucketSortkey, callbackUrl, created, groupId, id, name, publishingType, retrySettings { maxRetries, maxRetryDelay, maxTimeElapsed, minRetryDelay }, status, webhookType }, priceWebhooks { alertRecurrence, bucketId, bucketSortkey, callbackUrl, created, groupId, id, name, publishingType, retrySettings { maxRetries, maxRetryDelay, maxTimeElapsed, minRetryDelay }, status, webhookType }, rawTransactionWebhooks { alertRecurrence, bucketId, bucketSortkey, callbackUrl, created, groupId, id, name, publishingType, retrySettings { maxRetries, maxRetryDelay, maxTimeElapsed, minRetryDelay }, status, webhookType }, tokenPairEventWebhooks { alertRecurrence, bucketId, bucketSortkey, callbackUrl, created, groupId, id, name, publishingType, retrySettings { maxRetries, maxRetryDelay, maxTimeElapsed, minRetryDelay }, status, webhookType }
+  }
+    }
