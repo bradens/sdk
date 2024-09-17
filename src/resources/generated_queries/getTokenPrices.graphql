@@ -1,0 +1,1 @@
+query GetTokenPricesQuery($inputs: [GetPriceInput]) { getTokenPrices (inputs: $inputs) { address, confidence, networkId, priceUsd, timestamp } }

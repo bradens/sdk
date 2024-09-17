@@ -1,0 +1,1 @@
+query GetNetworkStatusQuery($networkIds: [Int!]!) { getNetworkStatus (networkIds: $networkIds) { lastProcessedBlock, lastProcessedTimestamp, networkId, networkName } }

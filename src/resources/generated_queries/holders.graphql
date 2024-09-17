@@ -1,0 +1,1 @@
+query HoldersQuery($input: HoldersInput!) { holders (input: $input) { count, cursor, items { balance, firstHeldTimestamp, shiftedBalance, tokenId, walletId }, status } }

@@ -1,0 +1,1 @@
+query WalletNftCollectionAssetsQuery($input: WalletNftCollectionAssetsInput!) { walletNftCollectionAssets (input: $input) { collectionId, cursor, items { quantity, tokenId }, walletAddress } }

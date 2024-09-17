@@ -1,0 +1,1 @@
+query GetExchangesQuery($showNameless: Boolean) { getExchanges (showNameless: $showNameless) { address, color, exchangeVersion, iconUrl, id, name, networkId, tradeUrl } }

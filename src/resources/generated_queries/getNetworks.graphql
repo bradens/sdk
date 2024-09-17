@@ -1,0 +1,1 @@
+query GetNetworksQuery { getNetworks  { id, name, networkShortName } }

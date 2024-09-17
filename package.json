@@ -32,12 +32,16 @@
   "homepage": "https://docs.codex.io",
   "description": "The Codex SDK for JavaScript/Typescript. It provides generated types and convenient ways to access the graphql api.",
   "dependencies": {
+    "@graphql-tools/wrap": "^10.0.5",
     "@types/jest": "^29.5.4",
     "@types/node": "^20.5.7",
-    "graphql": "^16.8.0",
+    "gql-query-builder": "^3.8.0",
+    "graphql": "^16.9.0",
+    "graphql-ast-types": "^1.0.2",
     "graphql-request": "^6.1.0",
     "graphql-ws": "^5.14.0",
     "isomorphic-ws": "^5.0.0",
+    "tsx": "^4.19.1",
     "typescript": "^5.2.2"
   },
   "devDependencies": {

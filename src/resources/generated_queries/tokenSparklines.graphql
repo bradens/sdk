@@ -1,0 +1,1 @@
+query TokenSparklinesQuery($input: TokenSparklineInput!) { tokenSparklines (input: $input) { attribute, id, sparkline { timestamp, value } } }

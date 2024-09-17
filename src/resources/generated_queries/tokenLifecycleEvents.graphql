@@ -1,0 +1,1 @@
+query TokenLifecycleEventsQuery($cursor: String, $limit: Int, $query: TokenLifecycleEventsQueryInput!) { tokenLifecycleEvents (cursor: $cursor, limit: $limit, query: $query) { cursor, items { blockHash, blockNumber, eventType, id, logIndex, maker, networkId, timestamp, tokenAddress, transactionHash, transactionIndex } } }

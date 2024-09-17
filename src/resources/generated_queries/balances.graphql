@@ -1,0 +1,1 @@
+query BalancesQuery($input: BalancesInput!) { balances (input: $input) { cursor, items { balance, firstHeldTimestamp, shiftedBalance, tokenId, walletId } } }
