@@ -1,5 +1,5 @@
 mutation DeleteWebhooks($input: DeleteWebhooksInput!) {
-      deleteWebhooks (input: $input) {
+  deleteWebhooks(input: $input) {
     deletedIds
   }
-    }
+}

@@ -23,11 +23,9 @@ const GENERATED_QUERIES_DIRECTORY = path.join(
 
 class Subscription {
   constructor(private subscriptionName: string) {}
-
   pre() {
     return `${this.subscriptionName}SubscriptionVariables, ${this.subscriptionName}Subscription`;
   }
-
   main() {
     const graphqlString = fs.readFileSync(
       path.join(
@@ -46,12 +44,10 @@ class Subscription {
 
 class Mutation {
   constructor(private mutationName: string) {}
-
   pre() {
     return `${this.mutationName}Document,
   ${this.mutationName}MutationVariables`;
   }
-
   main() {
     return `${camelCase(this.mutationName)} = async (vars: ${
       this.mutationName
@@ -84,6 +80,7 @@ class SDK {
   constructor() {
     this.initialize();
   }
+
   initialize() {
     // crawl the generatedQueries and then create the typescript code for that query.
     const queries = fs.readdirSync(GENERATED_QUERIES_DIRECTORY);

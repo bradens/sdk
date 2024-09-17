@@ -1,1 +1,9 @@
-query ApiTokens { apiTokens  { expiresTimeString, id, remaining, requestLimit, token } }
+query ApiTokens {
+  apiTokens {
+    expiresTimeString
+    id
+    remaining
+    requestLimit
+    token
+  }
+}
