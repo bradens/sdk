@@ -157,7 +157,7 @@ async function run() {
       "resources",
       "generated_mutations",
     );
-    mkdirp(mutationsFolderPath);
+    await mkdirp(mutationsFolderPath);
     fs.writeFileSync(
       path.join(mutationsFolderPath, `${capitalize(field.name)}.graphql`),
       `mutation ${capitalize(field.name)}${mutationBuilderObject.query
@@ -185,7 +185,7 @@ async function run() {
       "resources",
       "generated_subscriptions",
     );
-    mkdirp(subscriptionsFolderPath);
+    await mkdirp(subscriptionsFolderPath);
     fs.writeFileSync(
       path.join(subscriptionsFolderPath, `${capitalize(field.name)}.graphql`),
       `subscription ${capitalize(field.name)}${subscriptionBuilderObject.query
@@ -214,7 +214,7 @@ async function run() {
       "resources",
       "generated_queries",
     );
-    mkdirp(queriesFolderPath);
+    await mkdirp(queriesFolderPath);
     fs.writeFileSync(
       path.join(queriesFolderPath, `${capitalize(field.name)}.graphql`),
       `query ${capitalize(field.name)}${queryBuilderObject.query
