@@ -17,12 +17,14 @@ type SchemaTypeDefinition = {
     | null;
   name?: string | null;
   ofType?: SchemaTypeDefinition | null;
+  isDeprecated?: boolean | null;
 };
 
 type SchemaType = {
   name: string;
   description?: string | null;
   type: SchemaTypeDefinition;
+  isDeprecated?: boolean | null;
   fields?: SchemaType[];
 };
 
@@ -39,7 +41,8 @@ export const getLeafType = (
   currentName: string,
   level = 0,
 ): Fields => {
-  if (level > 8 || !type?.kind || type.kind === "UNION") return result;
+  if (level > 8 || !type?.kind || type.kind === "UNION" || type.isDeprecated)
+    return result;
 
   // If it's a scalar, return the name
   if (type.kind === "SCALAR" || type.kind === "ENUM")
@@ -50,6 +53,7 @@ export const getLeafType = (
     // For each of the fields of the subtype, resolve them
     const subType = allTypes.find((t) => t.name === type.name);
     const subTypeLeaves = (subType?.fields ?? [])
+      .filter((t) => !t.isDeprecated)
       .map((f: SchemaType) =>
         getLeafType(f.type, allTypes, [], f.name, level + 1),
       )
@@ -195,6 +199,11 @@ async function run() {
   }
 
   for (const field of queryType.fields) {
+    if (field.isDeprecated) {
+      console.log("Skipping deprecated field", field.name);
+      continue;
+    }
+
     const args = field.args;
     const parsedVariables = parseVariables(args);
     const parsedFields = getLeafType(field.type, types, [], "").filter(Boolean);

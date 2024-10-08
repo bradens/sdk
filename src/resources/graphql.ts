@@ -1156,6 +1156,7 @@ export type GasEstimate = {
   approveTxHash?: Maybe<Scalars['String']['output']>;
   error?: Maybe<Scalars['String']['output']>;
   gasLimitEstimate?: Maybe<Scalars['String']['output']>;
+  totalFee?: Maybe<Scalars['String']['output']>;
 };
 
 export type GasFee = {
@@ -1204,6 +1205,7 @@ export type GetGasEstimateInput = {
   networkId: Scalars['Int']['input'];
   outputTokenAddress: Scalars['String']['input'];
   poolAddress?: InputMaybe<Scalars['String']['input']>;
+  sendWithPrivateRpc?: InputMaybe<Scalars['Boolean']['input']>;
   userId?: InputMaybe<Scalars['Int']['input']>;
   walletId?: InputMaybe<Scalars['Int']['input']>;
 };

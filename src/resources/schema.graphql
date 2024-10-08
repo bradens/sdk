@@ -1408,6 +1408,7 @@ type GasEstimate {
   gasLimitEstimate: String
   error: String
   approveTxHash: String
+  totalFee: String
 }
 
 type GasFee {
@@ -1466,6 +1467,7 @@ input GetGasEstimateInput {
   userId: Int
   walletId: Int
   customGas: String
+  sendWithPrivateRpc: Boolean
 }
 
 """Response returned by `getNetworkStats`."""

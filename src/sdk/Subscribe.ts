@@ -94,7 +94,7 @@ export class Subscribe {
     this.sdk.subscribe(
       `subscription OnNftEventsCreated($address: String, $networkId: Int) {
   onNftEventsCreated (address: $address, networkId: $networkId) {
-    address, events { aggregatorAddress, baseTokenAddress, baseTokenPrice, blockNumber, contractAddress, eventType, exchangeAddress, fillSource, id, individualBaseTokenPrice, individualNetworkBaseTokenPrice, individualPrice, individualPriceNetworkBaseToken, individualPriceUsd, individualTokenPrice, individualTradePrice, logIndex, maker, networkBaseTokenPrice, networkId, numberOfTokens, orderDirection, paymentTokenAddress, poolAddress, priceError, sortKey, taker, timestamp, tokenId, tokenPrice, totalPrice, totalPriceNetworkBaseToken, totalPriceUsd, totalTradePrice, transactionHash, transactionIndex }, id, networkId
+    address, events { aggregatorAddress, blockNumber, contractAddress, eventType, exchangeAddress, fillSource, id, individualPriceNetworkBaseToken, individualPriceUsd, individualTradePrice, logIndex, maker, networkId, numberOfTokens, orderDirection, paymentTokenAddress, poolAddress, priceError, sortKey, taker, timestamp, tokenId, totalPriceNetworkBaseToken, totalPriceUsd, totalTradePrice, transactionHash, transactionIndex }, id, networkId
   }
 }`,
       vars,
