@@ -9,13 +9,13 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@codex-data/sdk": "=0.6.2",
     "@types/node": "20.5.7",
     "@types/react": "18.2.21",
     "@types/react-dom": "18.2.7",
-    "next": "14",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
-    "typescript": "5.2.2",
-    "@codex-data/sdk": "../../"
+    "next": "^15.0.0-rc.1",
+    "react": "^19.0.0-rc-83825814-20241015",
+    "react-dom": "^19.0.0-rc-83825814-20241015",
+    "typescript": "5.2.2"
   }
 }
