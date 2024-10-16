@@ -4319,6 +4319,11 @@ export type OnBarsUpdatedResponse = {
   timestamp: Scalars['Int']['output'];
 };
 
+export type OnPricesUpdatedInput = {
+  address: Scalars['String']['input'];
+  networkId: Scalars['Int']['input'];
+};
+
 export type OnTokenEventsCreatedInput = {
   networkId: Scalars['Int']['input'];
   tokenAddress: Scalars['String']['input'];
@@ -6350,6 +6355,34 @@ export type RawTransactionWebhookConditionInput = {
   toOrFrom?: InputMaybe<StringEqualsConditionInput>;
 };
 
+export type ReferralEventData = ReferralsEventPayoutData | ReferralsEventRewardData;
+
+export type ReferralsEventPayoutData = {
+  __typename?: 'ReferralsEventPayoutData';
+  payouts: Array<ReferralsPayoutData>;
+};
+
+export type ReferralsEventRewardData = {
+  __typename?: 'ReferralsEventRewardData';
+  inputTokenAddress: Scalars['String']['output'];
+  networkId: Scalars['Int']['output'];
+  outputTokenAddress: Scalars['String']['output'];
+  payoutPercent: Scalars['Float']['output'];
+  referralUserId: Scalars['String']['output'];
+  rewardTokenAddress?: Maybe<Scalars['String']['output']>;
+  rewardTokenAmount?: Maybe<Scalars['String']['output']>;
+  transactionFee: Scalars['String']['output'];
+  transactionId: Scalars['String']['output'];
+  transactionTokenAddress: Scalars['String']['output'];
+  transactionTokenAmount: Scalars['String']['output'];
+};
+
+export type ReferralsPayoutData = {
+  __typename?: 'ReferralsPayoutData';
+  tokenAddressNetworkIdPaid: Scalars['String']['output'];
+  tokenAmountPaid: Scalars['String']['output'];
+};
+
 /** Price data for each supported resolution. */
 export type ResolutionBarData = {
   __typename?: 'ResolutionBarData';
@@ -6750,11 +6783,15 @@ export type Subscription = {
   onPairMetadataUpdated?: Maybe<PairMetadata>;
   /** Live-streamed price updates for a token. */
   onPriceUpdated?: Maybe<Price>;
+  /** Live-streamed price updates for multiple tokens. */
+  onPricesUpdated: Price;
   onSimulateTokenContract: SimulateTokenContractResult;
   /** Live streamed events for a given token across all it's pools */
   onTokenEventsCreated: AddTokenEventsOutput;
   /** Live-streamed token lifecycle events (mints and burns) */
   onTokenLifecycleEventsCreated: AddTokenLifecycleEventsOutput;
+  /** Live-streamed unconfirmed transactions for a token. (Solana only) */
+  onUnconfirmedEventsCreated?: Maybe<AddUnconfirmedEventsOutput>;
 };
 
 
@@ -6831,6 +6868,11 @@ export type SubscriptionOnPriceUpdatedArgs = {
 };
 
 
+export type SubscriptionOnPricesUpdatedArgs = {
+  input: Array<OnPricesUpdatedInput>;
+};
+
+
 export type SubscriptionOnSimulateTokenContractArgs = {
   contractAddress?: InputMaybe<Scalars['String']['input']>;
   networkId: Scalars['Int']['input'];
@@ -6846,6 +6888,13 @@ export type SubscriptionOnTokenEventsCreatedArgs = {
 export type SubscriptionOnTokenLifecycleEventsCreatedArgs = {
   address?: InputMaybe<Scalars['String']['input']>;
   networkId?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type SubscriptionOnUnconfirmedEventsCreatedArgs = {
+  address?: InputMaybe<Scalars['String']['input']>;
+  id?: InputMaybe<Scalars['String']['input']>;
+  quoteToken?: InputMaybe<QuoteToken>;
 };
 
 /** Event data for a token swap event. */

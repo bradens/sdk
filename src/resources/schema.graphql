@@ -5641,6 +5641,11 @@ input OneOfNumberConditionInput {
   oneOf: [Int!]!
 }
 
+input OnPricesUpdatedInput {
+  address: String!
+  networkId: Int!
+}
+
 input OnTokenEventsCreatedInput {
   tokenAddress: String!
   networkId: Int!
@@ -8406,6 +8411,31 @@ input RawTransactionWebhookConditionInput {
   ignoreNftEvents: Boolean
 }
 
+union ReferralEventData = ReferralsEventRewardData | ReferralsEventPayoutData
+
+type ReferralsEventPayoutData {
+  payouts: [ReferralsPayoutData!]!
+}
+
+type ReferralsEventRewardData {
+  networkId: Int!
+  inputTokenAddress: String!
+  outputTokenAddress: String!
+  transactionId: String!
+  transactionTokenAmount: String!
+  transactionTokenAddress: String!
+  transactionFee: String!
+  referralUserId: String!
+  payoutPercent: Float!
+  rewardTokenAmount: String
+  rewardTokenAddress: String
+}
+
+type ReferralsPayoutData {
+  tokenAmountPaid: String!
+  tokenAddressNetworkIdPaid: String!
+}
+
 """Price data for each supported resolution."""
 type ResolutionBarData {
   """1 second resolution."""
@@ -8897,6 +8927,18 @@ type Subscription {
     quoteToken: QuoteToken
   ): AddEventsOutput
 
+  """Live-streamed unconfirmed transactions for a token. (Solana only)"""
+  onUnconfirmedEventsCreated(
+    """The pair contract address."""
+    address: String
+
+    """The ID of the pair (`address`:`networkId`)."""
+    id: String
+
+    """The token of interest within the pair. Can be `token0` or `token1`."""
+    quoteToken: QuoteToken
+  ): AddUnconfirmedEventsOutput
+
   """Live-streamed price updates for a token."""
   onPriceUpdated(
     """The token contract address."""
@@ -8905,6 +8947,9 @@ type Subscription {
     """The network ID the token is deployed on."""
     networkId: Int
   ): Price
+
+  """Live-streamed price updates for multiple tokens."""
+  onPricesUpdated(input: [OnPricesUpdatedInput!]!): Price!
 
   """Live-streamed stat updates for a given token within a pair."""
   onPairMetadataUpdated(

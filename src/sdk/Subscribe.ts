@@ -22,6 +22,8 @@ import {
   OnNftPoolEventsCreatedSubscriptionVariables,
   OnPairMetadataUpdatedSubscription,
   OnPairMetadataUpdatedSubscriptionVariables,
+  OnPricesUpdatedSubscription,
+  OnPricesUpdatedSubscriptionVariables,
   OnPriceUpdatedSubscription,
   OnPriceUpdatedSubscriptionVariables,
   OnSimulateTokenContractSubscription,
@@ -30,6 +32,8 @@ import {
   OnTokenEventsCreatedSubscriptionVariables,
   OnTokenLifecycleEventsCreatedSubscription,
   OnTokenLifecycleEventsCreatedSubscriptionVariables,
+  OnUnconfirmedEventsCreatedSubscription,
+  OnUnconfirmedEventsCreatedSubscriptionVariables,
 } from "./generated/graphql";
 import { Codex } from "./index";
 
@@ -126,6 +130,19 @@ export class Subscribe {
       vars,
       sink,
     );
+  onPricesUpdated = async (
+    vars: OnPricesUpdatedSubscriptionVariables,
+    sink: Sink<ExecutionResult<OnPricesUpdatedSubscription>>,
+  ) =>
+    this.sdk.subscribe(
+      `subscription OnPricesUpdated($input: [OnPricesUpdatedInput!]!) {
+  onPricesUpdated (input: $input) {
+    address, confidence, networkId, priceUsd, timestamp
+  }
+}`,
+      vars,
+      sink,
+    );
   onEventLabelCreated = async (
     vars: OnEventLabelCreatedSubscriptionVariables,
     sink: Sink<ExecutionResult<OnEventLabelCreatedSubscription>>,
@@ -199,6 +216,19 @@ export class Subscribe {
       `subscription OnLatestPairUpdated($id: String, $networkId: Int) {
   onLatestPairUpdated (id: $id, networkId: $networkId) {
     address, exchangeHash, id, initialPriceUsd, liquidAt, liquidity, liquidityToken, networkId, newToken, nonLiquidityToken, oldToken, priceChange, priceUsd, token0 { address, currentPoolAmount, decimals, id, initialPoolAmount, name, networkId, pairId, poolVariation, symbol }, token1 { address, currentPoolAmount, decimals, id, initialPoolAmount, name, networkId, pairId, poolVariation, symbol }, transactionHash
+  }
+}`,
+      vars,
+      sink,
+    );
+  onUnconfirmedEventsCreated = async (
+    vars: OnUnconfirmedEventsCreatedSubscriptionVariables,
+    sink: Sink<ExecutionResult<OnUnconfirmedEventsCreatedSubscription>>,
+  ) =>
+    this.sdk.subscribe(
+      `subscription OnUnconfirmedEventsCreated($address: String, $id: String, $quoteToken: QuoteToken) {
+  onUnconfirmedEventsCreated (address: $address, id: $id, quoteToken: $quoteToken) {
+    address, events { address, blockHash, blockNumber, eventDisplayType, eventType, id, logIndex, maker, networkId, quoteToken, supplementalIndex, timestamp, transactionHash, transactionIndex }, id, networkId, quoteToken
   }
 }`,
       vars,
