@@ -87,6 +87,8 @@ import {
   GetTokenCountDocument,
   GetTokenCountQueryVariables,
   GetTokenEventsDocument,
+  GetTokenEventsForMakerDocument,
+  GetTokenEventsForMakerQueryVariables,
   GetTokenEventsQueryVariables,
   GetTokenInfoDocument,
   GetTokenInfoQueryVariables,
@@ -145,6 +147,8 @@ export class Query {
     this.sdk.query(GetTokenEventsDocument, vars);
   getNftPoolsByOwner = async (vars: GetNftPoolsByOwnerQueryVariables) =>
     this.sdk.query(GetNftPoolsByOwnerDocument, vars);
+  getTokenEventsForMaker = async (vars: GetTokenEventsForMakerQueryVariables) =>
+    this.sdk.query(GetTokenEventsForMakerDocument, vars);
   filterNftParallelAssets = async (
     vars: FilterNftParallelAssetsQueryVariables,
   ) => this.sdk.query(FilterNftParallelAssetsDocument, vars);

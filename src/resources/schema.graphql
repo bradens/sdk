@@ -68,6 +68,10 @@ type AddTokenLifecycleEventsOutput {
   events: [TokenLifecycleEvent!]!
 }
 
+type AddTrackedWalletEventsOutput {
+  userId: String!
+}
+
 """Response returned by `onUnconfirmedEventsCreated`."""
 type AddUnconfirmedEventsOutput {
   """The contract address of the pair."""
@@ -439,9 +443,7 @@ input CreateApiTokensInput {
   """
   requestLimit: String
 
-  """
-  Number of milliseconds until the token expires, defaults to 1 hour (3600000)
-  """
+  """Number of seconds until the token expires, defaults to 1 hour (3600)"""
   expiresIn: Int
 }
 
@@ -456,6 +458,7 @@ input CreateNftEventWebhookArgs {
   bucketId: String
   bucketSortkey: String
   publishingType: PublishingType
+  deduplicate: Boolean
 }
 
 input CreateNftEventWebhooksInput {
@@ -473,6 +476,7 @@ input CreatePriceWebhookArgs {
   bucketId: String
   bucketSortkey: String
   publishingType: PublishingType
+  deduplicate: Boolean
 }
 
 input CreatePriceWebhooksInput {
@@ -490,6 +494,7 @@ input CreateRawTransactionWebhookArgs {
   bucketId: String
   bucketSortkey: String
   publishingType: PublishingType
+  deduplicate: Boolean
 }
 
 input CreateRawTransactionWebhooksInput {
@@ -507,6 +512,7 @@ input CreateTokenPairEventWebhookArgs {
   bucketId: String
   bucketSortkey: String
   publishingType: PublishingType
+  deduplicate: Boolean
 }
 
 input CreateTokenPairEventWebhooksInput {
@@ -1406,8 +1412,9 @@ type FrontRunLabelData {
 
 type GasEstimate {
   gasLimitEstimate: String
+  gasPrice: String
   error: String
-  approveTxHash: String
+  errorReason: String
   totalFee: String
 }
 
@@ -1468,6 +1475,7 @@ input GetGasEstimateInput {
   walletId: Int
   customGas: String
   sendWithPrivateRpc: Boolean
+  slippage: Float
 }
 
 """Response returned by `getNetworkStats`."""
@@ -1529,6 +1537,7 @@ input GetQuoteInput {
   exchangeAddress: String
   userId: Int
   customGas: String
+  slippage: Float
 }
 
 type GetSimulateTokenContractResultsConnection {
@@ -2055,6 +2064,26 @@ type LockedLiquidityData {
   lockBreakdown: [LockBreakdown]!
 }
 
+"""Response returned by `getTokenEventsForMaker`."""
+type MakerEventConnection {
+  """A list of transactions for a token's top pair."""
+  items: [Event]
+
+  """A cursor for use in pagination."""
+  cursor: String
+}
+
+input MakerEventsQueryInput {
+  """The specific wallet address to filter by."""
+  maker: String!
+
+  """The network ID to filter by."""
+  networkId: Int!
+
+  """The token of interest. Can be `token0` or `token1`."""
+  quoteToken: QuoteToken
+}
+
 """The status for a network supported on Defined."""
 type MetadataResponse {
   """The last processed block on the network."""
@@ -2068,6 +2097,17 @@ type MetadataResponse {
 
   """The name of the network."""
   networkName: String!
+}
+
+input MigrateTrackedWalletsInput {
+  fromUserId: String!
+  toUserId: String!
+}
+
+type MigrateTrackedWalletsOutput {
+  fromUserId: String!
+  toUserId: String!
+  status: String!
 }
 
 """Event data for a token mint event."""
@@ -5631,6 +5671,9 @@ type OnBarsUpdatedResponse {
 
   """The quote token within the pair."""
   quoteToken: QuoteToken
+
+  """The address of the token being quoted"""
+  quoteTokenAddress: String!
 }
 
 type OneOfNumberCondition {
@@ -5644,6 +5687,42 @@ input OneOfNumberConditionInput {
 input OnPricesUpdatedInput {
   address: String!
   networkId: Int!
+}
+
+"""Response returned by `onBarsUpdated`."""
+type OnTokenBarsUpdatedResponse {
+  """The contract address for the pair."""
+  pairAddress: String!
+
+  """The network ID the pair is deployed on."""
+  networkId: Int!
+
+  """The ID for the pair (`pairAddress`:`networkId`)."""
+  pairId: String!
+
+  """The unix timestamp for the new bar."""
+  timestamp: Int!
+
+  """The type of statistics used. Can be `Filtered` or `Unfiltered`."""
+  statsType: TokenPairStatisticsType!
+
+  """
+  The sortKey for the bar (`blockNumber`#`transactionIndex`#`logIndex`, zero padded).
+  For example, `0000000016414564#00000224#00000413`.
+  """
+  eventSortKey: String!
+
+  """Price data broken down by resolution."""
+  aggregates: ResolutionBarData!
+
+  """The quote token within the pair."""
+  quoteToken: QuoteToken
+
+  """The address of the token being quoted"""
+  tokenAddress: String!
+
+  """The address of the token being quoted"""
+  tokenId: String!
 }
 
 input OnTokenEventsCreatedInput {
@@ -8027,11 +8106,13 @@ type Query {
     """
     currencyCode: String
   ): SymbolResponse
+
+  """Returns metadata for a given network."""
   getNetworkStats(
-    """The network Id to filter by"""
+    """The network Id to filter by."""
     networkId: Int!
 
-    """The Exchange address to filter by (optional)"""
+    """The exchange address to filter by (optional)."""
     exchangeAddress: String
   ): GetNetworkStatsResponse
 
@@ -8051,6 +8132,7 @@ type Query {
     """
     direction: RankingDirection
   ): EventConnection
+  getTokenEventsForMaker(limit: Int, query: MakerEventsQueryInput!, cursor: String, direction: RankingDirection): MakerEventConnection
 
   """
   Returns real-time or historical prices for a list of tokens, fetched in batches.
@@ -8320,6 +8402,7 @@ type Quote {
   poolFee: String
   poolFeeBps: Float
   quotedAmount: String!
+  outputAmountMin: String
   quoteType: QuoteType!
   tradeFee: String!
   tradeFeeBps: Float!
@@ -8351,16 +8434,6 @@ enum QuoteToken {
 enum QuoteType {
   INPUT
   OUTPUT
-}
-
-type QuoteV2 {
-  poolFee: String
-  poolFeeBps: Float
-  quotedAmount: String!
-  quoteType: QuoteType!
-  tradeFee: String!
-  tradeFeeBps: Float!
-  exchange: QuoteExchange!
 }
 
 """The order of ranking."""
@@ -8446,6 +8519,9 @@ type ResolutionBarData {
 
   """15 second resolution."""
   r15S: CurrencyBarData
+
+  """30 second resolution."""
+  r30S: CurrencyBarData
 
   """1 minute resolution."""
   r1: CurrencyBarData
@@ -8914,6 +8990,17 @@ type Subscription {
     """docs: hide"""
     statsType: TokenPairStatisticsType
   ): OnBarsUpdatedResponse
+
+  """
+  Live-streamed bar chart data to track price changes over time for a token.
+  """
+  onTokenBarsUpdated(
+    """The ID of the pair (`address`:`networkId`)."""
+    tokenId: String
+
+    """docs: hide"""
+    statsType: TokenPairStatisticsType
+  ): OnTokenBarsUpdatedResponse
 
   """Live-streamed transactions for a token."""
   onEventsCreated(
@@ -9718,6 +9805,9 @@ type TokenInfo {
   """The large token logo URL."""
   imageLargeUrl: String
 
+  """The token banner URL."""
+  imageBannerUrl: String
+
   """A description of the token."""
   description: String
 }
@@ -10071,6 +10161,9 @@ type TokenWithMetadata {
   """The token logo URL."""
   imageLargeUrl: String
 
+  """The token banner URL."""
+  imageBannerUrl: String
+
   """The unix timestamp for the creation of the token's first pair."""
   createdAt: Int
 
@@ -10164,6 +10257,26 @@ type UnconfirmedSwapEventData {
   The amount of `quoteToken` involved in the swap. For example, if `quoteToken` is USDC for a USDC/WETH pair, `amountNonLiquidityToken` would be the amount of USDC involved in the swap.
   """
   amountNonLiquidityToken: String
+
+  """
+  The price per `quoteToken` at the time of the swap in the network's base token. For example, if `quoteToken` is USDC for a USDC/WETH pair on ETH network, `priceBaseToken` would the price of USDC in ETH.
+  """
+  priceBaseToken: String
+
+  """
+  The total amount of `quoteToken` involved in the swap in the network's base token (`amountNonLiquidityToken` x `priceBaseToken`).
+  """
+  priceBaseTokenTotal: String
+
+  """
+  The price per `quoteToken` at the time of the swap in USD. For example, if `quoteToken` is USDC for a USDC/WETH pair on ETH network, `priceBaseToken` would the price of USDC in USD ($1.00).
+  """
+  priceUsd: String
+
+  """
+  The total amount of `quoteToken` involved in the swap in USD (`amountNonLiquidityToken` x `priceUsd`).
+  """
+  priceUsdTotal: String
 
   """The type of token event, `Swap`."""
   type: EventType!
