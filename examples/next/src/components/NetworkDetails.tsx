@@ -49,7 +49,7 @@ export default function NetworkDetails({
           suffix="USD"
         />
         <Stat
-          label="Transactions"
+          label="Swaps"
           value={networkStats.transactions24.toLocaleString()}
           suffix="tx"
         />

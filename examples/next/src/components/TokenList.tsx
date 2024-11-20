@@ -1,6 +1,7 @@
 import { FilterTokensQuery } from "@codex-data/sdk/dist/sdk/generated/graphql";
 import { GlobeIcon } from "@radix-ui/react-icons";
 import Image from "next/image";
+import Link from "next/link";
 
 import { Card, CardContent, CardHeader } from "./ui/card";
 
@@ -33,11 +34,9 @@ export default function TokenList({ tokens }: { tokens: FilterTokensQuery }) {
                 <GlobeIcon className="p-1" height={24} width={24} />
               )}
             </div>
-            <span className="flex">{t?.token?.name}</span>
-            {/* TODO add a token page */}
-            {/* <Link className="flex" href={`/token/${t?.token?.id}`}> */}
-            {/*   {t?.token?.name} */}
-            {/* </Link> */}
+            <Link className="flex" href={`/token/${t?.token?.id}`}>
+              {t?.token?.name}
+            </Link>
           </div>
         ))}
       </CardContent>

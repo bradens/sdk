@@ -6,10 +6,10 @@ const sdk = new Codex(
 );
 
 sdk.queries
-  .token({
-    input: {
-      address: "0xc56c7a0eaa804f854b536a5f3d5f49d2ec4b12b8",
+  .getTokenEvents({
+    query: {
+      address: "0x6f36111198af4ea37ee02979feca11ee81611e83",
       networkId: 1,
     },
   })
-  .then(console.log);
+  .then((r) => console.log(JSON.stringify(r, null, 2)));
