@@ -25,6 +25,7 @@ type SchemaType = {
   description?: string | null;
   type: SchemaTypeDefinition;
   isDeprecated?: boolean | null;
+  possibleTypes?: SchemaType[];
   fields?: SchemaType[];
 };
 
@@ -41,12 +42,40 @@ export const getLeafType = (
   currentName: string,
   level = 0,
 ): Fields => {
-  if (level > 8 || !type?.kind || type.kind === "UNION" || type.isDeprecated)
-    return result;
+  if (level > 8 || !type?.kind || type.isDeprecated) return result;
 
   // If it's a scalar, return the name
   if (type.kind === "SCALAR" || type.kind === "ENUM")
     return [...result, currentName!];
+
+  if (type.kind === "UNION") {
+    // Find all the possible types
+    const possibleTypes = allTypes.find((t) => t.name === type.name)
+      ?.possibleTypes;
+
+    // For each of the possible types, treat it as a sub object with a set of fields
+    const possibleTypeLeaves = possibleTypes
+      ?.map((f: SchemaType) => {
+        const resolvedType = allTypes.find(
+          (t) => t.name === f.name,
+        ) as unknown as SchemaTypeDefinition;
+        return getLeafType(
+          resolvedType,
+          allTypes,
+          [],
+          `... on ${f.name}`,
+          level + 1,
+        );
+      })
+      .flat();
+
+    if (!possibleTypeLeaves?.length) {
+      console.log("No possible types for union", type);
+      throw new Error(`No possible types for union type ${currentName}`);
+    }
+
+    return [...result, ...[{ [currentName]: possibleTypeLeaves }]];
+  }
 
   // If it's an object resolve it.
   if (type.kind === "OBJECT") {
@@ -162,12 +191,26 @@ async function run() {
       "generated_mutations",
     );
     await mkdirp(mutationsFolderPath);
-    fs.writeFileSync(
-      path.join(mutationsFolderPath, `${capitalize(field.name)}.graphql`),
-      `mutation ${capitalize(field.name)}${mutationBuilderObject.query
-        .toString()
-        .slice("mutation ".length)}`,
+
+    const overridePath = path.join(
+      __dirname,
+      "..",
+      "resources",
+      "mutations_override",
     );
+    const filename = `${capitalize(field.name)}.graphql`;
+    const filePath = path.join(mutationsFolderPath, filename);
+
+    // If we have an override, use it.
+    if (fs.existsSync(path.join(overridePath, filename)))
+      fs.copyFileSync(path.join(overridePath, filename), filePath);
+    else
+      fs.writeFileSync(
+        filePath,
+        `mutation ${capitalize(field.name)}${mutationBuilderObject.query
+          .toString()
+          .slice("mutation ".length)}`,
+      );
   }
 
   for (const field of subscriptionType.fields) {
@@ -190,12 +233,25 @@ async function run() {
       "generated_subscriptions",
     );
     await mkdirp(subscriptionsFolderPath);
-    fs.writeFileSync(
-      path.join(subscriptionsFolderPath, `${capitalize(field.name)}.graphql`),
-      `subscription ${capitalize(field.name)}${subscriptionBuilderObject.query
-        .toString()
-        .slice("subscription ".length)}`,
+
+    const overridePath = path.join(
+      __dirname,
+      "..",
+      "resources",
+      "subscriptions_override",
     );
+    const filename = `${capitalize(field.name)}.graphql`;
+    const subPath = path.join(subscriptionsFolderPath, filename);
+    // If we have an override, use it.
+    if (fs.existsSync(path.join(overridePath, filename)))
+      fs.copyFileSync(path.join(overridePath, filename), subPath);
+    else
+      fs.writeFileSync(
+        subPath,
+        `subscription ${capitalize(field.name)}${subscriptionBuilderObject.query
+          .toString()
+          .slice("subscription ".length)}`,
+      );
   }
 
   // Write queries
@@ -226,16 +282,24 @@ async function run() {
     );
     await mkdirp(queriesFolderPath);
 
-    const queryPath = path.join(
-      queriesFolderPath,
-      `${capitalize(field.name)}.graphql`,
+    const overridePath = path.join(
+      __dirname,
+      "..",
+      "resources",
+      "queries_override",
     );
-    fs.writeFileSync(
-      queryPath,
-      `query ${capitalize(field.name)}${queryBuilderObject.query
-        .toString()
-        .slice("query ".length)}`,
-    );
+    const queryFileName = `${capitalize(field.name)}.graphql`;
+    const queryPath = path.join(queriesFolderPath, queryFileName);
+    // If we have an override, use it.
+    if (fs.existsSync(path.join(overridePath, queryFileName)))
+      fs.copyFileSync(path.join(overridePath, queryFileName), queryPath);
+    else
+      fs.writeFileSync(
+        queryPath,
+        `query ${capitalize(field.name)}${queryBuilderObject.query
+          .toString()
+          .slice("query ".length)}`,
+      );
   }
 }
 
