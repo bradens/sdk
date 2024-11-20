@@ -32,8 +32,6 @@ import {
   GetDetailedPairsStatsQueryVariables,
   GetDetailedPairStatsDocument,
   GetDetailedPairStatsQueryVariables,
-  GetDetailedStatsDocument,
-  GetDetailedStatsQueryVariables,
   GetEventLabelsDocument,
   GetEventLabelsQueryVariables,
   GetExchangesDocument,
@@ -124,8 +122,6 @@ import {
   PrimeHoldersQueryVariables,
   SearchNftsDocument,
   SearchNftsQueryVariables,
-  SearchTokensDocument,
-  SearchTokensQueryVariables,
   TokenDocument,
   TokenLifecycleEventsDocument,
   TokenLifecycleEventsQueryVariables,
@@ -177,8 +173,6 @@ export class Query {
   ) => this.sdk.query(WalletNftCollectionAssetsDocument, vars);
   getWebhooks = async (vars: GetWebhooksQueryVariables) =>
     this.sdk.query(GetWebhooksDocument, vars);
-  getDetailedStats = async (vars: GetDetailedStatsQueryVariables) =>
-    this.sdk.query(GetDetailedStatsDocument, vars);
   listFavoriteTokens = async (vars: ListFavoriteTokensQueryVariables) =>
     this.sdk.query(ListFavoriteTokensDocument, vars);
   filterNftPoolCollections = async (
@@ -272,8 +266,6 @@ export class Query {
   ) => this.sdk.query(GetNftPoolsByCollectionAndExchangeDocument, vars);
   getLatestTokens = async (vars: GetLatestTokensQueryVariables) =>
     this.sdk.query(GetLatestTokensDocument, vars);
-  searchTokens = async (vars: SearchTokensQueryVariables) =>
-    this.sdk.query(SearchTokensDocument, vars);
   apiTokens = async (vars: ApiTokensQueryVariables) =>
     this.sdk.query(ApiTokensDocument, vars);
   searchNfts = async (vars: SearchNftsQueryVariables) =>

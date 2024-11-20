@@ -198,6 +198,7 @@ async function run() {
     );
   }
 
+  // Write queries
   for (const field of queryType.fields) {
     if (field.isDeprecated) {
       console.log("Skipping deprecated field", field.name);
@@ -224,8 +225,13 @@ async function run() {
       "generated_queries",
     );
     await mkdirp(queriesFolderPath);
+
+    const queryPath = path.join(
+      queriesFolderPath,
+      `${capitalize(field.name)}.graphql`,
+    );
     fs.writeFileSync(
-      path.join(queriesFolderPath, `${capitalize(field.name)}.graphql`),
+      queryPath,
       `query ${capitalize(field.name)}${queryBuilderObject.query
         .toString()
         .slice("query ".length)}`,

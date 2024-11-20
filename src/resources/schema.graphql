@@ -5925,6 +5925,18 @@ type PairFilterResult {
   """The percent price change in the past 24 hours. Decimal format."""
   priceChange24: String
 
+  """The percent volume change in the past hour. Decimal format."""
+  volumeChange1: String
+
+  """The percent volume change in the past 4 hours. Decimal format."""
+  volumeChange4: String
+
+  """The percent volume change in the past 12 hours. Decimal format."""
+  volumeChange12: String
+
+  """The percent volume change in the past 24 hours. Decimal format."""
+  volumeChange24: String
+
   """The number of sells in the past hour."""
   sellCount1: Int
 
@@ -6074,6 +6086,18 @@ input PairFilters {
 
   """The percent price change in the past 4 hours. Decimal format."""
   priceChange4: NumberFilter
+
+  """The percent volume change in the past hour. Decimal format."""
+  volumeChange1: NumberFilter
+
+  """The percent volume change in the past 4 hours. Decimal format."""
+  volumeChange4: NumberFilter
+
+  """The percent volume change in the past 12 hours. Decimal format."""
+  volumeChange12: NumberFilter
+
+  """The percent volume change in the past 24 hours. Decimal format."""
+  volumeChange24: NumberFilter
 
   """The number of sells in the past hour."""
   sellCount1: NumberFilter
@@ -6239,6 +6263,10 @@ enum PairRankingAttribute {
   priceChange4
   priceChange12
   priceChange24
+  volumeChange1
+  volumeChange4
+  volumeChange12
+  volumeChange24
   sellCount1
   sellCount4
   sellCount12
@@ -9470,6 +9498,18 @@ type TokenFilterResult {
   """The percent price change in the past 4 hours. Decimal format."""
   change4: String
 
+  """The percent volume change in the past hour. Decimal format."""
+  volumeChange1: String
+
+  """The percent volume change in the past 4 hours. Decimal format."""
+  volumeChange4: String
+
+  """The percent volume change in the past 12 hours. Decimal format."""
+  volumeChange12: String
+
+  """The percent volume change in the past 24 hours. Decimal format."""
+  volumeChange24: String
+
   """The exchanges the token is listed on."""
   exchanges: [Exchange]
   fdv: String @deprecated(reason: "FDV isn't supported - use marketCap instead")
@@ -9629,6 +9669,18 @@ input TokenFilters {
 
   """The percent price change in the past 4 hours. Decimal format."""
   change4: NumberFilter
+
+  """The percent volume change in the past hour. Decimal format."""
+  volumeChange1: NumberFilter
+
+  """The percent volume change in the past 4 hours. Decimal format."""
+  volumeChange4: NumberFilter
+
+  """The percent volume change in the past 12 hours. Decimal format."""
+  volumeChange12: NumberFilter
+
+  """The percent volume change in the past 24 hours. Decimal format."""
+  volumeChange24: NumberFilter
 
   """
   The list of exchange contract IDs to filter by. Applied in conjunction with `network` filter using an OR condition. When used together, the query returns results that match either the specified exchanges or the specified network.
@@ -9973,6 +10025,10 @@ enum TokenRankingAttribute {
   change4
   change12
   change24
+  volumeChange1
+  volumeChange4
+  volumeChange12
+  volumeChange24
   high1
   high4
   high12

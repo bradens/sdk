@@ -27778,6 +27778,54 @@
             "deprecationReason": null
           },
           {
+            "name": "volumeChange1",
+            "description": "The percent volume change in the past hour. Decimal format.",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "volumeChange4",
+            "description": "The percent volume change in the past 4 hours. Decimal format.",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "volumeChange12",
+            "description": "The percent volume change in the past 12 hours. Decimal format.",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "volumeChange24",
+            "description": "The percent volume change in the past 24 hours. Decimal format.",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "volumeUSD1",
             "description": "The trade volume in USD in the past hour.",
             "args": [],
@@ -28393,6 +28441,54 @@
           {
             "name": "uniqueTransactions24",
             "description": "The unique number of transactions in the past 24 hours.",
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "NumberFilter",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "volumeChange1",
+            "description": "The percent volume change in the past hour. Decimal format.",
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "NumberFilter",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "volumeChange4",
+            "description": "The percent volume change in the past 4 hours. Decimal format.",
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "NumberFilter",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "volumeChange12",
+            "description": "The percent volume change in the past 12 hours. Decimal format.",
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "NumberFilter",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "volumeChange24",
+            "description": "The percent volume change in the past 24 hours. Decimal format.",
             "type": {
               "kind": "INPUT_OBJECT",
               "name": "NumberFilter",
@@ -29374,6 +29470,30 @@
           },
           {
             "name": "uniqueTransactions24",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "volumeChange1",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "volumeChange4",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "volumeChange12",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "volumeChange24",
             "description": null,
             "isDeprecated": false,
             "deprecationReason": null
@@ -45425,6 +45545,54 @@
             },
             "isDeprecated": false,
             "deprecationReason": null
+          },
+          {
+            "name": "volumeChange1",
+            "description": "The percent volume change in the past hour. Decimal format.",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "volumeChange4",
+            "description": "The percent volume change in the past 4 hours. Decimal format.",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "volumeChange12",
+            "description": "The percent volume change in the past 12 hours. Decimal format.",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "volumeChange24",
+            "description": "The percent volume change in the past 24 hours. Decimal format.",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
           }
         ],
         "inputFields": null,
@@ -46102,6 +46270,54 @@
           {
             "name": "volume24",
             "description": "The trade volume in USD in the past 24 hours.",
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "NumberFilter",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "volumeChange1",
+            "description": "The percent volume change in the past hour. Decimal format.",
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "NumberFilter",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "volumeChange4",
+            "description": "The percent volume change in the past 4 hours. Decimal format.",
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "NumberFilter",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "volumeChange12",
+            "description": "The percent volume change in the past 12 hours. Decimal format.",
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "NumberFilter",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "volumeChange24",
+            "description": "The percent volume change in the past 24 hours. Decimal format.",
             "type": {
               "kind": "INPUT_OBJECT",
               "name": "NumberFilter",
@@ -47467,6 +47683,30 @@
           },
           {
             "name": "volume24",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "volumeChange1",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "volumeChange4",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "volumeChange12",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "volumeChange24",
             "description": null,
             "isDeprecated": false,
             "deprecationReason": null

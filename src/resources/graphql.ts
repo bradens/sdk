@@ -4596,6 +4596,14 @@ export type PairFilterResult = {
   uniqueTransactions12?: Maybe<Scalars['Int']['output']>;
   /** The unique number of transactions in the past 24 hours. */
   uniqueTransactions24?: Maybe<Scalars['Int']['output']>;
+  /** The percent volume change in the past hour. Decimal format. */
+  volumeChange1?: Maybe<Scalars['String']['output']>;
+  /** The percent volume change in the past 4 hours. Decimal format. */
+  volumeChange4?: Maybe<Scalars['String']['output']>;
+  /** The percent volume change in the past 12 hours. Decimal format. */
+  volumeChange12?: Maybe<Scalars['String']['output']>;
+  /** The percent volume change in the past 24 hours. Decimal format. */
+  volumeChange24?: Maybe<Scalars['String']['output']>;
   /** The trade volume in USD in the past hour. */
   volumeUSD1?: Maybe<Scalars['String']['output']>;
   /** The trade volume in USD in the past 4 hours. */
@@ -4700,6 +4708,14 @@ export type PairFilters = {
   uniqueTransactions12?: InputMaybe<NumberFilter>;
   /** The unique number of transactions in the past 24 hours. */
   uniqueTransactions24?: InputMaybe<NumberFilter>;
+  /** The percent volume change in the past hour. Decimal format. */
+  volumeChange1?: InputMaybe<NumberFilter>;
+  /** The percent volume change in the past 4 hours. Decimal format. */
+  volumeChange4?: InputMaybe<NumberFilter>;
+  /** The percent volume change in the past 12 hours. Decimal format. */
+  volumeChange12?: InputMaybe<NumberFilter>;
+  /** The percent volume change in the past 24 hours. Decimal format. */
+  volumeChange24?: InputMaybe<NumberFilter>;
   /** The trade volume in USD in the past hour. */
   volumeUSD1?: InputMaybe<NumberFilter>;
   /** The trade volume in USD in the past 4 hours. */
@@ -4818,6 +4834,10 @@ export enum PairRankingAttribute {
   UniqueTransactions4 = 'uniqueTransactions4',
   UniqueTransactions12 = 'uniqueTransactions12',
   UniqueTransactions24 = 'uniqueTransactions24',
+  VolumeChange1 = 'volumeChange1',
+  VolumeChange4 = 'volumeChange4',
+  VolumeChange12 = 'volumeChange12',
+  VolumeChange24 = 'volumeChange24',
   VolumeUsd1 = 'volumeUSD1',
   VolumeUsd4 = 'volumeUSD4',
   VolumeUsd12 = 'volumeUSD12',
@@ -7292,6 +7312,14 @@ export type TokenFilterResult = {
   volume12?: Maybe<Scalars['String']['output']>;
   /** The trade volume in USD in the past 24 hours. */
   volume24?: Maybe<Scalars['String']['output']>;
+  /** The percent volume change in the past hour. Decimal format. */
+  volumeChange1?: Maybe<Scalars['String']['output']>;
+  /** The percent volume change in the past 4 hours. Decimal format. */
+  volumeChange4?: Maybe<Scalars['String']['output']>;
+  /** The percent volume change in the past 12 hours. Decimal format. */
+  volumeChange12?: Maybe<Scalars['String']['output']>;
+  /** The percent volume change in the past 24 hours. Decimal format. */
+  volumeChange24?: Maybe<Scalars['String']['output']>;
 };
 
 /** Input type of `TokenFilters`. */
@@ -7406,6 +7434,14 @@ export type TokenFilters = {
   volume12?: InputMaybe<NumberFilter>;
   /** The trade volume in USD in the past 24 hours. */
   volume24?: InputMaybe<NumberFilter>;
+  /** The percent volume change in the past hour. Decimal format. */
+  volumeChange1?: InputMaybe<NumberFilter>;
+  /** The percent volume change in the past 4 hours. Decimal format. */
+  volumeChange4?: InputMaybe<NumberFilter>;
+  /** The percent volume change in the past 12 hours. Decimal format. */
+  volumeChange12?: InputMaybe<NumberFilter>;
+  /** The percent volume change in the past 24 hours. Decimal format. */
+  volumeChange24?: InputMaybe<NumberFilter>;
 };
 
 /** Metadata for a token. */
@@ -7628,7 +7664,11 @@ export enum TokenRankingAttribute {
   Volume1 = 'volume1',
   Volume4 = 'volume4',
   Volume12 = 'volume12',
-  Volume24 = 'volume24'
+  Volume24 = 'volume24',
+  VolumeChange1 = 'volumeChange1',
+  VolumeChange4 = 'volumeChange4',
+  VolumeChange12 = 'volumeChange12',
+  VolumeChange24 = 'volumeChange24'
 }
 
 /** Response returned by `searchTokens`. */
