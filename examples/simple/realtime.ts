@@ -22,13 +22,14 @@ const sink: Sink<ExecutionResult<Price>> = {
   },
 };
 
-const address = process.argv[2] ?? "0x302cae5dcf8f051d0177043c3438020b89b33218";
-const networkId = process.argv[3] ?? "1";
+const address =
+  process.argv[2] ?? "2zMMhcVQEXDtdE6vsFS7S7D5oUodfJHE8vd1gnBouauv";
+const networkId = process.argv[3] ?? "1399811149";
 
 console.log(`subscribing to ${address}:${networkId}`);
 
 // Subscribes to the onPriceUpdated event and just logs out the value to the console
-sdk.subscribe<Price, { address: string; networkId: number }>(
+const cleanup = sdk.subscribe<Price, { address: string; networkId: number }>(
   `
   subscription onPriceUpdated($address: String!, $networkId: Int!) {
     onPriceUpdated(address: $address, networkId: $networkId) {
@@ -45,3 +46,8 @@ sdk.subscribe<Price, { address: string; networkId: number }>(
   },
   sink,
 );
+
+setTimeout(() => {
+  console.log("Calling cleanup function to unsubscribe");
+  cleanup();
+}, 5000);
