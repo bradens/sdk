@@ -519,6 +519,50 @@
         "possibleTypes": null
       },
       {
+        "kind": "INPUT_OBJECT",
+        "name": "AddUserAchievementInput",
+        "description": null,
+        "isOneOf": false,
+        "fields": null,
+        "inputFields": [
+          {
+            "name": "quantity",
+            "description": null,
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "userId",
+            "description": null,
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              }
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "interfaces": null,
+        "enumValues": null,
+        "possibleTypes": null
+      },
+      {
         "kind": "ENUM",
         "name": "AlertRecurrence",
         "description": null,
@@ -743,6 +787,18 @@
             "type": {
               "kind": "SCALAR",
               "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "includeNative",
+            "description": "If set to true, native tokens in the response, they will have the id: native:<networkId>",
+            "type": {
+              "kind": "SCALAR",
+              "name": "Boolean",
               "ofType": null
             },
             "defaultValue": null,
@@ -4882,6 +4938,18 @@
             "deprecationReason": "Use the TokenInfo type"
           },
           {
+            "name": "freezable",
+            "description": "Whether or not the token is freezable",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "id",
             "description": "The ID of the token (`address:networkId`).",
             "args": [],
@@ -4952,6 +5020,18 @@
             "type": {
               "kind": "SCALAR",
               "name": "Boolean",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "mintable",
+            "description": "Whether or not the token is mintable",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
               "ofType": null
             },
             "isDeprecated": false,
@@ -26423,6 +26503,18 @@
             "defaultValue": null,
             "isDeprecated": false,
             "deprecationReason": null
+          },
+          {
+            "name": "sourcePairAddress",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
           }
         ],
         "interfaces": null,
@@ -40111,6 +40203,34 @@
         "possibleTypes": null
       },
       {
+        "kind": "INPUT_OBJECT",
+        "name": "RemoveUserAchievementInput",
+        "description": null,
+        "isOneOf": false,
+        "fields": null,
+        "inputFields": [
+          {
+            "name": "userId",
+            "description": null,
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              }
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "interfaces": null,
+        "enumValues": null,
+        "possibleTypes": null
+      },
+      {
         "kind": "OBJECT",
         "name": "ResolutionBarData",
         "description": "Price data for each supported resolution.",
@@ -43438,6 +43558,18 @@
                 "defaultValue": null,
                 "isDeprecated": false,
                 "deprecationReason": null
+              },
+              {
+                "name": "sourcePairAddress",
+                "description": "The pair contract address from which to get pricing",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
               }
             ],
             "type": {
@@ -45922,6 +46054,18 @@
             "type": {
               "kind": "INPUT_OBJECT",
               "name": "NumberFilter",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "creatorAddress",
+            "description": "The address of the creator of the token",
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
               "ofType": null
             },
             "defaultValue": null,

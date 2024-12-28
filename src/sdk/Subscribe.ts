@@ -209,8 +209,8 @@ export class Subscribe {
     sink: Sink<ExecutionResult<OnPriceUpdatedSubscription>>,
   ) =>
     this.sdk.subscribe(
-      `subscription OnPriceUpdated($address: String, $networkId: Int) {
-  onPriceUpdated (address: $address, networkId: $networkId) {
+      `subscription OnPriceUpdated($address: String, $networkId: Int, $sourcePairAddress: String) {
+  onPriceUpdated (address: $address, networkId: $networkId, sourcePairAddress: $sourcePairAddress) {
     address, confidence, networkId, poolAddress, priceUsd, timestamp
   }
 }`,

@@ -88,6 +88,11 @@ export type AddUnconfirmedEventsOutput = {
   quoteToken?: Maybe<QuoteToken>;
 };
 
+export type AddUserAchievementInput = {
+  quantity: Scalars['Int']['input'];
+  userId: Scalars['String']['input'];
+};
+
 export enum AlertRecurrence {
   Indefinite = 'INDEFINITE',
   Once = 'ONCE'
@@ -127,6 +132,8 @@ export type BalancesInput = {
   cursor?: InputMaybe<Scalars['String']['input']>;
   /** Optional token specifically request the balance for */
   filterToken?: InputMaybe<Scalars['String']['input']>;
+  /** If set to true, native tokens in the response, they will have the id: native:<networkId> */
+  includeNative?: InputMaybe<Scalars['Boolean']['input']>;
   /** The ID of the wallet (`walletAddress:networkId`). */
   walletId: Scalars['String']['input'];
 };
@@ -765,6 +772,8 @@ export type EnhancedToken = {
    * @deprecated Use the TokenInfo type
    */
   explorerData?: Maybe<ExplorerTokenData>;
+  /** Whether or not the token is freezable */
+  freezable?: Maybe<Scalars['String']['output']>;
   /** The ID of the token (`address:networkId`). */
   id: Scalars['String']['output'];
   /**
@@ -786,6 +795,8 @@ export type EnhancedToken = {
   info?: Maybe<TokenInfo>;
   /** Whether the token has been flagged as a scam. */
   isScam?: Maybe<Scalars['Boolean']['output']>;
+  /** Whether or not the token is mintable */
+  mintable?: Maybe<Scalars['String']['output']>;
   /** The token name. For example, `ApeCoin`. */
   name?: Maybe<Scalars['String']['output']>;
   /** The network ID the token is deployed on. */
@@ -4368,6 +4379,7 @@ export type OnBarsUpdatedResponse = {
 export type OnPricesUpdatedInput = {
   address: Scalars['String']['input'];
   networkId: Scalars['Int']['input'];
+  sourcePairAddress?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** Response returned by `onBarsUpdated`. */
@@ -6503,6 +6515,10 @@ export type ReferralsPayoutData = {
   tokenAmountPaid: Scalars['String']['output'];
 };
 
+export type RemoveUserAchievementInput = {
+  userId: Scalars['String']['input'];
+};
+
 /** Price data for each supported resolution. */
 export type ResolutionBarData = {
   __typename?: 'ResolutionBarData';
@@ -6991,6 +7007,7 @@ export type SubscriptionOnPairMetadataUpdatedArgs = {
 export type SubscriptionOnPriceUpdatedArgs = {
   address?: InputMaybe<Scalars['String']['input']>;
   networkId?: InputMaybe<Scalars['Int']['input']>;
+  sourcePairAddress?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -7380,6 +7397,8 @@ export type TokenFilters = {
   change24?: InputMaybe<NumberFilter>;
   /** The unix timestamp for the creation of the token's first pair. */
   createdAt?: InputMaybe<NumberFilter>;
+  /** The address of the creator of the token */
+  creatorAddress?: InputMaybe<Scalars['String']['input']>;
   /** The list of exchange contract addresses to filter by. */
   exchangeAddress?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   /** The list of exchange contract IDs to filter by. Applied in conjunction with `network` filter using an OR condition. When used together, the query returns results that match either the specified exchanges or the specified network. */

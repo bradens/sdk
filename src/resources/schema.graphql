@@ -92,6 +92,11 @@ type AddUnconfirmedEventsOutput {
   events: [UnconfirmedEvent]!
 }
 
+input AddUserAchievementInput {
+  userId: String!
+  quantity: Int!
+}
+
 enum AlertRecurrence {
   INDEFINITE
   ONCE
@@ -147,6 +152,11 @@ input BalancesInput {
 
   """Optional token specifically request the balance for"""
   filterToken: String
+
+  """
+  If set to true, native tokens in the response, they will have the id: native:<networkId>
+  """
+  includeNative: Boolean
 }
 
 type BalancesResponse {
@@ -937,6 +947,12 @@ type EnhancedToken {
 
   """The unix timestamp for the creation of the token."""
   createdAt: Int
+
+  """Whether or not the token is mintable"""
+  mintable: String
+
+  """Whether or not the token is freezable"""
+  freezable: String
 }
 
 """A token transaction."""
@@ -5690,6 +5706,7 @@ input OneOfNumberConditionInput {
 input OnPricesUpdatedInput {
   address: String!
   networkId: Int!
+  sourcePairAddress: String
 }
 
 """Response returned by `onBarsUpdated`."""
@@ -8573,6 +8590,10 @@ type ReferralsPayoutData {
   tokenAddressNetworkIdPaid: String!
 }
 
+input RemoveUserAchievementInput {
+  userId: String!
+}
+
 """Price data for each supported resolution."""
 type ResolutionBarData {
   """1 second resolution."""
@@ -9108,6 +9129,9 @@ type Subscription {
 
     """The network ID the token is deployed on."""
     networkId: Int
+
+    """The pair contract address from which to get pricing"""
+    sourcePairAddress: String
   ): Price
 
   """Live-streamed price updates for multiple tokens."""
@@ -9864,6 +9888,9 @@ input TokenFilters {
 
   """Whether to ignore pairs/tokens not relevant to trending"""
   trendingIgnored: Boolean
+
+  """The address of the creator of the token"""
+  creatorAddress: String
 }
 
 """Metadata for a token."""
