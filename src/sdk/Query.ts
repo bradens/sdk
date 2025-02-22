@@ -36,8 +36,6 @@ import {
   GetEventLabelsQueryVariables,
   GetExchangesDocument,
   GetExchangesQueryVariables,
-  GetLatestPairsDocument,
-  GetLatestPairsQueryVariables,
   GetLatestTokensDocument,
   GetLatestTokensQueryVariables,
   GetNetworksDocument,
@@ -68,8 +66,6 @@ import {
   GetNftPoolsByOwnerQueryVariables,
   GetNftPoolStatsDocument,
   GetNftPoolStatsQueryVariables,
-  GetParallelAssetsDocument,
-  GetParallelAssetsQueryVariables,
   GetParallelCardChangesDocument,
   GetParallelCardChangesQueryVariables,
   GetPrimePoolAssetsDocument,
@@ -82,20 +78,12 @@ import {
   GetSimulateTokenContractResultsQueryVariables,
   GetSymbolDocument,
   GetSymbolQueryVariables,
-  GetTokenCountDocument,
-  GetTokenCountQueryVariables,
   GetTokenEventsDocument,
   GetTokenEventsForMakerDocument,
   GetTokenEventsForMakerQueryVariables,
   GetTokenEventsQueryVariables,
-  GetTokenInfoDocument,
-  GetTokenInfoQueryVariables,
   GetTokenPricesDocument,
   GetTokenPricesQueryVariables,
-  GetTokensInfoDocument,
-  GetTokensInfoQueryVariables,
-  GetUniV3TicksDocument,
-  GetUniV3TicksQueryVariables,
   GetWebhooksDocument,
   GetWebhooksQueryVariables,
   HoldersDocument,
@@ -104,8 +92,6 @@ import {
   LiquidityLocksQueryVariables,
   LiquidityMetadataDocument,
   LiquidityMetadataQueryVariables,
-  ListFavoriteTokensDocument,
-  ListFavoriteTokensQueryVariables,
   ListPairsForTokenDocument,
   ListPairsForTokenQueryVariables,
   ListPairsWithMetadataForTokenDocument,
@@ -116,8 +102,6 @@ import {
   NftHoldersQueryVariables,
   PairMetadataDocument,
   PairMetadataQueryVariables,
-  PrimeBalanceDocument,
-  PrimeBalanceQueryVariables,
   PrimeHoldersDocument,
   PrimeHoldersQueryVariables,
   SearchNftsDocument,
@@ -130,6 +114,8 @@ import {
   TokenSparklinesDocument,
   TokenSparklinesQueryVariables,
   TokensQueryVariables,
+  Top10HoldersPercentDocument,
+  Top10HoldersPercentQueryVariables,
   WalletNftCollectionAssetsDocument,
   WalletNftCollectionAssetsQueryVariables,
   WalletNftCollectionsDocument,
@@ -139,6 +125,8 @@ import { Codex } from "./index";
 
 export class Query {
   constructor(private sdk: Codex) {}
+  top10HoldersPercent = async (vars: Top10HoldersPercentQueryVariables) =>
+    this.sdk.query(Top10HoldersPercentDocument, vars);
   getTokenEvents = async (vars: GetTokenEventsQueryVariables) =>
     this.sdk.query(GetTokenEventsDocument, vars);
   getNftPoolsByOwner = async (vars: GetNftPoolsByOwnerQueryVariables) =>
@@ -156,32 +144,18 @@ export class Query {
     this.sdk.query(PairMetadataDocument, vars);
   getNftContracts = async (vars: GetNftContractsQueryVariables) =>
     this.sdk.query(GetNftContractsDocument, vars);
-  getTokensInfo = async (vars: GetTokensInfoQueryVariables) =>
-    this.sdk.query(GetTokensInfoDocument, vars);
   liquidityMetadata = async (vars: LiquidityMetadataQueryVariables) =>
     this.sdk.query(LiquidityMetadataDocument, vars);
-  getLatestPairs = async (vars: GetLatestPairsQueryVariables) =>
-    this.sdk.query(GetLatestPairsDocument, vars);
-  getUniV3Ticks = async (vars: GetUniV3TicksQueryVariables) =>
-    this.sdk.query(GetUniV3TicksDocument, vars);
-  getParallelAssets = async (vars: GetParallelAssetsQueryVariables) =>
-    this.sdk.query(GetParallelAssetsDocument, vars);
-  primeBalance = async (vars: PrimeBalanceQueryVariables) =>
-    this.sdk.query(PrimeBalanceDocument, vars);
   walletNftCollectionAssets = async (
     vars: WalletNftCollectionAssetsQueryVariables,
   ) => this.sdk.query(WalletNftCollectionAssetsDocument, vars);
   getWebhooks = async (vars: GetWebhooksQueryVariables) =>
     this.sdk.query(GetWebhooksDocument, vars);
-  listFavoriteTokens = async (vars: ListFavoriteTokensQueryVariables) =>
-    this.sdk.query(ListFavoriteTokensDocument, vars);
   filterNftPoolCollections = async (
     vars: FilterNftPoolCollectionsQueryVariables,
   ) => this.sdk.query(FilterNftPoolCollectionsDocument, vars);
   getPrimePools = async (vars: GetPrimePoolsQueryVariables) =>
     this.sdk.query(GetPrimePoolsDocument, vars);
-  getTokenCount = async (vars: GetTokenCountQueryVariables) =>
-    this.sdk.query(GetTokenCountDocument, vars);
   primeHolders = async (vars: PrimeHoldersQueryVariables) =>
     this.sdk.query(PrimeHoldersDocument, vars);
   balances = async (vars: BalancesQueryVariables) =>
@@ -193,8 +167,6 @@ export class Query {
   getNftPoolCollectionsByExchange = async (
     vars: GetNftPoolCollectionsByExchangeQueryVariables,
   ) => this.sdk.query(GetNftPoolCollectionsByExchangeDocument, vars);
-  getTokenInfo = async (vars: GetTokenInfoQueryVariables) =>
-    this.sdk.query(GetTokenInfoDocument, vars);
   getNftPoolStats = async (vars: GetNftPoolStatsQueryVariables) =>
     this.sdk.query(GetNftPoolStatsDocument, vars);
   tokenSparklines = async (vars: TokenSparklinesQueryVariables) =>

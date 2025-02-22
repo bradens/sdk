@@ -49,6 +49,7 @@ type AddNftEventsOutput {
   events: [NftEvent]!
 }
 
+"""Response returned by `onNftPoolEventsCreated`."""
 type AddNftPoolEventsOutput {
   collectionAddress: String!
   exchangeAddress: String!
@@ -58,11 +59,24 @@ type AddNftPoolEventsOutput {
   events: [NftPoolEvent]!
 }
 
+enum AddressType {
+  EVM
+  SOL
+  TRON
+}
+
+"""Response returned by `onTokenEventsCreated`."""
 type AddTokenEventsOutput {
+  """
+  The ID of the event (`address`:`networkId`). For example, `0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2:1`.
+  """
   id: String!
+
+  """A list of transactions for the token."""
   events: [Event!]!
 }
 
+"""Response returned by `onTokenLifecycleEventsCreated`."""
 type AddTokenLifecycleEventsOutput {
   id: String!
   events: [TokenLifecycleEvent!]!
@@ -97,6 +111,7 @@ input AddUserAchievementInput {
   quantity: Int!
 }
 
+"""The recurrence of the webhook. Can be `INDEFINITE` or `ONCE`."""
 enum AlertRecurrence {
   INDEFINITE
   ONCE
@@ -216,7 +231,7 @@ type BarsResponse {
   """The sell volume in USD"""
   sellVolume: [String]!
 
-  """Liqudity in USD"""
+  """Liquidity in USD"""
   liquidity: [String]!
 
   """The number of traders"""
@@ -224,6 +239,9 @@ type BarsResponse {
 
   """The number of transactions"""
   transactions: [Int]!
+
+  """The pair that is being returned"""
+  pair: Pair!
 }
 
 """
@@ -391,19 +409,39 @@ enum CommunityNoteType {
   LOGO
 }
 
+"""Comparison operators."""
 type ComparisonOperator {
+  """Greater than."""
   gt: String
+
+  """Greater than or equal to."""
   gte: String
+
+  """Less than."""
   lt: String
+
+  """Less than or equal to."""
   lte: String
+
+  """Equal to."""
   eq: String
 }
 
+"""Input for comparison operators."""
 input ComparisonOperatorInput {
+  """Greater than."""
   gt: String
+
+  """Greater than or equal."""
   gte: String
+
+  """Less than."""
   lt: String
+
+  """Less than or equal."""
   lte: String
+
+  """Equal to."""
   eq: String
 }
 
@@ -457,89 +495,257 @@ input CreateApiTokensInput {
   expiresIn: Int
 }
 
+"""Input for creating an NFT event webhook."""
 input CreateNftEventWebhookArgs {
+  """The name of the webhook (max 128 characters)."""
   name: String!
+
+  """The url to which the webhook message should be sent."""
   callbackUrl: String!
+
+  """
+  A string value to hash along with `deduplicationId` using SHA-256. Included in the webhook message for added security.
+  """
   securityToken: String!
+
+  """The recurrence of the webhook. Can be `INDEFINITE` or `ONCE`."""
   alertRecurrence: AlertRecurrence!
+
+  """
+  A webhook group ID (max 64 characters). Can be used to group webhooks so that their messages are kept in order as a group rather than by individual webhook.
+  """
   groupId: String
+
+  """
+  The conditions which must be met in order for the webhook to send a message.
+  """
   conditions: NftEventWebhookConditionInput!
+
+  """The settings for retrying failed webhook messages."""
   retrySettings: RetrySettingsInput
+
+  """
+  An optional bucket ID (max 64 characters). Can be used to query for subgroups of webhooks (useful if you have a large number of webhooks).
+  """
   bucketId: String
+
+  """
+  An optional bucket sort key (max 64 characters). Can be used to query for subgroups of webhooks (useful if you have a large number of webhooks).
+  """
   bucketSortkey: String
+
+  """
+  The type of publishing for the webhook. If not set, it defaults to `SINGLE`.
+  """
   publishingType: PublishingType
+
+  """
+  If enabled, new webhooks won't be created if a webhook with the same parameters already exists. If callbackUrl, conditions, publishingType, and alertRecurrence all match, then we return the existing webhook.
+  """
   deduplicate: Boolean
 }
 
+"""Input for creating NFT event webhooks."""
 input CreateNftEventWebhooksInput {
+  """A list of NFT event webhooks to create."""
   webhooks: [CreateNftEventWebhookArgs!]!
 }
 
+"""Input for creating a price webhook."""
 input CreatePriceWebhookArgs {
+  """The name of the webhook (max 128 characters)."""
   name: String!
+
+  """The url to which the webhook message should be sent."""
   callbackUrl: String!
+
+  """
+  A string value to hash along with `deduplicationId` using SHA-256. Included in the webhook message for added security.
+  """
   securityToken: String!
+
+  """The recurrence of the webhook. Can be `INDEFINITE` or `ONCE`."""
   alertRecurrence: AlertRecurrence!
+
+  """
+  A webhook group ID (max 64 characters). Can be used to group webhooks so that their messages are kept in order as a group rather than by individual webhook.
+  """
   groupId: String
+
+  """
+  The conditions which must be met in order for the webhook to send a message.
+  """
   conditions: PriceEventWebhookConditionInput!
+
+  """The settings for retrying failed webhook messages."""
   retrySettings: RetrySettingsInput
+
+  """
+  An optional bucket ID (max 64 characters). Can be used to query for subgroups of webhooks (useful if you have a large number of webhooks).
+  """
   bucketId: String
+
+  """
+  An optional bucket sort key (max 64 characters). Can be used to query for subgroups of webhooks (useful if you have a large number of webhooks).
+  """
   bucketSortkey: String
+
+  """
+  The type of publishing for the webhook. If not set, it defaults to `SINGLE`.
+  """
   publishingType: PublishingType
+
+  """
+  If enabled, new webhooks won't be created if a webhook with the same parameters already exists. If callbackUrl, conditions, publishingType, and alertRecurrence all match, then we return the existing webhook.
+  """
   deduplicate: Boolean
 }
 
+"""Input for creating price webhooks."""
 input CreatePriceWebhooksInput {
+  """A list of price webhooks to create."""
   webhooks: [CreatePriceWebhookArgs!]!
 }
 
+"""Input for creating a Raw Transaction webhook."""
 input CreateRawTransactionWebhookArgs {
+  """The name of the webhook (max 128 characters)."""
   name: String!
+
+  """The url to which the webhook message should be sent."""
   callbackUrl: String!
+
+  """
+  A string value to hash along with `deduplicationId` using SHA-256. Included in the webhook message for added security.
+  """
   securityToken: String!
+
+  """The recurrence of the webhook. Can be `INDEFINITE` or `ONCE`."""
   alertRecurrence: AlertRecurrence!
+
+  """
+  A webhook group ID (max 64 characters). Can be used to group webhooks so that their messages are kept in order as a group rather than by individual webhook.
+  """
   groupId: String
+
+  """
+  The conditions which must be met in order for the webhook to send a message.
+  """
   conditions: RawTransactionWebhookConditionInput!
+
+  """The settings for retrying failed webhook messages."""
   retrySettings: RetrySettingsInput
+
+  """
+  An optional bucket ID (max 64 characters). Can be used to query for subgroups of webhooks (useful if you have a large number of webhooks).
+  """
   bucketId: String
+
+  """
+  An optional bucket sort key (max 64 characters). Can be used to query for subgroups of webhooks (useful if you have a large number of webhooks).
+  """
   bucketSortkey: String
+
+  """
+  The type of publishing for the webhook. If not set, it defaults to `SINGLE`.
+  """
   publishingType: PublishingType
+
+  """
+  If enabled, new webhooks won't be created if a webhook with the same parameters already exists. If callbackUrl, conditions, publishingType, and alertRecurrence all match, then we return the existing webhook.
+  """
   deduplicate: Boolean
 }
 
+"""Input for creating Raw Transaction webhooks."""
 input CreateRawTransactionWebhooksInput {
+  """A list of Raw Transaction webhooks to create."""
   webhooks: [CreateRawTransactionWebhookArgs!]!
 }
 
+"""Input for creating a token pair event webhook."""
 input CreateTokenPairEventWebhookArgs {
+  """The name of the webhook (max 128 characters)."""
   name: String!
+
+  """The url to which the webhook message should be sent."""
   callbackUrl: String!
+
+  """
+  A string value to hash along with `deduplicationId` using SHA-256. Included in the webhook message for added security.
+  """
   securityToken: String!
+
+  """The recurrence of the webhook. Can be `INDEFINITE` or `ONCE`."""
   alertRecurrence: AlertRecurrence!
+
+  """
+  A webhook group ID (max 64 characters). Can be used to group webhooks so that their messages are kept in order as a group rather than by individual webhook.
+  """
   groupId: String
+
+  """
+  The conditions which must be met in order for the webhook to send a message.
+  """
   conditions: TokenPairEventWebhookConditionInput!
+
+  """The settings for retrying failed webhook messages."""
   retrySettings: RetrySettingsInput
+
+  """
+  An optional bucket ID (max 64 characters). Can be used to query for subgroups of webhooks (useful if you have a large number of webhooks).
+  """
   bucketId: String
+
+  """
+  An optional bucket sort key (max 64 characters). Can be used to query for subgroups of webhooks (useful if you have a large number of webhooks).
+  """
   bucketSortkey: String
+
+  """
+  The type of publishing for the webhook. If not set, it defaults to `SINGLE`.
+  """
   publishingType: PublishingType
+
+  """
+  If enabled, new webhooks won't be created if a webhook with the same parameters already exists. If callbackUrl, conditions, publishingType, and alertRecurrence all match, then we return the existing webhook.
+  """
   deduplicate: Boolean
 }
 
+"""Input for creating token pair event webhooks."""
 input CreateTokenPairEventWebhooksInput {
+  """A list of token pair event webhooks to create."""
   webhooks: [CreateTokenPairEventWebhookArgs!]!
 }
 
+"""Input for creating webhooks."""
 input CreateWebhooksInput {
+  """Input for creating price webhooks."""
   priceWebhooksInput: CreatePriceWebhooksInput
+
+  """Input for creating token pair event webhooks."""
   tokenPairEventWebhooksInput: CreateTokenPairEventWebhooksInput
+
+  """Input for creating NFT event webhooks."""
   nftEventWebhooksInput: CreateNftEventWebhooksInput
+
+  """Input for creating raw transaction webhooks."""
   rawTransactionWebhooksInput: CreateRawTransactionWebhooksInput
 }
 
+"""Result returned by `createWebhooks`."""
 type CreateWebhooksOutput {
+  """The list of price webhooks that were created."""
   priceWebhooks: [Webhook]!
+
+  """The list of token pair event webhooks that were created."""
   tokenPairEventWebhooks: [Webhook]!
+
+  """The list of NFT event webhooks that were created."""
   nftEventWebhooks: [Webhook]!
+
+  """The list of raw transaction webhooks that were created."""
   rawTransactionWebhooks: [Webhook]!
 }
 
@@ -561,11 +767,15 @@ type CurrencyBarData {
   token: IndividualBarData!
 }
 
+"""Input for deleting webhooks."""
 input DeleteWebhooksInput {
+  """A list of webhook IDs to delete."""
   webhookIds: [String!]!
 }
 
+"""Result returned by `deleteWebhooks`."""
 type DeleteWebhooksOutput {
+  """The list of webhook IDs that were deleted."""
   deletedIds: [String]
 }
 
@@ -953,6 +1163,9 @@ type EnhancedToken {
 
   """Whether or not the token is freezable"""
   freezable: String
+
+  """Launchpad data for the token"""
+  launchpad: LaunchpadData
 }
 
 """A token transaction."""
@@ -1005,6 +1218,12 @@ type Event {
 
   """The unix timestamp for when the transaction occurred."""
   timestamp: Int!
+
+  """The address of the event's token0."""
+  token0Address: String
+
+  """The address of the event's token1."""
+  token1Address: String
 
   """The price of `token0` paid/received in USD, including any fees."""
   token0SwapValueUsd: String
@@ -1496,14 +1715,31 @@ input GetGasEstimateInput {
 
 """Response returned by `getNetworkStats`."""
 type GetNetworkStatsResponse {
+  """The network trade volume in USD over the past 24 hours."""
   volume24: Float!
+
+  """The network trade volume in USD over the past 12 hours."""
   volume12: Float!
+
+  """The network trade volume in USD over the past 4 hours."""
   volume4: Float!
+
+  """The network trade volume in USD over the past hour."""
   volume1: Float!
+
+  """The network liquidity in USD."""
   liquidity: Float!
+
+  """The unique number of transactions in the past 24 hours."""
   transactions24: Int!
+
+  """The unique number of transactions in the past 12 hours."""
   transactions12: Int!
+
+  """The unique number of transactions in the past 4 hours."""
   transactions4: Int!
+
+  """The unique number of transactions in the past hour."""
   transactions1: Int!
 }
 
@@ -1573,8 +1809,12 @@ input GetTokensInfoInput {
   networkId: Int!
 }
 
+"""Response returned by `getWebhooks`."""
 type GetWebhooksResponse {
+  """A list of webhooks belonging to a user."""
   items: [Webhook]
+
+  """A cursor for use in pagination."""
   cursor: String
 }
 
@@ -1603,11 +1843,12 @@ input HoldersInputSort {
   direction: RankingDirection
 }
 
+"""Response returned by `holders`."""
 type HoldersResponse {
-  """The list wallets for a token."""
+  """The list of wallets holding the token."""
   items: [Balance!]!
 
-  """the unique count of holders for the token."""
+  """The unique count of holders for the token."""
   count: Int!
 
   """A cursor for use in pagination."""
@@ -1617,6 +1858,9 @@ type HoldersResponse {
   Status of holder. Disabled if on unsupported network or there is insufficient holder data.
   """
   status: HoldersStatus!
+
+  """What percentage of the total supply do the top 10 holders hold."""
+  top10HoldersPercent: Float
 }
 
 enum HoldersSortAttribute {
@@ -1627,6 +1871,24 @@ enum HoldersSortAttribute {
 enum HoldersStatus {
   ENABLED
   DISABLED
+}
+
+"""Response returned by `onHoldersUpdated`."""
+type HoldersUpdate {
+  """The number of different wallets holding the token."""
+  holders: Int!
+
+  """The ID of the token (`tokenAddress:networkId`)."""
+  tokenId: String!
+
+  """The token's contract address."""
+  tokenAddress: String!
+
+  """The network ID that the token is deployed on."""
+  networkId: Int!
+
+  """The list of wallets holding the token."""
+  balances: [Balance!]!
 }
 
 """Bar chart data."""
@@ -1673,7 +1935,7 @@ type IndividualBarData {
   """The sell volume in USD"""
   sellVolume: String!
 
-  """Liqudity in USD"""
+  """Liquidity in USD"""
   liquidity: String!
 
   """The number of traders"""
@@ -1683,11 +1945,15 @@ type IndividualBarData {
   transactions: Int!
 }
 
+"""Integer equals condition."""
 type IntEqualsCondition {
+  """The integer to equal."""
   eq: Int!
 }
 
+"""Input for integer equals condition."""
 input IntEqualsConditionInput {
+  """The integer to equal."""
   eq: Int!
 }
 
@@ -1924,6 +2190,36 @@ type LatestTokenSimResults {
   openTradingCall: String
 }
 
+"""Launchpad data for the token"""
+type LaunchpadData {
+  """The percentage of the pool that was sold to the public."""
+  graduationPercent: Float
+
+  """The address of the pool."""
+  poolAddress: String
+
+  """The unix timestamp when the launchpad was completed."""
+  completedAt: Int
+
+  """Indicates if the launchpad is completed."""
+  completed: Boolean
+
+  """The slot number when the launchpad was completed."""
+  completedSlot: Int
+
+  """The slot number when the launchpad was migrated."""
+  migratedSlot: Int
+
+  """The unix timestamp when the launchpad was migrated."""
+  migratedAt: Int
+
+  """Indicates if the launchpad was migrated."""
+  migrated: Boolean
+
+  """The pool address after the launchpad was migrated."""
+  migratedPoolAddress: String
+}
+
 scalar link__Import
 
 enum link__Purpose {
@@ -2096,11 +2392,25 @@ input MakerEventsQueryInput {
   """The specific wallet address to filter by."""
   maker: String!
 
-  """The network ID to filter by."""
-  networkId: Int!
+  """The time range to filter by."""
+  timestamp: EventQueryTimestampInput
 
-  """The token of interest. Can be `token0` or `token1`."""
-  quoteToken: QuoteToken
+  """The network ID to filter by."""
+  networkId: Int
+
+  """docs: hide"""
+  quoteToken: QuoteToken @deprecated(reason: "Not used")
+
+  """
+  The total amount of `quoteToken` involved in the swap in USD (`amountNonLiquidityToken` x `priceUsd`).
+  """
+  priceUsdTotal: NumberFilter
+
+  """The specific event type to filter by."""
+  eventType: EventType
+
+  """The token involved in the event."""
+  tokenAddress: String
 }
 
 """The status for a network supported on Defined."""
@@ -2167,8 +2477,20 @@ type Mutation {
 
   """Delete a single short-lived api access token by id"""
   deleteApiToken(id: String!): String!
-  createWebhooks(input: CreateWebhooksInput!): CreateWebhooksOutput!
-  deleteWebhooks(input: DeleteWebhooksInput!): DeleteWebhooksOutput
+
+  """
+  Create price, raw transaction, token/pair event, and NFT event webhooks.
+  """
+  createWebhooks(
+    """input: Input for creating webhooks."""
+    input: CreateWebhooksInput!
+  ): CreateWebhooksOutput!
+
+  """Delete multiple webhooks."""
+  deleteWebhooks(
+    """input: Input for deleting webhooks."""
+    input: DeleteWebhooksInput!
+  ): DeleteWebhooksOutput
 }
 
 """A network supported on Defined."""
@@ -3511,11 +3833,15 @@ type NftEvent {
   orderDirection: NftEventOrderDirection
 }
 
+"""NFT marketplaces for a webhook to listen on."""
 type NftEventFillSourceCondition {
+  """The list of NFT marketplaces."""
   oneOf: [WebhookNftEventFillSource!]!
 }
 
+"""Input for NFT event fill source condition."""
 input NftEventFillSourceConditionInput {
+  """The list of NFT marketplace to equal."""
   oneOf: [WebhookNftEventFillSource!]!
 }
 
@@ -3628,35 +3954,75 @@ enum NftEventTradeItemType {
   TOKEN
 }
 
+"""An NFT event type for a webhook to listen for."""
 type NftEventTypeCondition {
+  """The NFT event type."""
   eq: WebhookNftEventType!
 }
 
+"""Input for NFT event type."""
 input NftEventTypeConditionInput {
+  """The NFT event type to equal."""
   eq: WebhookNftEventType!
 }
 
+"""Webhook conditions for an NFT event."""
 type NftEventWebhookCondition {
+  """The list of network IDs the webhook is listening on."""
   networkId: OneOfNumberCondition
+
+  """The maker wallet address the webhook is listening for."""
   maker: StringEqualsCondition
+
+  """The NFT collection contract address the webhook is listening for."""
   contractAddress: StringEqualsCondition
+
+  """The exchange contract address the webhook is listening for."""
   exchangeAddress: StringEqualsCondition
+
+  """The token ID the webhook is listening for."""
   tokenId: StringEqualsCondition
+
+  """The token contract address the webhook is listening for."""
   tokenAddress: StringEqualsCondition
+
+  """The base token price the webhook is listening for."""
   individualBaseTokenPrice: ComparisonOperator
+
+  """The NFT event type the webhook is listening for."""
   eventType: NftEventTypeCondition
+
+  """The NFT marketplaces the webhook is listening on."""
   fillSource: NftEventFillSourceCondition
+
+  """Option to ignore all nft transfer events"""
   ignoreTransfers: Boolean
 }
 
+"""Input conditions for an NFT event webhook."""
 input NftEventWebhookConditionInput {
+  """A list of network IDs to listen on."""
   networkId: OneOfNumberConditionInput
+
+  """The maker wallet address to listen for."""
   maker: StringEqualsConditionInput
+
+  """The NFT collection contract address to listen for."""
   contractAddress: StringEqualsConditionInput
+
+  """The exchange contract address to listen for."""
   exchangeAddress: StringEqualsConditionInput
+
+  """The token ID to listen for."""
   tokenId: StringEqualsConditionInput
+
+  """The NFT event type to listen for."""
   eventType: NftEventTypeConditionInput
+
+  """The NFT marketplaces to listen for."""
   fillSource: NftEventFillSourceConditionInput
+
+  """Option to ignore all nft transfer events"""
   ignoreTransfers: Boolean
 }
 
@@ -5695,12 +6061,21 @@ type OnBarsUpdatedResponse {
   quoteTokenAddress: String!
 }
 
+"""Integer list condition."""
 type OneOfNumberCondition {
+  """The list of integers."""
   oneOf: [Int!]!
 }
 
+"""Input for integer list condition."""
 input OneOfNumberConditionInput {
+  """The list of integers."""
   oneOf: [Int!]!
+}
+
+input OnLaunchpadTokenUpdatedInput {
+  address: String
+  networkId: Int
 }
 
 input OnPricesUpdatedInput {
@@ -5791,6 +6166,7 @@ enum OrderState {
 enum OrderType {
   MANUAL
   LIMIT
+  LIMIT_STRATEGY
 }
 
 """Metadata for a token pair."""
@@ -5823,7 +6199,11 @@ type Pair {
 
   """The unix timestamp for the creation of the pair."""
   createdAt: Int
+
+  """Metadata for the first token in the pair."""
   token0Data: EnhancedToken
+
+  """Metadata for the second token in the pair."""
   token1Data: EnhancedToken
 
   """The pooled amounts of each token in the pair."""
@@ -6232,41 +6612,134 @@ input PairFilters {
 }
 
 type PairMetadata {
+  """The exchange contract ID."""
   exchangeId: String
+
+  """The exchange fee for swaps."""
   fee: Int
+
+  """The ID for the pair (`address:networkId`)."""
   id: String!
+
+  """The token of interest within the pair. Can be `token0` or `token1`."""
   quoteToken: QuoteToken
+
+  """The network ID the pair is deployed on."""
   networkId: Int
+
+  """The total liquidity in the pair."""
   liquidity: String!
+
+  """
+  The token with higher liquidity within the pair. Can be `token0` or `token1`.
+  """
   liquidityToken: String
+
+  """
+  The token with lower liquidity within the pair. Can be `token0` or `token1`.
+  """
   nonLiquidityToken: String
+
+  """The contract address of the pair."""
   pairAddress: String!
+
+  """The type of statistics returned. Can be `FILTERED` or `UNFILTERED`"""
   statsType: TokenPairStatisticsType!
+
+  """The quote token price in USD."""
   price: String!
+
+  """The percent price change in the past 5 minutes. Decimal format."""
   priceChange5m: Float
+
+  """The percent price change in the past hour. Decimal format."""
   priceChange1: Float
+
+  """The percent price change in the past 4 hours. Decimal format."""
   priceChange4: Float
+
+  """The percent price change in the past 12 hours. Decimal format."""
   priceChange12: Float
+
+  """The percent price change in the past 24 hours. Decimal format."""
   priceChange24: Float
+
+  """The percent price change in the past week. Decimal format."""
   priceChange1w: Float
+
+  """
+  The amount of required tick separation. Only applicable for pairs on UniswapV3.
+  """
   tickSpacing: Int
+
+  """Pair metadata for the first token in the pair."""
   token0: PairMetadataToken!
+
+  """Pair metadata for the second token in the pair."""
   token1: PairMetadataToken!
+
+  """The trade volume in USD in the past hour."""
   volume1: String
+
+  """The trade volume in USD in the past 4 hours."""
   volume4: String
+
+  """The trade volume in USD in the past 12 hours."""
   volume12: String
+
+  """The trade volume in USD in the past 24 hours."""
   volume24: String
+
+  """The trade trade volume in USD in the past week."""
   volume1w: String
+
+  """The trade volume in USD in the past 5 minutes."""
+  volume5m: String
+
+  """The highest price in USD in the past 5 minutes."""
+  highPrice5m: String
+
+  """The highest price in USD in the past hour."""
   highPrice1: String
+
+  """The highest price in USD in the past 4 hours."""
   highPrice4: String
+
+  """The highest price in USD in the past 12 hours."""
   highPrice12: String
+
+  """The highest price in USD in the past 24 hours."""
   highPrice24: String
+
+  """The highest price in USD in the past week."""
   highPrice1w: String
+
+  """The lowest price in USD in the past 5 minutes."""
+  lowPrice5m: String
+
+  """The lowest price in USD in the past hour."""
   lowPrice1: String
+
+  """The lowest price in USD in the past 12 hours."""
   lowPrice12: String
+
+  """The lowest price in USD in the past 24 hours."""
   lowPrice24: String
+
+  """The lowest price in USD in the past 4 hours."""
   lowPrice4: String
+
+  """The lowest price in USD in the past week."""
   lowPrice1w: String
+
+  """Token metadata for the first token in the pair."""
+  enhancedToken0: EnhancedToken
+
+  """Token metadata for the second token in the pair."""
+  enhancedToken1: EnhancedToken
+
+  """The unix timestamp for the creation of the pair."""
+  createdAt: Int
 }
 
 type PairMetadataToken {
@@ -6346,47 +6819,6 @@ enum PairRankingAttribute {
   volumeUSD4
   volumeUSD12
   volumeUSD24
-}
-
-"""A Parallel asset."""
-type ParallelAsset {
-  """The ID of the NFT asset (`address`:`tokenId`)."""
-  id: String!
-
-  """The contract address of the NFT collection."""
-  address: String!
-
-  """The token ID of the NFT asset."""
-  tokenId: String!
-
-  """The network ID the NFT collection is deployed on."""
-  networkId: Int!
-
-  """The NFT asset media."""
-  media: NftAssetMedia
-
-  """The name of the NFT asset."""
-  name: String
-
-  """The description of the NFT asset."""
-  description: String
-
-  """The source image URI linked by smart contract metadata."""
-  originalImage: String
-
-  """
-  The URI provided by the smart contract. Typically JSON that contains metadata.
-  """
-  uri: String
-
-  """The attributes for the NFT asset."""
-  attributes: [NftAssetAttribute!]
-
-  """The game data for the NFT asset."""
-  gameData: ParallelAssetGameData
-
-  """Metadata for the NFT asset."""
-  metadata: ParallelAssetMetadata
 }
 
 """Response returned by `filterNftParallelAssets`."""
@@ -6633,15 +7065,6 @@ enum ParallelAssetRankingAttribute {
   lastPriceNetworkBaseToken
 }
 
-"""Response returned by `getParallelAssets`."""
-type ParallelAssetsConnection {
-  """A list of Parallel assets."""
-  items: [ParallelAsset]
-
-  """A cursor for use in pagination."""
-  cursor: String
-}
-
 """Tracked changes made to a Parallel card."""
 type ParallelCardChange {
   """The token ID of the Parallel asset."""
@@ -6817,7 +7240,7 @@ type Price {
   priceUsd: Float!
 
   """The unix timestamp for the price."""
-  timestamp: Int!
+  timestamp: Int
 
   """The pool that emitted the swap generating this price"""
   poolAddress: String!
@@ -6826,16 +7249,34 @@ type Price {
   confidence: Float
 }
 
+"""Webhook conditions for a price event."""
 type PriceEventWebhookCondition {
+  """The token contract address the webhook is listening for."""
   tokenAddress: StringEqualsCondition!
+
+  """The network ID the webhook is listening on."""
   networkId: IntEqualsCondition!
+
+  """The price condition that must be met in order for the webhook to send."""
   priceUsd: ComparisonOperator!
+
+  """The pair contract address the webhook is listening for."""
+  pairAddress: StringEqualsCondition
 }
 
+"""Input conditions for a price event webhook."""
 input PriceEventWebhookConditionInput {
+  """The contract address of the token to listen for."""
   tokenAddress: StringEqualsConditionInput!
+
+  """The network ID to listen on."""
   networkId: IntEqualsConditionInput!
+
+  """The price conditions to listen for."""
   priceUsd: ComparisonOperatorInput!
+
+  """The contract address of the pair to listen for."""
+  pairAddress: StringEqualsConditionInput
 }
 
 """Response returned by `primeHolders`."""
@@ -7528,7 +7969,26 @@ type Query {
     """The list of network IDs."""
     networkIds: [Int!]!
   ): [MetadataResponse!]
-  getWebhooks(cursor: String, webhookId: String, bucketId: String, bucketSortkey: String, limit: Int): GetWebhooksResponse
+
+  """Returns a user's list of webhooks."""
+  getWebhooks(
+    """The cursor to use for pagination."""
+    cursor: String
+
+    """webhookId: The id of the webhook you want to retrieve."""
+    webhookId: String
+
+    """
+    bucketId: The bucketId of the webhooks you want to retrieve. Note that bucketId and webhookId are mutually exclusive, do not send both.
+    """
+    bucketId: String
+
+    """bucketSortkey: The bucketSortkey of the webhooks you want to retrieve."""
+    bucketSortkey: String
+
+    """limit: The maximum number of webhooks to return."""
+    limit: Int
+  ): GetWebhooksResponse
 
   """Returns an NFT pool."""
   getNftPool(
@@ -7848,18 +8308,6 @@ type Query {
     contracts: [NftContractInput]
   ): [EnhancedNftContract]
 
-  """Returns transactions for an NFT collection across any marketplace(s)."""
-  getParallelAssets(
-    """An optional list of token IDs to filter by."""
-    tokenIds: [String]
-
-    """The cursor to use for pagination."""
-    cursor: String
-
-    """The maximum number of Parallel assets to return."""
-    limit: Int
-  ): ParallelAssetsConnection
-
   """Returns a list of Parallel assets based on a variety of filters."""
   filterNftParallelAssets(
     """A set of filters to apply."""
@@ -8068,45 +8516,6 @@ type Query {
     offset: Int
   ): ExchangeFilterConnection
 
-  """Returns metadata for a given token."""
-  getTokenInfo(
-    """The contract address of the token."""
-    address: String!
-
-    """The network ID the token is deployed on."""
-    networkId: Int!
-  ): TokenInfo
-
-  """
-  Returns the total count of tokens on Defined. This value is updated approximately every 6 hours.
-  """
-  getTokenCount: String!
-
-  """Returns tick data for a given Uniswap V3-style pool."""
-  getUniV3Ticks(
-    """The contract address of the pool."""
-    poolAddress: String!
-
-    """
-    The network ID the pool is deployed on. Currently `getUniV3Ticks` is only supported on Ethereum mainnet (1).
-    """
-    networkId: Int!
-
-    """The maximum number of ticks to return. Max is `1000`."""
-    limit: Int
-
-    """Offset for pagination of ticks."""
-    offset: Int
-  ): UniV3TickConnection
-
-  """Returns metadata for a list of given tokens."""
-  getTokensInfo(
-    """
-    A list of `GetTokensInfoInput`s. Accepts a maximum of 25 inputs (anything over will be truncated).
-    """
-    input: [GetTokensInfoInput!]!
-  ): [TokenInfo]
-
   """Returns bucketed stats for a given token within a pair."""
   getDetailedStats(
     """The ID of the pair (`address:networkId`)."""
@@ -8213,7 +8622,23 @@ type Query {
     """
     direction: RankingDirection
   ): EventConnection
-  getTokenEventsForMaker(limit: Int, query: MakerEventsQueryInput!, cursor: String, direction: RankingDirection): MakerEventConnection
+
+  """Returns a list of token events for a given maker."""
+  getTokenEventsForMaker(
+    """The maximum number of events to return."""
+    limit: Int
+
+    """The query filters to apply to the results."""
+    query: MakerEventsQueryInput!
+
+    """The cursor to use for pagination."""
+    cursor: String
+
+    """
+    The order to receive the token events. Can be `DESC` (default) or `ASC`.
+    """
+    direction: RankingDirection
+  ): MakerEventConnection
 
   """
   Returns real-time or historical prices for a list of tokens, fetched in batches.
@@ -8239,7 +8664,7 @@ type Query {
     to: Int!
 
     """
-    The time frame for each candle. Available options are `1`, `5`, `15`, `30`, `60`, `240`, `720`, `1D` and `7D`.
+    The time frame for each candle. Available options are `1`, `5`, `15`, `30`, `60`, `240`, `720`, `1D`, `7D`.
     """
     resolution: String!
 
@@ -8266,6 +8691,9 @@ type Query {
 
     """guarantees number of bars returned is at most this number"""
     countback: Int
+
+    """specify the type of symbol you want to fetch values for (TOKEN | POOL)"""
+    symbolType: SymbolType
   ): BarsResponse
 
   """Returns a list of tokens matching a given query string."""
@@ -8291,6 +8719,11 @@ type Query {
     """
     search: String!
   ): TokenSearchResponse @deprecated(reason: "This query is no longer supported and will not return up to date data. Use `filterTokens` instead.")
+
+  """
+  Returns the percentage of a token’s total supply held collectively by its top 10 holders.
+  """
+  top10HoldersPercent(tokenId: String!): Float
 
   """Returns a list of decentralized exchange metadata."""
   getExchanges(
@@ -8333,14 +8766,14 @@ type Query {
     cursor: String
   ): TokenLifecycleEventConnection
 
-  """Find a single token by its address & network id."""
+  """Returns a single token by its address & network id."""
   token(
     """Input for a token ID."""
     input: TokenInput!
   ): EnhancedToken!
 
   """
-  Find a list of tokens by their addresses & network id, with pagination.
+  Returns a list of tokens by their addresses & network id, with pagination.
   """
   tokens(
     """A list of token ID input."""
@@ -8375,7 +8808,7 @@ type Query {
 
     """The cursor to use for pagination."""
     cursor: String
-  ): LatestPairConnection
+  ): LatestPairConnection @deprecated(reason: "This query is longer supported. Instead use filterPairs with sort order on createdAt DESC")
 
   """Returns a list of pairs containing a given token."""
   listPairsForToken(
@@ -8388,20 +8821,6 @@ type Query {
     """The contract address of the token."""
     tokenAddress: String!
   ): [Pair]!
-
-  """Returns a list of token metadata."""
-  listFavoriteTokens(
-    """The list of token IDs to filter by (`address:networkId`)."""
-    keys: [String!]!
-
-    """The list of network IDs to filter by."""
-    networkFilter: [Int!]
-
-    """
-    The time frame for trending results. Can be `1`, `5`, `15`, `30`, `60`, `240`, `720`, or `1D`.
-    """
-    resolution: String
-  ): [TokenWithMetadata!]
 
   """Returns a list of pair metadata for a token."""
   listPairsWithMetadataForToken(
@@ -8436,9 +8855,6 @@ type Query {
     """
     cursor: String
   ): PrimeHolders!
-
-  """Fetch the balance of a wallet holding PRIME on ethereum"""
-  primeBalance(walletAddress: String!): BalancesResponse!
   getLatestTokens(
     """
     The maximum number of tokens to return. Maximum number of tokens is 50.
@@ -8545,23 +8961,63 @@ type RawNftAssetData {
   externalUrl: String
 }
 
+"""Webhook conditions for a raw transaction."""
 type RawTransactionWebhookCondition {
+  """A list of network IDs to listen on."""
   networkId: OneOfNumberCondition
+
+  """The to address to listen for."""
   to: StringEqualsCondition
+
+  """The from address to listen for."""
   from: StringEqualsCondition
+
+  """Trigger the webhook if either the to or the from address matches."""
   toOrFrom: StringEqualsCondition
+
+  """
+  Trigger the webhook if the  contains or doesn't contain the specified string.
+  """
   input: StringContainsCondition
+
+  """
+  Do not trigger the webhook if the raw transaction is handled by the TokenPairEvent webhook.
+  """
   ignoreTokenPairEvents: Boolean
+
+  """
+  Do not trigger the webhook if the raw transaction is handled by the NftEvent webhook.
+  """
   ignoreNftEvents: Boolean
 }
 
+"""Input conditions for a Raw Transaction webhook."""
 input RawTransactionWebhookConditionInput {
+  """A list of network IDs to listen on."""
   networkId: OneOfNumberConditionInput
+
+  """The to address to listen for."""
   to: StringEqualsConditionInput
+
+  """The from address to listen for."""
   from: StringEqualsConditionInput
+
+  """Trigger the webhook if either the to or the from address matches."""
   toOrFrom: StringEqualsConditionInput
+
+  """
+  Trigger the webhook if the input contains or doesn't contain the specified string.
+  """
   input: StringContainsConditionInput
+
+  """
+  Do not trigger the webhook if the raw transaction is handled by the TokenPairEvent webhook.
+  """
   ignoreTokenPairEvents: Boolean
+
+  """
+  Do not trigger the webhook if the raw transaction is handled by the NftEvent webhook.
+  """
   ignoreNftEvents: Boolean
 }
 
@@ -8636,17 +9092,45 @@ type ResolutionBarData {
   r7D: CurrencyBarData
 }
 
+"""Config for retrying failed webhook messages"""
 type RetrySettings {
+  """
+  The maximum time in seconds that the webhook will retry sending a message
+  """
   maxTimeElapsed: Int
+
+  """
+  The minimum time in seconds that the webhook will wait before retrying a failed message
+  """
   minRetryDelay: Int
+
+  """
+  The maximum time in seconds that the webhook will wait before retrying a failed message
+  """
   maxRetryDelay: Int
+
+  """The maximum number of times the webhook will retry sending a message"""
   maxRetries: Int
 }
 
+"""Config input for retrying failed webhook messages"""
 input RetrySettingsInput {
+  """
+  The maximum time in seconds that the webhook will retry sending a message
+  """
   maxTimeElapsed: Int
+
+  """
+  The minimum time in seconds that the webhook will wait before retrying a failed message
+  """
   minRetryDelay: Int
+
+  """
+  The maximum time in seconds that the webhook will wait before retrying a failed message
+  """
   maxRetryDelay: Int
+
+  """The maximum number of times the webhook will retry sending a message"""
   maxRetries: Int
 }
 
@@ -9004,21 +9488,33 @@ input statsNonCurrency {
   uniqueMinters: StatsFilter
 }
 
+"""String contains condition."""
 type StringContainsCondition {
+  """A list of substrings included within the string."""
   contains: [String!]
+
+  """A list of substrings not included within the string."""
   notContains: [String!]
 }
 
+"""Input for string contains condition."""
 input StringContainsConditionInput {
+  """A list of substrings to be included within the string."""
   contains: [String!]
+
+  """A list of substrings not to be included within the string."""
   notContains: [String!]
 }
 
+"""String equals condition."""
 type StringEqualsCondition {
+  """The string to equal."""
   eq: String!
 }
 
+"""Input for string equals condition."""
 input StringEqualsConditionInput {
+  """The string to equal."""
   eq: String!
 }
 
@@ -9060,9 +9556,21 @@ type Subscription {
   ): NftAsset
 
   """
-  Live streamed nft pool events for a given pool address or collection address
+  Live streamed NFT pool events for a given pool address or collection address.
   """
-  onNftPoolEventsCreated(poolAddress: String, networkId: Int, collectionAddress: String, exchangeAddress: String): AddNftPoolEventsOutput
+  onNftPoolEventsCreated(
+    """The NFT pool address to filter by."""
+    poolAddress: String
+
+    """The network ID to filter by."""
+    networkId: Int
+
+    """The contract address of the NFT collection to filter by."""
+    collectionAddress: String
+
+    """The contract address of the NFT AMM marketplace to filter by."""
+    exchangeAddress: String
+  ): AddNftPoolEventsOutput
 
   """Live-streamed bar chart data to track price changes over time."""
   onBarsUpdated(
@@ -9187,10 +9695,15 @@ type Subscription {
   ): EventLabel
   onSimulateTokenContract(contractAddress: String, networkId: Int!, simulationId: String): SimulateTokenContractResult!
 
-  """Live streamed events for a given token across all it's pools"""
+  """Live-streamed events for a given token across all it's pools"""
   onTokenEventsCreated(input: OnTokenEventsCreatedInput!): AddTokenEventsOutput!
 
-  """Live-streamed token lifecycle events (mints and burns)"""
+  """
+  Live-streamed list of wallets that hold a given token. Also has the unique count of holders for that token.
+  """
+  onHoldersUpdated(tokenId: String!): HoldersUpdate
+
+  """Live-streamed token lifecycle events (mints and burns)."""
   onTokenLifecycleEventsCreated(
     """The token contract address."""
     address: String
@@ -9198,6 +9711,25 @@ type Subscription {
     """The network ID the token is deployed on."""
     networkId: Int
   ): AddTokenLifecycleEventsOutput!
+}
+
+type SuiNetworkConfig {
+  id: ID!
+  networkId: Int!
+  baseTokenAddress: String!
+  baseTokenSymbol: String!
+  color: String
+  defaultPairAddress: String!
+  defaultPairQuoteToken: QuoteToken!
+  enabled: Boolean!
+  newTokensEnabled: Boolean
+  mainnet: Boolean!
+  name: String!
+  networkIconUrl: String!
+  networkName: String!
+  networkShortName: String!
+  stableCoinAddresses: [String!]
+  wrappedBaseTokenSymbol: String!
 }
 
 """Event data for a token swap event."""
@@ -9512,6 +10044,11 @@ type SymbolResponse {
   supported_resolutions: [String!]!
 }
 
+enum SymbolType {
+  TOKEN
+  POOL
+}
+
 """Token burn event data."""
 type TokenBurnEventData {
   """The amount of tokens burned."""
@@ -9545,6 +10082,9 @@ type TokenFilterResult {
   lastTransaction: Int
   age: Int @deprecated(reason: "Age isn't supported - use createdAt instead")
 
+  """The number of buys in the past 5 minutes."""
+  buyCount5m: Int
+
   """The number of buys in the past hour."""
   buyCount1: Int
 
@@ -9557,6 +10097,9 @@ type TokenFilterResult {
   """The number of buys in the past 4 hours."""
   buyCount4: Int
 
+  """The percent price change in the past 5 minutes. Decimal format."""
+  change5m: String
+
   """The percent price change in the past hour. Decimal format."""
   change1: String
 
@@ -9568,6 +10111,9 @@ type TokenFilterResult {
 
   """The percent price change in the past 4 hours. Decimal format."""
   change4: String
+
+  """The percent volume change in the past 5 minutes. Decimal format."""
+  volumeChange5m: String
 
   """The percent volume change in the past hour. Decimal format."""
   volumeChange1: String
@@ -9584,6 +10130,9 @@ type TokenFilterResult {
   """The exchanges the token is listed on."""
   exchanges: [Exchange]
   fdv: String @deprecated(reason: "FDV isn't supported - use marketCap instead")
+
+  """The highest price in USD in the past 5 minutes."""
+  high5m: String
 
   """The highest price in USD in the past hour."""
   high1: String
@@ -9602,6 +10151,9 @@ type TokenFilterResult {
 
   """The token of interest. Can be `token0` or `token1`."""
   quoteToken: String
+
+  """The lowest price in USD in the past 5 minutes."""
+  low5m: String
 
   """The lowest price in USD in the past hour."""
   low1: String
@@ -9626,6 +10178,9 @@ type TokenFilterResult {
   """The token price in USD."""
   priceUSD: String
 
+  """The number of sells in the past 5 minutes."""
+  sellCount5m: Int
+
   """The number of sells in the past hour."""
   sellCount1: Int
 
@@ -9641,6 +10196,9 @@ type TokenFilterResult {
   """Metadata for the token."""
   token: EnhancedToken
 
+  """The number of transactions in the past 5 minutes."""
+  txnCount5m: Int
+
   """The number of transactions in the past hour."""
   txnCount1: Int
 
@@ -9652,6 +10210,9 @@ type TokenFilterResult {
 
   """The number of transactions in the past 4 hours."""
   txnCount4: Int
+
+  """The unique number of buys in the past 5 minutes."""
+  uniqueBuys5m: Int
 
   """The unique number of buys in the past hour."""
   uniqueBuys1: Int
@@ -9665,6 +10226,9 @@ type TokenFilterResult {
   """The unique number of buys in the past 4 hours."""
   uniqueBuys4: Int
 
+  """The unique number of sells in the past 5 minutes."""
+  uniqueSells5m: Int
+
   """The unique number of sells in the past hour."""
   uniqueSells1: Int
 
@@ -9676,6 +10240,9 @@ type TokenFilterResult {
 
   """The unique number of sells in the past 4 hours."""
   uniqueSells4: Int
+
+  """The unique number of transactions in the past 5 minutes."""
+  uniqueTransactions5m: Int
 
   """The unique number of transactions in the past hour."""
   uniqueTransactions1: Int
@@ -9691,6 +10258,9 @@ type TokenFilterResult {
 
   """The trade volume in USD in the past hour."""
   volume1: String
+
+  """The trade volume in USD in the past 5 minutes."""
+  volume5m: String
 
   """The trade volume in USD in the past 12 hours."""
   volume12: String
@@ -9717,6 +10287,9 @@ input TokenFilters {
   lastTransaction: NumberFilter
   age: NumberFilter @deprecated(reason: "Age isn't supported - use createdAt instead")
 
+  """The number of buys in the past 5 minutes."""
+  buyCount5m: NumberFilter
+
   """The number of buys in the past hour."""
   buyCount1: NumberFilter
 
@@ -9729,6 +10302,9 @@ input TokenFilters {
   """The number of buys in the past 4 hours."""
   buyCount4: NumberFilter
 
+  """The percent price change in the past 5 minutes. Decimal format."""
+  change5m: NumberFilter
+
   """The percent price change in the past hour. Decimal format."""
   change1: NumberFilter
 
@@ -9740,6 +10316,9 @@ input TokenFilters {
 
   """The percent price change in the past 4 hours. Decimal format."""
   change4: NumberFilter
+
+  """The percent volume change in the past 5 minutes. Decimal format."""
+  volumeChange5m: NumberFilter
 
   """The percent volume change in the past hour. Decimal format."""
   volumeChange1: NumberFilter
@@ -9762,6 +10341,9 @@ input TokenFilters {
   exchangeAddress: [String]
   fdv: NumberFilter @deprecated(reason: "FDV isn't supported - use marketCap instead")
 
+  """The highest price in USD in the past 5 minutes."""
+  high5m: NumberFilter
+
   """The highest price in USD in the past hour."""
   high1: NumberFilter
 
@@ -9779,6 +10361,9 @@ input TokenFilters {
 
   """The lowest price in USD in the past hour."""
   low1: NumberFilter
+
+  """The lowest price in USD in the past 5 minutes."""
+  low5m: NumberFilter
 
   """The lowest price in USD in the past 12 hours."""
   low12: NumberFilter
@@ -9800,11 +10385,17 @@ input TokenFilters {
   """The number of different wallets holding the token."""
   holders: NumberFilter
 
+  """docs: hide"""
+  notableHolderCount: NumberFilter
+
   """The token price in USD."""
   priceUSD: NumberFilter
 
   """The number of sells in the past hour."""
   sellCount1: NumberFilter
+
+  """The number of sells in the past 5 minutes."""
+  sellCount5m: NumberFilter
 
   """The number of sells in the past 12 hours."""
   sellCount12: NumberFilter
@@ -9814,6 +10405,9 @@ input TokenFilters {
 
   """The number of sells in the past 4 hours."""
   sellCount4: NumberFilter
+
+  """The number of transactions in the past 5 minutes."""
+  txnCount5m: NumberFilter
 
   """The number of transactions in the past hour."""
   txnCount1: NumberFilter
@@ -9830,6 +10424,9 @@ input TokenFilters {
   """The unique number of buys in the past hour."""
   uniqueBuys1: NumberFilter
 
+  """The unique number of buys in the past 5 minutes."""
+  uniqueBuys5m: NumberFilter
+
   """The unique number of buys in the past 12 hours."""
   uniqueBuys12: NumberFilter
 
@@ -9838,6 +10435,9 @@ input TokenFilters {
 
   """The unique number of buys in the past 4 hours."""
   uniqueBuys4: NumberFilter
+
+  """The unique number of sells in the past 5 minutes."""
+  uniqueSells5m: NumberFilter
 
   """The unique number of sells in the past hour."""
   uniqueSells1: NumberFilter
@@ -9853,6 +10453,9 @@ input TokenFilters {
 
   """The unique number of transactions in the past hour."""
   uniqueTransactions1: NumberFilter
+
+  """The unique number of transactions in the past 5 minutes."""
+  uniqueTransactions5m: NumberFilter
 
   """The unique number of transactions in the past 12 hours."""
   uniqueTransactions12: NumberFilter
@@ -9874,6 +10477,9 @@ input TokenFilters {
 
   """The trade volume in USD in the past 4 hours."""
   volume4: NumberFilter
+
+  """The trade volume in USD in the past 5 minutes."""
+  volume5m: NumberFilter
 
   """
   Whether to include tokens that have been flagged as scams. Default: false
@@ -9990,16 +10596,19 @@ type TokenLifecycleEvent {
   data: TokenLifecycleEventData!
 }
 
-"""Response returned by `TokenLifecycleEvents`."""
+"""Response returned by `tokenLifecycleEvents`."""
 type TokenLifecycleEventConnection {
+  """A list of transactions for a token's top pair."""
   items: [TokenLifecycleEvent]!
+
+  """A cursor for use in pagination."""
   cursor: String
 }
 
 """Event data for a token's lifecycle."""
 union TokenLifecycleEventData = TokenBurnEventData | TokenMintEventData
 
-"""Input type of `TokenLifecycleEvents` query."""
+"""Input type of `tokenLifecycleEvents` query."""
 input TokenLifecycleEventsQueryInput {
   """The token contract address to filter by."""
   address: String!
@@ -10032,6 +10641,7 @@ enum TokenOfInterest {
   token1
 }
 
+"""Token pair event types."""
 enum TokenPairEventType {
   SWAP
   MINT
@@ -10043,31 +10653,63 @@ enum TokenPairEventType {
   COLLECT_PROTOCOL
 }
 
+"""Webhook condition for token pair event type."""
 type TokenPairEventTypeCondition {
+  """The list of token pair event types."""
   oneOf: [TokenPairEventType!]!
 }
 
+"""Input for token pair event type condition."""
 input TokenPairEventTypeConditionInput {
+  """The list of token event types to equal."""
   oneOf: [TokenPairEventType!]!
 }
 
+"""Webhook conditions for a token pair event."""
 type TokenPairEventWebhookCondition {
+  """The token contract address the webhook is listening for."""
   tokenAddress: StringEqualsCondition
+
+  """The list of network IDs the webhook is listening on."""
   networkId: OneOfNumberCondition
+
+  """The swap values the webhook is listening for."""
   swapValue: ComparisonOperator
+
+  """The maker wallet address the webhook is listening for."""
   maker: StringEqualsCondition
+
+  """The pair contract address the webhook is listening for."""
   pairAddress: StringEqualsCondition
+
+  """The exchange contract address the webhook is listening for."""
   exchangeAddress: StringEqualsCondition
+
+  """The event type the webhook is listening for."""
   eventType: TokenPairEventTypeCondition
 }
 
+"""Input conditions for a token pair event webhook."""
 input TokenPairEventWebhookConditionInput {
+  """A list of network IDs to listen on."""
   networkId: OneOfNumberConditionInput
+
+  """The maker wallet address to listen for."""
   maker: StringEqualsConditionInput
+
+  """The pair contract address to listen for."""
   pairAddress: StringEqualsConditionInput
+
+  """The exchange contract address to listen for."""
   exchangeAddress: StringEqualsConditionInput
+
+  """The token contract address to listen for."""
   tokenAddress: StringEqualsConditionInput
+
+  """The swap values to listen for."""
   swapValue: ComparisonOperatorInput
+
+  """The token event type to listen for."""
   eventType: TokenPairEventTypeConditionInput
 }
 
@@ -10091,30 +10733,37 @@ enum TokenRankingAttribute {
   createdAt
   lastTransaction
   age @deprecated(reason: "Use createdAt instead")
+  buyCount5m
   buyCount1
   buyCount4
   buyCount12
   buyCount24
+  change5m
   change1
   change4
   change12
   change24
+  volumeChange5m
   volumeChange1
   volumeChange4
   volumeChange12
   volumeChange24
+  high5m
   high1
   high4
   high12
   high24
   holders
+  notableHolderCount
   liquidity
+  low5m
   low1
   low4
   low12
   low24
   marketCap
   priceUSD
+  sellCount5m
   sellCount1
   sellCount4
   sellCount12
@@ -10124,22 +10773,27 @@ enum TokenRankingAttribute {
   trendingScore4
   trendingScore12
   trendingScore24
+  txnCount5m
   txnCount1
   txnCount4
   txnCount12
   txnCount24
+  uniqueBuys5m
   uniqueBuys1
   uniqueBuys4
   uniqueBuys12
   uniqueBuys24
+  uniqueSells5m
   uniqueSells1
   uniqueSells4
   uniqueSells12
   uniqueSells24
+  uniqueTransactions5m
   uniqueTransactions1
   uniqueTransactions4
   uniqueTransactions12
   uniqueTransactions24
+  volume5m
   volume1
   volume4
   volume12
@@ -10455,28 +11109,17 @@ type UnconfirmedSwapEventData {
 
   """The type of token event, `Swap`."""
   type: EventType!
-}
 
-type UniV3Tick {
-  tick: Int
-  liquidityNet: String
-  price0: String
-  price1: String
-}
-
-"""Response returned by `getUniV3Ticks`."""
-type UniV3TickConnection {
-  """The list of Uni V3 ticks matching the filter parameters."""
-  results: [UniV3Tick]
-
-  """The number of ticks returned."""
-  count: Int
-
-  """Where in the list the server started when returning items."""
-  offset: Int
+  """The amount of `baseToken` involved in the swap"""
+  amountBaseToken: String
 }
 
 scalar Void
+
+type WalletChartRange {
+  start: Int!
+  end: Int!
+}
 
 type WalletNftCollection {
   """The address of the wallet."""
@@ -10546,24 +11189,64 @@ type WashtradeLabelForEvent {
   label: String!
 }
 
+"""Metadata for a webhook."""
 type Webhook {
+  """The ID of the webhook."""
   id: String!
+
+  """
+  The type of webhook. Can be `PRICE_EVENT`, `NFT_EVENT`, or `TOKEN_PAIR_EVENT`.
+  """
   webhookType: WebhookType!
+
+  """The given name of the webhook."""
   name: String!
+
+  """The unix timestamp for the time the webhook was created."""
   created: Int!
+
+  """The recurrence of the webhook. Can be `INDEFINITE` or `ONCE`."""
   alertRecurrence: AlertRecurrence!
+
+  """The url to which the webhook message should be sent."""
   callbackUrl: String!
+
+  """The status of the webhook. Can be `ACTIVE` or `INACTIVE`."""
   status: String!
+
+  """
+  The webhook group ID used to group webhooks together for ordered message sending.
+  """
   groupId: String
+
+  """
+  The conditions which must be met in order for the webhook to send a message.
+  """
   conditions: WebhookCondition!
+
+  """The settings for retrying failed webhook messages."""
   retrySettings: RetrySettings
+
+  """
+  An optional bucket ID (max 64 characters). Can be used to query for subgroups of webhooks (useful if you have a large number of webhooks).
+  """
   bucketId: String
+
+  """
+  An optional bucket sort key (max 64 characters). Can be used to query for subgroups of webhooks (useful if you have a large number of webhooks).
+  """
   bucketSortkey: String
+
+  """
+  The type of publishing for the webhook. If not set, it defaults to `SINGLE`.
+  """
   publishingType: PublishingType
 }
 
+"""Webhook conditions that must be met for each webhook type."""
 union WebhookCondition = PriceEventWebhookCondition | TokenPairEventWebhookCondition | NftEventWebhookCondition | RawTransactionWebhookCondition
 
+"""NFT marketplace names."""
 enum WebhookNftEventFillSource {
   GEM
   ENSVISION
@@ -10582,12 +11265,14 @@ enum WebhookNftEventFillSource {
   GENIE
 }
 
+"""NFT event types."""
 enum WebhookNftEventType {
   MINT
   SALE
   TRANSFER
 }
 
+"""The type of webhook."""
 enum WebhookType {
   PRICE_EVENT
   NFT_EVENT

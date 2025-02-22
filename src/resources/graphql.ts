@@ -46,6 +46,7 @@ export type AddNftEventsOutput = {
   networkId: Scalars['Int']['output'];
 };
 
+/** Response returned by `onNftPoolEventsCreated`. */
 export type AddNftPoolEventsOutput = {
   __typename?: 'AddNftPoolEventsOutput';
   collectionAddress: Scalars['String']['output'];
@@ -56,12 +57,16 @@ export type AddNftPoolEventsOutput = {
   poolAddress: Scalars['String']['output'];
 };
 
+/** Response returned by `onTokenEventsCreated`. */
 export type AddTokenEventsOutput = {
   __typename?: 'AddTokenEventsOutput';
+  /** A list of transactions for the token. */
   events: Array<Event>;
+  /** The ID of the event (`address`:`networkId`). For example, `0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2:1`. */
   id: Scalars['String']['output'];
 };
 
+/** Response returned by `onTokenLifecycleEventsCreated`. */
 export type AddTokenLifecycleEventsOutput = {
   __typename?: 'AddTokenLifecycleEventsOutput';
   events: Array<TokenLifecycleEvent>;
@@ -93,6 +98,13 @@ export type AddUserAchievementInput = {
   userId: Scalars['String']['input'];
 };
 
+export enum AddressType {
+  Evm = 'EVM',
+  Sol = 'SOL',
+  Tron = 'TRON'
+}
+
+/** The recurrence of the webhook. Can be `INDEFINITE` or `ONCE`. */
 export enum AlertRecurrence {
   Indefinite = 'INDEFINITE',
   Once = 'ONCE'
@@ -161,10 +173,12 @@ export type BarsResponse = {
   h: Array<Maybe<Scalars['Float']['output']>>;
   /** The low price. */
   l: Array<Maybe<Scalars['Float']['output']>>;
-  /** Liqudity in USD */
+  /** Liquidity in USD */
   liquidity: Array<Maybe<Scalars['String']['output']>>;
   /** The opening price. */
   o: Array<Maybe<Scalars['Float']['output']>>;
+  /** The pair that is being returned */
+  pair: Pair;
   /** The status code for the batch: `ok` for successful data retrieval and `no_data` for empty responses signaling the end of server data. */
   s: Scalars['String']['output'];
   /** The sell volume in USD */
@@ -320,20 +334,32 @@ export type CommunityNotesResponse = {
   items: Array<CommunityNote>;
 };
 
+/** Comparison operators. */
 export type ComparisonOperator = {
   __typename?: 'ComparisonOperator';
+  /** Equal to. */
   eq?: Maybe<Scalars['String']['output']>;
+  /** Greater than. */
   gt?: Maybe<Scalars['String']['output']>;
+  /** Greater than or equal to. */
   gte?: Maybe<Scalars['String']['output']>;
+  /** Less than. */
   lt?: Maybe<Scalars['String']['output']>;
+  /** Less than or equal to. */
   lte?: Maybe<Scalars['String']['output']>;
 };
 
+/** Input for comparison operators. */
 export type ComparisonOperatorInput = {
+  /** Equal to. */
   eq?: InputMaybe<Scalars['String']['input']>;
+  /** Greater than. */
   gt?: InputMaybe<Scalars['String']['input']>;
+  /** Greater than or equal. */
   gte?: InputMaybe<Scalars['String']['input']>;
+  /** Less than. */
   lt?: InputMaybe<Scalars['String']['input']>;
+  /** Less than or equal. */
   lte?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -380,90 +406,156 @@ export type CreateApiTokensInput = {
   requestLimit?: InputMaybe<Scalars['String']['input']>;
 };
 
+/** Input for creating an NFT event webhook. */
 export type CreateNftEventWebhookArgs = {
+  /** The recurrence of the webhook. Can be `INDEFINITE` or `ONCE`. */
   alertRecurrence: AlertRecurrence;
+  /** An optional bucket ID (max 64 characters). Can be used to query for subgroups of webhooks (useful if you have a large number of webhooks). */
   bucketId?: InputMaybe<Scalars['String']['input']>;
+  /** An optional bucket sort key (max 64 characters). Can be used to query for subgroups of webhooks (useful if you have a large number of webhooks). */
   bucketSortkey?: InputMaybe<Scalars['String']['input']>;
+  /** The url to which the webhook message should be sent. */
   callbackUrl: Scalars['String']['input'];
+  /** The conditions which must be met in order for the webhook to send a message. */
   conditions: NftEventWebhookConditionInput;
+  /** If enabled, new webhooks won't be created if a webhook with the same parameters already exists. If callbackUrl, conditions, publishingType, and alertRecurrence all match, then we return the existing webhook. */
   deduplicate?: InputMaybe<Scalars['Boolean']['input']>;
+  /** A webhook group ID (max 64 characters). Can be used to group webhooks so that their messages are kept in order as a group rather than by individual webhook. */
   groupId?: InputMaybe<Scalars['String']['input']>;
+  /** The name of the webhook (max 128 characters). */
   name: Scalars['String']['input'];
+  /** The type of publishing for the webhook. If not set, it defaults to `SINGLE`. */
   publishingType?: InputMaybe<PublishingType>;
+  /** The settings for retrying failed webhook messages. */
   retrySettings?: InputMaybe<RetrySettingsInput>;
+  /** A string value to hash along with `deduplicationId` using SHA-256. Included in the webhook message for added security. */
   securityToken: Scalars['String']['input'];
 };
 
+/** Input for creating NFT event webhooks. */
 export type CreateNftEventWebhooksInput = {
+  /** A list of NFT event webhooks to create. */
   webhooks: Array<CreateNftEventWebhookArgs>;
 };
 
+/** Input for creating a price webhook. */
 export type CreatePriceWebhookArgs = {
+  /** The recurrence of the webhook. Can be `INDEFINITE` or `ONCE`. */
   alertRecurrence: AlertRecurrence;
+  /** An optional bucket ID (max 64 characters). Can be used to query for subgroups of webhooks (useful if you have a large number of webhooks). */
   bucketId?: InputMaybe<Scalars['String']['input']>;
+  /** An optional bucket sort key (max 64 characters). Can be used to query for subgroups of webhooks (useful if you have a large number of webhooks). */
   bucketSortkey?: InputMaybe<Scalars['String']['input']>;
+  /** The url to which the webhook message should be sent. */
   callbackUrl: Scalars['String']['input'];
+  /** The conditions which must be met in order for the webhook to send a message. */
   conditions: PriceEventWebhookConditionInput;
+  /** If enabled, new webhooks won't be created if a webhook with the same parameters already exists. If callbackUrl, conditions, publishingType, and alertRecurrence all match, then we return the existing webhook. */
   deduplicate?: InputMaybe<Scalars['Boolean']['input']>;
+  /** A webhook group ID (max 64 characters). Can be used to group webhooks so that their messages are kept in order as a group rather than by individual webhook. */
   groupId?: InputMaybe<Scalars['String']['input']>;
+  /** The name of the webhook (max 128 characters). */
   name: Scalars['String']['input'];
+  /** The type of publishing for the webhook. If not set, it defaults to `SINGLE`. */
   publishingType?: InputMaybe<PublishingType>;
+  /** The settings for retrying failed webhook messages. */
   retrySettings?: InputMaybe<RetrySettingsInput>;
+  /** A string value to hash along with `deduplicationId` using SHA-256. Included in the webhook message for added security. */
   securityToken: Scalars['String']['input'];
 };
 
+/** Input for creating price webhooks. */
 export type CreatePriceWebhooksInput = {
+  /** A list of price webhooks to create. */
   webhooks: Array<CreatePriceWebhookArgs>;
 };
 
+/** Input for creating a Raw Transaction webhook. */
 export type CreateRawTransactionWebhookArgs = {
+  /** The recurrence of the webhook. Can be `INDEFINITE` or `ONCE`. */
   alertRecurrence: AlertRecurrence;
+  /** An optional bucket ID (max 64 characters). Can be used to query for subgroups of webhooks (useful if you have a large number of webhooks). */
   bucketId?: InputMaybe<Scalars['String']['input']>;
+  /** An optional bucket sort key (max 64 characters). Can be used to query for subgroups of webhooks (useful if you have a large number of webhooks). */
   bucketSortkey?: InputMaybe<Scalars['String']['input']>;
+  /** The url to which the webhook message should be sent. */
   callbackUrl: Scalars['String']['input'];
+  /** The conditions which must be met in order for the webhook to send a message. */
   conditions: RawTransactionWebhookConditionInput;
+  /** If enabled, new webhooks won't be created if a webhook with the same parameters already exists. If callbackUrl, conditions, publishingType, and alertRecurrence all match, then we return the existing webhook. */
   deduplicate?: InputMaybe<Scalars['Boolean']['input']>;
+  /** A webhook group ID (max 64 characters). Can be used to group webhooks so that their messages are kept in order as a group rather than by individual webhook. */
   groupId?: InputMaybe<Scalars['String']['input']>;
+  /** The name of the webhook (max 128 characters). */
   name: Scalars['String']['input'];
+  /** The type of publishing for the webhook. If not set, it defaults to `SINGLE`. */
   publishingType?: InputMaybe<PublishingType>;
+  /** The settings for retrying failed webhook messages. */
   retrySettings?: InputMaybe<RetrySettingsInput>;
+  /** A string value to hash along with `deduplicationId` using SHA-256. Included in the webhook message for added security. */
   securityToken: Scalars['String']['input'];
 };
 
+/** Input for creating Raw Transaction webhooks. */
 export type CreateRawTransactionWebhooksInput = {
+  /** A list of Raw Transaction webhooks to create. */
   webhooks: Array<CreateRawTransactionWebhookArgs>;
 };
 
+/** Input for creating a token pair event webhook. */
 export type CreateTokenPairEventWebhookArgs = {
+  /** The recurrence of the webhook. Can be `INDEFINITE` or `ONCE`. */
   alertRecurrence: AlertRecurrence;
+  /** An optional bucket ID (max 64 characters). Can be used to query for subgroups of webhooks (useful if you have a large number of webhooks). */
   bucketId?: InputMaybe<Scalars['String']['input']>;
+  /** An optional bucket sort key (max 64 characters). Can be used to query for subgroups of webhooks (useful if you have a large number of webhooks). */
   bucketSortkey?: InputMaybe<Scalars['String']['input']>;
+  /** The url to which the webhook message should be sent. */
   callbackUrl: Scalars['String']['input'];
+  /** The conditions which must be met in order for the webhook to send a message. */
   conditions: TokenPairEventWebhookConditionInput;
+  /** If enabled, new webhooks won't be created if a webhook with the same parameters already exists. If callbackUrl, conditions, publishingType, and alertRecurrence all match, then we return the existing webhook. */
   deduplicate?: InputMaybe<Scalars['Boolean']['input']>;
+  /** A webhook group ID (max 64 characters). Can be used to group webhooks so that their messages are kept in order as a group rather than by individual webhook. */
   groupId?: InputMaybe<Scalars['String']['input']>;
+  /** The name of the webhook (max 128 characters). */
   name: Scalars['String']['input'];
+  /** The type of publishing for the webhook. If not set, it defaults to `SINGLE`. */
   publishingType?: InputMaybe<PublishingType>;
+  /** The settings for retrying failed webhook messages. */
   retrySettings?: InputMaybe<RetrySettingsInput>;
+  /** A string value to hash along with `deduplicationId` using SHA-256. Included in the webhook message for added security. */
   securityToken: Scalars['String']['input'];
 };
 
+/** Input for creating token pair event webhooks. */
 export type CreateTokenPairEventWebhooksInput = {
+  /** A list of token pair event webhooks to create. */
   webhooks: Array<CreateTokenPairEventWebhookArgs>;
 };
 
+/** Input for creating webhooks. */
 export type CreateWebhooksInput = {
+  /** Input for creating NFT event webhooks. */
   nftEventWebhooksInput?: InputMaybe<CreateNftEventWebhooksInput>;
+  /** Input for creating price webhooks. */
   priceWebhooksInput?: InputMaybe<CreatePriceWebhooksInput>;
+  /** Input for creating raw transaction webhooks. */
   rawTransactionWebhooksInput?: InputMaybe<CreateRawTransactionWebhooksInput>;
+  /** Input for creating token pair event webhooks. */
   tokenPairEventWebhooksInput?: InputMaybe<CreateTokenPairEventWebhooksInput>;
 };
 
+/** Result returned by `createWebhooks`. */
 export type CreateWebhooksOutput = {
   __typename?: 'CreateWebhooksOutput';
+  /** The list of NFT event webhooks that were created. */
   nftEventWebhooks: Array<Maybe<Webhook>>;
+  /** The list of price webhooks that were created. */
   priceWebhooks: Array<Maybe<Webhook>>;
+  /** The list of raw transaction webhooks that were created. */
   rawTransactionWebhooks: Array<Maybe<Webhook>>;
+  /** The list of token pair event webhooks that were created. */
   tokenPairEventWebhooks: Array<Maybe<Webhook>>;
 };
 
@@ -484,12 +576,16 @@ export type CurrencyBarData = {
   usd: IndividualBarData;
 };
 
+/** Input for deleting webhooks. */
 export type DeleteWebhooksInput = {
+  /** A list of webhook IDs to delete. */
   webhookIds: Array<Scalars['String']['input']>;
 };
 
+/** Result returned by `deleteWebhooks`. */
 export type DeleteWebhooksOutput = {
   __typename?: 'DeleteWebhooksOutput';
+  /** The list of webhook IDs that were deleted. */
   deletedIds?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
 };
 
@@ -795,6 +891,8 @@ export type EnhancedToken = {
   info?: Maybe<TokenInfo>;
   /** Whether the token has been flagged as a scam. */
   isScam?: Maybe<Scalars['Boolean']['output']>;
+  /** Launchpad data for the token */
+  launchpad?: Maybe<LaunchpadData>;
   /** Whether or not the token is mintable */
   mintable?: Maybe<Scalars['String']['output']>;
   /** The token name. For example, `ApeCoin`. */
@@ -850,12 +948,16 @@ export type Event = {
   quoteToken?: Maybe<QuoteToken>;
   /** The unix timestamp for when the transaction occurred. */
   timestamp: Scalars['Int']['output'];
+  /** The address of the event's token0. */
+  token0Address?: Maybe<Scalars['String']['output']>;
   /** The updated price of `token0` in USD, calculated after the transaction. */
   token0PoolValueUsd?: Maybe<Scalars['String']['output']>;
   /** The price of `token0` paid/received in USD, including any fees. */
   token0SwapValueUsd?: Maybe<Scalars['String']['output']>;
   /** The price of `token0` paid/received in the network's base token, including fees. */
   token0ValueBase?: Maybe<Scalars['String']['output']>;
+  /** The address of the event's token1. */
+  token1Address?: Maybe<Scalars['String']['output']>;
   /** The updated price of `token1` in USD, calculated after the transaction. */
   token1PoolValueUsd?: Maybe<Scalars['String']['output']>;
   /** The price of `token1` paid/received in USD, including any fees. */
@@ -1235,14 +1337,23 @@ export type GetGasEstimateInput = {
 /** Response returned by `getNetworkStats`. */
 export type GetNetworkStatsResponse = {
   __typename?: 'GetNetworkStatsResponse';
+  /** The network liquidity in USD. */
   liquidity: Scalars['Float']['output'];
+  /** The unique number of transactions in the past hour. */
   transactions1: Scalars['Int']['output'];
+  /** The unique number of transactions in the past 4 hours. */
   transactions4: Scalars['Int']['output'];
+  /** The unique number of transactions in the past 12 hours. */
   transactions12: Scalars['Int']['output'];
+  /** The unique number of transactions in the past 24 hours. */
   transactions24: Scalars['Int']['output'];
+  /** The network trade volume in USD over the past hour. */
   volume1: Scalars['Float']['output'];
+  /** The network trade volume in USD over the past 4 hours. */
   volume4: Scalars['Float']['output'];
+  /** The network trade volume in USD over the past 12 hours. */
   volume12: Scalars['Float']['output'];
+  /** The network trade volume in USD over the past 24 hours. */
   volume24: Scalars['Float']['output'];
 };
 
@@ -1307,9 +1418,12 @@ export type GetTokensInfoInput = {
   networkId: Scalars['Int']['input'];
 };
 
+/** Response returned by `getWebhooks`. */
 export type GetWebhooksResponse = {
   __typename?: 'GetWebhooksResponse';
+  /** A cursor for use in pagination. */
   cursor?: Maybe<Scalars['String']['output']>;
+  /** A list of webhooks belonging to a user. */
   items?: Maybe<Array<Maybe<Webhook>>>;
 };
 
@@ -1335,16 +1449,19 @@ export type HoldersInputSort = {
   direction?: InputMaybe<RankingDirection>;
 };
 
+/** Response returned by `holders`. */
 export type HoldersResponse = {
   __typename?: 'HoldersResponse';
-  /** the unique count of holders for the token. */
+  /** The unique count of holders for the token. */
   count: Scalars['Int']['output'];
   /** A cursor for use in pagination. */
   cursor?: Maybe<Scalars['String']['output']>;
-  /** The list wallets for a token. */
+  /** The list of wallets holding the token. */
   items: Array<Balance>;
   /** Status of holder. Disabled if on unsupported network or there is insufficient holder data. */
   status: HoldersStatus;
+  /** What percentage of the total supply do the top 10 holders hold. */
+  top10HoldersPercent?: Maybe<Scalars['Float']['output']>;
 };
 
 export enum HoldersSortAttribute {
@@ -1356,6 +1473,21 @@ export enum HoldersStatus {
   Disabled = 'DISABLED',
   Enabled = 'ENABLED'
 }
+
+/** Response returned by `onHoldersUpdated`. */
+export type HoldersUpdate = {
+  __typename?: 'HoldersUpdate';
+  /** The list of wallets holding the token. */
+  balances: Array<Balance>;
+  /** The number of different wallets holding the token. */
+  holders: Scalars['Int']['output'];
+  /** The network ID that the token is deployed on. */
+  networkId: Scalars['Int']['output'];
+  /** The token's contract address. */
+  tokenAddress: Scalars['String']['output'];
+  /** The ID of the token (`tokenAddress:networkId`). */
+  tokenId: Scalars['String']['output'];
+};
 
 /** Bar chart data. */
 export type IndividualBarData = {
@@ -1372,7 +1504,7 @@ export type IndividualBarData = {
   h: Scalars['Float']['output'];
   /** The low price. */
   l: Scalars['Float']['output'];
-  /** Liqudity in USD */
+  /** Liquidity in USD */
   liquidity: Scalars['String']['output'];
   /** The opening price. */
   o: Scalars['Float']['output'];
@@ -1396,12 +1528,16 @@ export type IndividualBarData = {
   volumeNativeToken: Scalars['String']['output'];
 };
 
+/** Integer equals condition. */
 export type IntEqualsCondition = {
   __typename?: 'IntEqualsCondition';
+  /** The integer to equal. */
   eq: Scalars['Int']['output'];
 };
 
+/** Input for integer equals condition. */
 export type IntEqualsConditionInput = {
+  /** The integer to equal. */
   eq: Scalars['Int']['input'];
 };
 
@@ -1555,6 +1691,29 @@ export type LatestTokenSimResults = {
   sellTax?: Maybe<Scalars['String']['output']>;
 };
 
+/** Launchpad data for the token */
+export type LaunchpadData = {
+  __typename?: 'LaunchpadData';
+  /** Indicates if the launchpad is completed. */
+  completed?: Maybe<Scalars['Boolean']['output']>;
+  /** The unix timestamp when the launchpad was completed. */
+  completedAt?: Maybe<Scalars['Int']['output']>;
+  /** The slot number when the launchpad was completed. */
+  completedSlot?: Maybe<Scalars['Int']['output']>;
+  /** The percentage of the pool that was sold to the public. */
+  graduationPercent?: Maybe<Scalars['Float']['output']>;
+  /** Indicates if the launchpad was migrated. */
+  migrated?: Maybe<Scalars['Boolean']['output']>;
+  /** The unix timestamp when the launchpad was migrated. */
+  migratedAt?: Maybe<Scalars['Int']['output']>;
+  /** The pool address after the launchpad was migrated. */
+  migratedPoolAddress?: Maybe<Scalars['String']['output']>;
+  /** The slot number when the launchpad was migrated. */
+  migratedSlot?: Maybe<Scalars['Int']['output']>;
+  /** The address of the pool. */
+  poolAddress?: Maybe<Scalars['String']['output']>;
+};
+
 export type LiquidityData = {
   __typename?: 'LiquidityData';
   /** The active liquidity in the pair. */
@@ -1692,12 +1851,23 @@ export type MakerEventConnection = {
 };
 
 export type MakerEventsQueryInput = {
+  /** The specific event type to filter by. */
+  eventType?: InputMaybe<EventType>;
   /** The specific wallet address to filter by. */
   maker: Scalars['String']['input'];
   /** The network ID to filter by. */
-  networkId: Scalars['Int']['input'];
-  /** The token of interest. Can be `token0` or `token1`. */
+  networkId?: InputMaybe<Scalars['Int']['input']>;
+  /** The total amount of `quoteToken` involved in the swap in USD (`amountNonLiquidityToken` x `priceUsd`). */
+  priceUsdTotal?: InputMaybe<NumberFilter>;
+  /**
+   * docs: hide
+   * @deprecated Not used
+   */
   quoteToken?: InputMaybe<QuoteToken>;
+  /** The time range to filter by. */
+  timestamp?: InputMaybe<EventQueryTimestampInput>;
+  /** The token involved in the event. */
+  tokenAddress?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** The status for a network supported on Defined. */
@@ -1748,9 +1918,11 @@ export type Mutation = {
   __typename?: 'Mutation';
   /** Create a new set of short-lived api access tokens */
   createApiTokens: Array<ApiToken>;
+  /** Create price, raw transaction, token/pair event, and NFT event webhooks. */
   createWebhooks: CreateWebhooksOutput;
   /** Delete a single short-lived api access token by id */
   deleteApiToken: Scalars['String']['output'];
+  /** Delete multiple webhooks. */
   deleteWebhooks?: Maybe<DeleteWebhooksOutput>;
 };
 
@@ -2901,12 +3073,16 @@ export type NftEvent = {
   transactionIndex: Scalars['Int']['output'];
 };
 
+/** NFT marketplaces for a webhook to listen on. */
 export type NftEventFillSourceCondition = {
   __typename?: 'NftEventFillSourceCondition';
+  /** The list of NFT marketplaces. */
   oneOf: Array<WebhookNftEventFillSource>;
 };
 
+/** Input for NFT event fill source condition. */
 export type NftEventFillSourceConditionInput = {
+  /** The list of NFT marketplace to equal. */
   oneOf: Array<WebhookNftEventFillSource>;
 };
 
@@ -2982,37 +3158,61 @@ export enum NftEventTradeItemType {
   Token = 'TOKEN'
 }
 
+/** An NFT event type for a webhook to listen for. */
 export type NftEventTypeCondition = {
   __typename?: 'NftEventTypeCondition';
+  /** The NFT event type. */
   eq: WebhookNftEventType;
 };
 
+/** Input for NFT event type. */
 export type NftEventTypeConditionInput = {
+  /** The NFT event type to equal. */
   eq: WebhookNftEventType;
 };
 
+/** Webhook conditions for an NFT event. */
 export type NftEventWebhookCondition = {
   __typename?: 'NftEventWebhookCondition';
+  /** The NFT collection contract address the webhook is listening for. */
   contractAddress?: Maybe<StringEqualsCondition>;
+  /** The NFT event type the webhook is listening for. */
   eventType?: Maybe<NftEventTypeCondition>;
+  /** The exchange contract address the webhook is listening for. */
   exchangeAddress?: Maybe<StringEqualsCondition>;
+  /** The NFT marketplaces the webhook is listening on. */
   fillSource?: Maybe<NftEventFillSourceCondition>;
+  /** Option to ignore all nft transfer events */
   ignoreTransfers?: Maybe<Scalars['Boolean']['output']>;
+  /** The base token price the webhook is listening for. */
   individualBaseTokenPrice?: Maybe<ComparisonOperator>;
+  /** The maker wallet address the webhook is listening for. */
   maker?: Maybe<StringEqualsCondition>;
+  /** The list of network IDs the webhook is listening on. */
   networkId?: Maybe<OneOfNumberCondition>;
+  /** The token contract address the webhook is listening for. */
   tokenAddress?: Maybe<StringEqualsCondition>;
+  /** The token ID the webhook is listening for. */
   tokenId?: Maybe<StringEqualsCondition>;
 };
 
+/** Input conditions for an NFT event webhook. */
 export type NftEventWebhookConditionInput = {
+  /** The NFT collection contract address to listen for. */
   contractAddress?: InputMaybe<StringEqualsConditionInput>;
+  /** The NFT event type to listen for. */
   eventType?: InputMaybe<NftEventTypeConditionInput>;
+  /** The exchange contract address to listen for. */
   exchangeAddress?: InputMaybe<StringEqualsConditionInput>;
+  /** The NFT marketplaces to listen for. */
   fillSource?: InputMaybe<NftEventFillSourceConditionInput>;
+  /** Option to ignore all nft transfer events */
   ignoreTransfers?: InputMaybe<Scalars['Boolean']['input']>;
+  /** The maker wallet address to listen for. */
   maker?: InputMaybe<StringEqualsConditionInput>;
+  /** A list of network IDs to listen on. */
   networkId?: InputMaybe<OneOfNumberConditionInput>;
+  /** The token ID to listen for. */
   tokenId?: InputMaybe<StringEqualsConditionInput>;
 };
 
@@ -4376,6 +4576,11 @@ export type OnBarsUpdatedResponse = {
   timestamp: Scalars['Int']['output'];
 };
 
+export type OnLaunchpadTokenUpdatedInput = {
+  address?: InputMaybe<Scalars['String']['input']>;
+  networkId?: InputMaybe<Scalars['Int']['input']>;
+};
+
 export type OnPricesUpdatedInput = {
   address: Scalars['String']['input'];
   networkId: Scalars['Int']['input'];
@@ -4439,12 +4644,16 @@ export type OnUnconfirmedBarsUpdated = {
   timestamp: Scalars['Int']['output'];
 };
 
+/** Integer list condition. */
 export type OneOfNumberCondition = {
   __typename?: 'OneOfNumberCondition';
+  /** The list of integers. */
   oneOf: Array<Scalars['Int']['output']>;
 };
 
+/** Input for integer list condition. */
 export type OneOfNumberConditionInput = {
+  /** The list of integers. */
   oneOf: Array<Scalars['Int']['input']>;
 };
 
@@ -4458,6 +4667,7 @@ export enum OrderState {
 
 export enum OrderType {
   Limit = 'LIMIT',
+  LimitStrategy = 'LIMIT_STRATEGY',
   Manual = 'MANUAL'
 }
 
@@ -4482,9 +4692,11 @@ export type Pair = {
   tickSpacing?: Maybe<Scalars['Int']['output']>;
   /** The contract address of `token0`. */
   token0: Scalars['String']['output'];
+  /** Metadata for the first token in the pair. */
   token0Data?: Maybe<EnhancedToken>;
   /** The contract address of `token1`. */
   token1: Scalars['String']['output'];
+  /** Metadata for the second token in the pair. */
   token1Data?: Maybe<EnhancedToken>;
 };
 
@@ -4766,40 +4978,87 @@ export type PairFilters = {
 
 export type PairMetadata = {
   __typename?: 'PairMetadata';
+  /** The unix timestamp for the creation of the pair. */
+  createdAt?: Maybe<Scalars['Int']['output']>;
+  /** Token metadata for the first token in the pair. */
+  enhancedToken0?: Maybe<EnhancedToken>;
+  /** Token metadata for the second token in the pair. */
+  enhancedToken1?: Maybe<EnhancedToken>;
+  /** The exchange contract ID. */
   exchangeId?: Maybe<Scalars['String']['output']>;
+  /** The exchange fee for swaps. */
   fee?: Maybe<Scalars['Int']['output']>;
+  /** The highest price in USD in the past hour. */
   highPrice1?: Maybe<Scalars['String']['output']>;
+  /** The highest price in USD in the past week. */
   highPrice1w?: Maybe<Scalars['String']['output']>;
+  /** The highest price in USD in the past 4 hours. */
   highPrice4?: Maybe<Scalars['String']['output']>;
+  /** The highest price in USD in the past 5 minutes. */
+  highPrice5m?: Maybe<Scalars['String']['output']>;
+  /** The highest price in USD in the past 12 hours. */
   highPrice12?: Maybe<Scalars['String']['output']>;
+  /** The highest price in USD in the past 24 hours. */
   highPrice24?: Maybe<Scalars['String']['output']>;
+  /** The ID for the pair (`address:networkId`). */
   id: Scalars['String']['output'];
+  /** The total liquidity in the pair. */
   liquidity: Scalars['String']['output'];
+  /** The token with higher liquidity within the pair. Can be `token0` or `token1`. */
   liquidityToken?: Maybe<Scalars['String']['output']>;
+  /** The lowest price in USD in the past hour. */
   lowPrice1?: Maybe<Scalars['String']['output']>;
+  /** The lowest price in USD in the past week. */
   lowPrice1w?: Maybe<Scalars['String']['output']>;
+  /** The lowest price in USD in the past 4 hours. */
   lowPrice4?: Maybe<Scalars['String']['output']>;
+  /** The lowest price in USD in the past 5 minutes. */
+  lowPrice5m?: Maybe<Scalars['String']['output']>;
+  /** The lowest price in USD in the past 12 hours. */
   lowPrice12?: Maybe<Scalars['String']['output']>;
+  /** The lowest price in USD in the past 24 hours. */
   lowPrice24?: Maybe<Scalars['String']['output']>;
+  /** The network ID the pair is deployed on. */
   networkId?: Maybe<Scalars['Int']['output']>;
+  /** The token with lower liquidity within the pair. Can be `token0` or `token1`. */
   nonLiquidityToken?: Maybe<Scalars['String']['output']>;
+  /** The contract address of the pair. */
   pairAddress: Scalars['String']['output'];
+  /** The quote token price in USD. */
   price: Scalars['String']['output'];
+  /** The percent price change in the past hour. Decimal format. */
   priceChange1?: Maybe<Scalars['Float']['output']>;
+  /** The percent price change in the past week. Decimal format. */
   priceChange1w?: Maybe<Scalars['Float']['output']>;
+  /** The percent price change in the past 4 hours. Decimal format. */
   priceChange4?: Maybe<Scalars['Float']['output']>;
+  /** The percent price change in the past 5 minutes. Decimal format. */
   priceChange5m?: Maybe<Scalars['Float']['output']>;
+  /** The percent price change in the past 12 hours. Decimal format. */
   priceChange12?: Maybe<Scalars['Float']['output']>;
+  /** The percent price change in the past 24 hours. Decimal format. */
   priceChange24?: Maybe<Scalars['Float']['output']>;
+  /** The token of interest within the pair. Can be `token0` or `token1`. */
   quoteToken?: Maybe<QuoteToken>;
+  /** The type of statistics returned. Can be `FILTERED` or `UNFILTERED` */
   statsType: TokenPairStatisticsType;
+  /** The amount of required tick separation. Only applicable for pairs on UniswapV3. */
   tickSpacing?: Maybe<Scalars['Int']['output']>;
+  /** Pair metadata for the first token in the pair. */
   token0: PairMetadataToken;
+  /** Pair metadata for the second token in the pair. */
   token1: PairMetadataToken;
+  /** The trade volume in USD in the past hour. */
   volume1?: Maybe<Scalars['String']['output']>;
+  /** The trade trade volume in USD in the past week. */
   volume1w?: Maybe<Scalars['String']['output']>;
+  /** The trade volume in USD in the past 4 hours. */
   volume4?: Maybe<Scalars['String']['output']>;
+  /** The trade volume in USD in the past 5 minutes. */
+  volume5m?: Maybe<Scalars['String']['output']>;
+  /** The trade volume in USD in the past 12 hours. */
   volume12?: Maybe<Scalars['String']['output']>;
+  /** The trade volume in USD in the past 24 hours. */
   volume24?: Maybe<Scalars['String']['output']>;
 };
 
@@ -4881,35 +5140,6 @@ export enum PairRankingAttribute {
   VolumeUsd12 = 'volumeUSD12',
   VolumeUsd24 = 'volumeUSD24'
 }
-
-/** A Parallel asset. */
-export type ParallelAsset = {
-  __typename?: 'ParallelAsset';
-  /** The contract address of the NFT collection. */
-  address: Scalars['String']['output'];
-  /** The attributes for the NFT asset. */
-  attributes?: Maybe<Array<NftAssetAttribute>>;
-  /** The description of the NFT asset. */
-  description?: Maybe<Scalars['String']['output']>;
-  /** The game data for the NFT asset. */
-  gameData?: Maybe<ParallelAssetGameData>;
-  /** The ID of the NFT asset (`address`:`tokenId`). */
-  id: Scalars['String']['output'];
-  /** The NFT asset media. */
-  media?: Maybe<NftAssetMedia>;
-  /** Metadata for the NFT asset. */
-  metadata?: Maybe<ParallelAssetMetadata>;
-  /** The name of the NFT asset. */
-  name?: Maybe<Scalars['String']['output']>;
-  /** The network ID the NFT collection is deployed on. */
-  networkId: Scalars['Int']['output'];
-  /** The source image URI linked by smart contract metadata. */
-  originalImage?: Maybe<Scalars['String']['output']>;
-  /** The token ID of the NFT asset. */
-  tokenId: Scalars['String']['output'];
-  /** The URI provided by the smart contract. Typically JSON that contains metadata. */
-  uri?: Maybe<Scalars['String']['output']>;
-};
 
 /** Response returned by `filterNftParallelAssets`. */
 export type ParallelAssetFilterConnection = {
@@ -5098,15 +5328,6 @@ export enum ParallelAssetRankingAttribute {
   Supply = 'supply'
 }
 
-/** Response returned by `getParallelAssets`. */
-export type ParallelAssetsConnection = {
-  __typename?: 'ParallelAssetsConnection';
-  /** A cursor for use in pagination. */
-  cursor?: Maybe<Scalars['String']['output']>;
-  /** A list of Parallel assets. */
-  items?: Maybe<Array<Maybe<ParallelAsset>>>;
-};
-
 /** Tracked changes made to a Parallel card. */
 export type ParallelCardChange = {
   __typename?: 'ParallelCardChange';
@@ -5245,19 +5466,31 @@ export type Price = {
   /** The token price in USD. */
   priceUsd: Scalars['Float']['output'];
   /** The unix timestamp for the price. */
-  timestamp: Scalars['Int']['output'];
+  timestamp?: Maybe<Scalars['Int']['output']>;
 };
 
+/** Webhook conditions for a price event. */
 export type PriceEventWebhookCondition = {
   __typename?: 'PriceEventWebhookCondition';
+  /** The network ID the webhook is listening on. */
   networkId: IntEqualsCondition;
+  /** The pair contract address the webhook is listening for. */
+  pairAddress?: Maybe<StringEqualsCondition>;
+  /** The price condition that must be met in order for the webhook to send. */
   priceUsd: ComparisonOperator;
+  /** The token contract address the webhook is listening for. */
   tokenAddress: StringEqualsCondition;
 };
 
+/** Input conditions for a price event webhook. */
 export type PriceEventWebhookConditionInput = {
+  /** The network ID to listen on. */
   networkId: IntEqualsConditionInput;
+  /** The contract address of the pair to listen for. */
+  pairAddress?: InputMaybe<StringEqualsConditionInput>;
+  /** The price conditions to listen for. */
   priceUsd: ComparisonOperatorInput;
+  /** The contract address of the token to listen for. */
   tokenAddress: StringEqualsConditionInput;
 };
 
@@ -5802,7 +6035,10 @@ export type Query = {
   getEventLabels?: Maybe<EventLabelConnection>;
   /** Returns a list of decentralized exchange metadata. */
   getExchanges: Array<Exchange>;
-  /** Returns new tokens listed over the last three days. */
+  /**
+   * Returns new tokens listed over the last three days.
+   * @deprecated This query is longer supported. Instead use filterPairs with sort order on createdAt DESC
+   */
   getLatestPairs?: Maybe<LatestPairConnection>;
   getLatestTokens?: Maybe<LatestTokenConnection>;
   /** Returns metadata for a given network. */
@@ -5833,8 +6069,6 @@ export type Query = {
   getNftPoolsByCollectionAndExchange?: Maybe<GetNftPoolsResponse>;
   /** Returns a list of NFT pools for a given owner. */
   getNftPoolsByOwner?: Maybe<GetNftPoolsResponse>;
-  /** Returns transactions for an NFT collection across any marketplace(s). */
-  getParallelAssets?: Maybe<ParallelAssetsConnection>;
   /** Returns changes made to Parallel card metadata over time. */
   getParallelCardChanges?: Maybe<ParallelCardChangesConnection>;
   /** Returns a list of Prime pool cached assets. */
@@ -5846,19 +6080,13 @@ export type Query = {
   getSimulateTokenContractResults: GetSimulateTokenContractResultsConnection;
   /** Returns metadata for a given pair. */
   getSymbol?: Maybe<SymbolResponse>;
-  /** Returns the total count of tokens on Defined. This value is updated approximately every 6 hours. */
-  getTokenCount: Scalars['String']['output'];
   /** Returns transactions for a pair. */
   getTokenEvents?: Maybe<EventConnection>;
+  /** Returns a list of token events for a given maker. */
   getTokenEventsForMaker?: Maybe<MakerEventConnection>;
-  /** Returns metadata for a given token. */
-  getTokenInfo?: Maybe<TokenInfo>;
   /** Returns real-time or historical prices for a list of tokens, fetched in batches. */
   getTokenPrices?: Maybe<Array<Maybe<Price>>>;
-  /** Returns metadata for a list of given tokens. */
-  getTokensInfo?: Maybe<Array<Maybe<TokenInfo>>>;
-  /** Returns tick data for a given Uniswap V3-style pool. */
-  getUniV3Ticks?: Maybe<UniV3TickConnection>;
+  /** Returns a user's list of webhooks. */
   getWebhooks?: Maybe<GetWebhooksResponse>;
   /** Returns list of wallets that hold a given token, ordered by holdings descending. Also has the unique count of holders for that token */
   holders: HoldersResponse;
@@ -5866,8 +6094,6 @@ export type Query = {
   liquidityLocks?: Maybe<LiquidityLockConnection>;
   /** Returns liquidity metadata for a given pair. Includes liquidity lock data. */
   liquidityMetadata?: Maybe<LiquidityMetadata>;
-  /** Returns a list of token metadata. */
-  listFavoriteTokens?: Maybe<Array<TokenWithMetadata>>;
   /** Returns a list of pairs containing a given token. */
   listPairsForToken: Array<Maybe<Pair>>;
   /** Returns a list of pair metadata for a token. */
@@ -5878,8 +6104,6 @@ export type Query = {
   nftHolders: NftHoldersResponse;
   /** Returns metadata for a pair of tokens. */
   pairMetadata: PairMetadata;
-  /** Fetch the balance of a wallet holding PRIME on ethereum */
-  primeBalance: BalancesResponse;
   /** Returns a list of holders of the PRIME token on ethereum. */
   primeHolders: PrimeHolders;
   /** Returns a list of NFT collections matching a given query string. */
@@ -5889,14 +6113,16 @@ export type Query = {
    * @deprecated This query is no longer supported and will not return up to date data. Use `filterTokens` instead.
    */
   searchTokens?: Maybe<TokenSearchResponse>;
-  /** Find a single token by its address & network id. */
+  /** Returns a single token by its address & network id. */
   token: EnhancedToken;
   /** Returns a list of token lifecycle events. */
   tokenLifecycleEvents?: Maybe<TokenLifecycleEventConnection>;
   /** Returns a list of token simple chart data (sparklines) for the given tokens. */
   tokenSparklines: Array<TokenSparkline>;
-  /** Find a list of tokens by their addresses & network id, with pagination. */
+  /** Returns a list of tokens by their addresses & network id, with pagination. */
   tokens: Array<Maybe<EnhancedToken>>;
+  /** Returns the percentage of a token’s total supply held collectively by its top 10 holders. */
+  top10HoldersPercent?: Maybe<Scalars['Float']['output']>;
   /** Returns list of NFT assets held by a given wallet for a single collection. */
   walletNftCollectionAssets: WalletNftCollectionAssetsResponse;
   /** Returns list of collections and quantity of NFTs held by a given wallet. */
@@ -6000,6 +6226,7 @@ export type QueryGetBarsArgs = {
   resolution: Scalars['String']['input'];
   statsType?: InputMaybe<TokenPairStatisticsType>;
   symbol: Scalars['String']['input'];
+  symbolType?: InputMaybe<SymbolType>;
   to: Scalars['Int']['input'];
 };
 
@@ -6181,13 +6408,6 @@ export type QueryGetNftPoolsByOwnerArgs = {
 };
 
 
-export type QueryGetParallelAssetsArgs = {
-  cursor?: InputMaybe<Scalars['String']['input']>;
-  limit?: InputMaybe<Scalars['Int']['input']>;
-  tokenIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
-};
-
-
 export type QueryGetParallelCardChangesArgs = {
   cursor?: InputMaybe<Scalars['String']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -6257,27 +6477,8 @@ export type QueryGetTokenEventsForMakerArgs = {
 };
 
 
-export type QueryGetTokenInfoArgs = {
-  address: Scalars['String']['input'];
-  networkId: Scalars['Int']['input'];
-};
-
-
 export type QueryGetTokenPricesArgs = {
   inputs?: InputMaybe<Array<InputMaybe<GetPriceInput>>>;
-};
-
-
-export type QueryGetTokensInfoArgs = {
-  input: Array<GetTokensInfoInput>;
-};
-
-
-export type QueryGetUniV3TicksArgs = {
-  limit?: InputMaybe<Scalars['Int']['input']>;
-  networkId: Scalars['Int']['input'];
-  offset?: InputMaybe<Scalars['Int']['input']>;
-  poolAddress: Scalars['String']['input'];
 };
 
 
@@ -6305,13 +6506,6 @@ export type QueryLiquidityLocksArgs = {
 export type QueryLiquidityMetadataArgs = {
   networkId: Scalars['Int']['input'];
   pairAddress: Scalars['String']['input'];
-};
-
-
-export type QueryListFavoriteTokensArgs = {
-  keys: Array<Scalars['String']['input']>;
-  networkFilter?: InputMaybe<Array<Scalars['Int']['input']>>;
-  resolution?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -6345,11 +6539,6 @@ export type QueryPairMetadataArgs = {
   pairId: Scalars['String']['input'];
   quoteToken?: InputMaybe<QuoteToken>;
   statsType?: InputMaybe<TokenPairStatisticsType>;
-};
-
-
-export type QueryPrimeBalanceArgs = {
-  walletAddress: Scalars['String']['input'];
 };
 
 
@@ -6396,6 +6585,11 @@ export type QueryTokenSparklinesArgs = {
 
 export type QueryTokensArgs = {
   ids?: InputMaybe<Array<TokenInput>>;
+};
+
+
+export type QueryTop10HoldersPercentArgs = {
+  tokenId: Scalars['String']['input'];
 };
 
 
@@ -6466,24 +6660,40 @@ export type RawNftAssetData = {
   imageUrl?: Maybe<Scalars['String']['output']>;
 };
 
+/** Webhook conditions for a raw transaction. */
 export type RawTransactionWebhookCondition = {
   __typename?: 'RawTransactionWebhookCondition';
+  /** The from address to listen for. */
   from?: Maybe<StringEqualsCondition>;
+  /** Do not trigger the webhook if the raw transaction is handled by the NftEvent webhook. */
   ignoreNftEvents?: Maybe<Scalars['Boolean']['output']>;
+  /** Do not trigger the webhook if the raw transaction is handled by the TokenPairEvent webhook. */
   ignoreTokenPairEvents?: Maybe<Scalars['Boolean']['output']>;
+  /** Trigger the webhook if the  contains or doesn't contain the specified string. */
   input?: Maybe<StringContainsCondition>;
+  /** A list of network IDs to listen on. */
   networkId?: Maybe<OneOfNumberCondition>;
+  /** The to address to listen for. */
   to?: Maybe<StringEqualsCondition>;
+  /** Trigger the webhook if either the to or the from address matches. */
   toOrFrom?: Maybe<StringEqualsCondition>;
 };
 
+/** Input conditions for a Raw Transaction webhook. */
 export type RawTransactionWebhookConditionInput = {
+  /** The from address to listen for. */
   from?: InputMaybe<StringEqualsConditionInput>;
+  /** Do not trigger the webhook if the raw transaction is handled by the NftEvent webhook. */
   ignoreNftEvents?: InputMaybe<Scalars['Boolean']['input']>;
+  /** Do not trigger the webhook if the raw transaction is handled by the TokenPairEvent webhook. */
   ignoreTokenPairEvents?: InputMaybe<Scalars['Boolean']['input']>;
+  /** Trigger the webhook if the input contains or doesn't contain the specified string. */
   input?: InputMaybe<StringContainsConditionInput>;
+  /** A list of network IDs to listen on. */
   networkId?: InputMaybe<OneOfNumberConditionInput>;
+  /** The to address to listen for. */
   to?: InputMaybe<StringEqualsConditionInput>;
+  /** Trigger the webhook if either the to or the from address matches. */
   toOrFrom?: InputMaybe<StringEqualsConditionInput>;
 };
 
@@ -6550,18 +6760,28 @@ export type ResolutionBarData = {
   r720?: Maybe<CurrencyBarData>;
 };
 
+/** Config for retrying failed webhook messages */
 export type RetrySettings = {
   __typename?: 'RetrySettings';
+  /** The maximum number of times the webhook will retry sending a message */
   maxRetries?: Maybe<Scalars['Int']['output']>;
+  /** The maximum time in seconds that the webhook will wait before retrying a failed message */
   maxRetryDelay?: Maybe<Scalars['Int']['output']>;
+  /** The maximum time in seconds that the webhook will retry sending a message */
   maxTimeElapsed?: Maybe<Scalars['Int']['output']>;
+  /** The minimum time in seconds that the webhook will wait before retrying a failed message */
   minRetryDelay?: Maybe<Scalars['Int']['output']>;
 };
 
+/** Config input for retrying failed webhook messages */
 export type RetrySettingsInput = {
+  /** The maximum number of times the webhook will retry sending a message */
   maxRetries?: InputMaybe<Scalars['Int']['input']>;
+  /** The maximum time in seconds that the webhook will wait before retrying a failed message */
   maxRetryDelay?: InputMaybe<Scalars['Int']['input']>;
+  /** The maximum time in seconds that the webhook will retry sending a message */
   maxTimeElapsed?: InputMaybe<Scalars['Int']['input']>;
+  /** The minimum time in seconds that the webhook will wait before retrying a failed message */
   minRetryDelay?: InputMaybe<Scalars['Int']['input']>;
 };
 
@@ -6866,23 +7086,33 @@ export type StatsFilter = {
   previous?: InputMaybe<NumberFilter>;
 };
 
+/** String contains condition. */
 export type StringContainsCondition = {
   __typename?: 'StringContainsCondition';
+  /** A list of substrings included within the string. */
   contains?: Maybe<Array<Scalars['String']['output']>>;
+  /** A list of substrings not included within the string. */
   notContains?: Maybe<Array<Scalars['String']['output']>>;
 };
 
+/** Input for string contains condition. */
 export type StringContainsConditionInput = {
+  /** A list of substrings to be included within the string. */
   contains?: InputMaybe<Array<Scalars['String']['input']>>;
+  /** A list of substrings not to be included within the string. */
   notContains?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
+/** String equals condition. */
 export type StringEqualsCondition = {
   __typename?: 'StringEqualsCondition';
+  /** The string to equal. */
   eq: Scalars['String']['output'];
 };
 
+/** Input for string equals condition. */
 export type StringEqualsConditionInput = {
+  /** The string to equal. */
   eq: Scalars['String']['input'];
 };
 
@@ -6908,6 +7138,8 @@ export type Subscription = {
   onEventLabelCreated?: Maybe<EventLabel>;
   /** Live-streamed transactions for a token. */
   onEventsCreated?: Maybe<AddEventsOutput>;
+  /** Live-streamed list of wallets that hold a given token. Also has the unique count of holders for that token. */
+  onHoldersUpdated?: Maybe<HoldersUpdate>;
   /** Live-streamed updates for newly listed pairs. */
   onLatestPairUpdated?: Maybe<LatestPair>;
   onLatestTokens?: Maybe<LatestToken>;
@@ -6915,7 +7147,7 @@ export type Subscription = {
   onNftAssetsCreated?: Maybe<NftAsset>;
   /** Live-streamed transactions for an NFT collection. */
   onNftEventsCreated?: Maybe<AddNftEventsOutput>;
-  /** Live streamed nft pool events for a given pool address or collection address */
+  /** Live streamed NFT pool events for a given pool address or collection address. */
   onNftPoolEventsCreated?: Maybe<AddNftPoolEventsOutput>;
   /** Live-streamed stat updates for a given token within a pair. */
   onPairMetadataUpdated?: Maybe<PairMetadata>;
@@ -6926,9 +7158,9 @@ export type Subscription = {
   onSimulateTokenContract: SimulateTokenContractResult;
   /** Live-streamed bar chart data to track price changes over time for a token. */
   onTokenBarsUpdated?: Maybe<OnTokenBarsUpdatedResponse>;
-  /** Live streamed events for a given token across all it's pools */
+  /** Live-streamed events for a given token across all it's pools */
   onTokenEventsCreated: AddTokenEventsOutput;
-  /** Live-streamed token lifecycle events (mints and burns) */
+  /** Live-streamed token lifecycle events (mints and burns). */
   onTokenLifecycleEventsCreated: AddTokenLifecycleEventsOutput;
   /** Unconfirmed live-streamed bar chart data to track price changes over time. (Solana only) */
   onUnconfirmedBarsUpdated?: Maybe<OnUnconfirmedBarsUpdated>;
@@ -6960,6 +7192,11 @@ export type SubscriptionOnEventsCreatedArgs = {
   address?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
   quoteToken?: InputMaybe<QuoteToken>;
+};
+
+
+export type SubscriptionOnHoldersUpdatedArgs = {
+  tokenId: Scalars['String']['input'];
 };
 
 
@@ -7050,6 +7287,26 @@ export type SubscriptionOnUnconfirmedEventsCreatedArgs = {
   address?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['String']['input']>;
   quoteToken?: InputMaybe<QuoteToken>;
+};
+
+export type SuiNetworkConfig = {
+  __typename?: 'SuiNetworkConfig';
+  baseTokenAddress: Scalars['String']['output'];
+  baseTokenSymbol: Scalars['String']['output'];
+  color?: Maybe<Scalars['String']['output']>;
+  defaultPairAddress: Scalars['String']['output'];
+  defaultPairQuoteToken: QuoteToken;
+  enabled: Scalars['Boolean']['output'];
+  id: Scalars['ID']['output'];
+  mainnet: Scalars['Boolean']['output'];
+  name: Scalars['String']['output'];
+  networkIconUrl: Scalars['String']['output'];
+  networkId: Scalars['Int']['output'];
+  networkName: Scalars['String']['output'];
+  networkShortName: Scalars['String']['output'];
+  newTokensEnabled?: Maybe<Scalars['Boolean']['output']>;
+  stableCoinAddresses?: Maybe<Array<Scalars['String']['output']>>;
+  wrappedBaseTokenSymbol: Scalars['String']['output'];
 };
 
 /** Event data for a token swap event. */
@@ -7234,6 +7491,11 @@ export type SymbolResponse = {
   ticker: Scalars['String']['output'];
 };
 
+export enum SymbolType {
+  Pool = 'POOL',
+  Token = 'TOKEN'
+}
+
 /** Token burn event data. */
 export type TokenBurnEventData = {
   __typename?: 'TokenBurnEventData';
@@ -7265,6 +7527,8 @@ export type TokenFilterResult = {
   buyCount1?: Maybe<Scalars['Int']['output']>;
   /** The number of buys in the past 4 hours. */
   buyCount4?: Maybe<Scalars['Int']['output']>;
+  /** The number of buys in the past 5 minutes. */
+  buyCount5m?: Maybe<Scalars['Int']['output']>;
   /** The number of buys in the past 12 hours. */
   buyCount12?: Maybe<Scalars['Int']['output']>;
   /** The number of buys in the past 24 hours. */
@@ -7273,6 +7537,8 @@ export type TokenFilterResult = {
   change1?: Maybe<Scalars['String']['output']>;
   /** The percent price change in the past 4 hours. Decimal format. */
   change4?: Maybe<Scalars['String']['output']>;
+  /** The percent price change in the past 5 minutes. Decimal format. */
+  change5m?: Maybe<Scalars['String']['output']>;
   /** The percent price change in the past 12 hours. Decimal format. */
   change12?: Maybe<Scalars['String']['output']>;
   /** The percent price change in the past 24 hours. Decimal format. */
@@ -7287,6 +7553,8 @@ export type TokenFilterResult = {
   high1?: Maybe<Scalars['String']['output']>;
   /** The highest price in USD in the past 4 hours. */
   high4?: Maybe<Scalars['String']['output']>;
+  /** The highest price in USD in the past 5 minutes. */
+  high5m?: Maybe<Scalars['String']['output']>;
   /** The highest price in USD in the past 12 hours. */
   high12?: Maybe<Scalars['String']['output']>;
   /** The highest price in USD in the past 24 hours. */
@@ -7303,6 +7571,8 @@ export type TokenFilterResult = {
   low1?: Maybe<Scalars['String']['output']>;
   /** The lowest price in USD in the past 4 hours. */
   low4?: Maybe<Scalars['String']['output']>;
+  /** The lowest price in USD in the past 5 minutes. */
+  low5m?: Maybe<Scalars['String']['output']>;
   /** The lowest price in USD in the past 12 hours. */
   low12?: Maybe<Scalars['String']['output']>;
   /** The lowest price in USD in the past 24 hours. */
@@ -7319,6 +7589,8 @@ export type TokenFilterResult = {
   sellCount1?: Maybe<Scalars['Int']['output']>;
   /** The number of sells in the past 4 hours. */
   sellCount4?: Maybe<Scalars['Int']['output']>;
+  /** The number of sells in the past 5 minutes. */
+  sellCount5m?: Maybe<Scalars['Int']['output']>;
   /** The number of sells in the past 12 hours. */
   sellCount12?: Maybe<Scalars['Int']['output']>;
   /** The number of sells in the past 24 hours. */
@@ -7329,6 +7601,8 @@ export type TokenFilterResult = {
   txnCount1?: Maybe<Scalars['Int']['output']>;
   /** The number of transactions in the past 4 hours. */
   txnCount4?: Maybe<Scalars['Int']['output']>;
+  /** The number of transactions in the past 5 minutes. */
+  txnCount5m?: Maybe<Scalars['Int']['output']>;
   /** The number of transactions in the past 12 hours. */
   txnCount12?: Maybe<Scalars['Int']['output']>;
   /** The number of transactions in the past 24 hours. */
@@ -7337,6 +7611,8 @@ export type TokenFilterResult = {
   uniqueBuys1?: Maybe<Scalars['Int']['output']>;
   /** The unique number of buys in the past 4 hours. */
   uniqueBuys4?: Maybe<Scalars['Int']['output']>;
+  /** The unique number of buys in the past 5 minutes. */
+  uniqueBuys5m?: Maybe<Scalars['Int']['output']>;
   /** The unique number of buys in the past 12 hours. */
   uniqueBuys12?: Maybe<Scalars['Int']['output']>;
   /** The unique number of buys in the past 24 hours. */
@@ -7345,6 +7621,8 @@ export type TokenFilterResult = {
   uniqueSells1?: Maybe<Scalars['Int']['output']>;
   /** The unique number of sells in the past 4 hours. */
   uniqueSells4?: Maybe<Scalars['Int']['output']>;
+  /** The unique number of sells in the past 5 minutes. */
+  uniqueSells5m?: Maybe<Scalars['Int']['output']>;
   /** The unique number of sells in the past 12 hours. */
   uniqueSells12?: Maybe<Scalars['Int']['output']>;
   /** The unique number of sells in the past 24 hours. */
@@ -7353,6 +7631,8 @@ export type TokenFilterResult = {
   uniqueTransactions1?: Maybe<Scalars['Int']['output']>;
   /** The unique number of transactions in the past 4 hours. */
   uniqueTransactions4?: Maybe<Scalars['Int']['output']>;
+  /** The unique number of transactions in the past 5 minutes. */
+  uniqueTransactions5m?: Maybe<Scalars['Int']['output']>;
   /** The unique number of transactions in the past 12 hours. */
   uniqueTransactions12?: Maybe<Scalars['Int']['output']>;
   /** The unique number of transactions in the past 24 hours. */
@@ -7361,6 +7641,8 @@ export type TokenFilterResult = {
   volume1?: Maybe<Scalars['String']['output']>;
   /** The trade volume in USD in the past 4 hours. */
   volume4?: Maybe<Scalars['String']['output']>;
+  /** The trade volume in USD in the past 5 minutes. */
+  volume5m?: Maybe<Scalars['String']['output']>;
   /** The trade volume in USD in the past 12 hours. */
   volume12?: Maybe<Scalars['String']['output']>;
   /** The trade volume in USD in the past 24 hours. */
@@ -7369,6 +7651,8 @@ export type TokenFilterResult = {
   volumeChange1?: Maybe<Scalars['String']['output']>;
   /** The percent volume change in the past 4 hours. Decimal format. */
   volumeChange4?: Maybe<Scalars['String']['output']>;
+  /** The percent volume change in the past 5 minutes. Decimal format. */
+  volumeChange5m?: Maybe<Scalars['String']['output']>;
   /** The percent volume change in the past 12 hours. Decimal format. */
   volumeChange12?: Maybe<Scalars['String']['output']>;
   /** The percent volume change in the past 24 hours. Decimal format. */
@@ -7383,6 +7667,8 @@ export type TokenFilters = {
   buyCount1?: InputMaybe<NumberFilter>;
   /** The number of buys in the past 4 hours. */
   buyCount4?: InputMaybe<NumberFilter>;
+  /** The number of buys in the past 5 minutes. */
+  buyCount5m?: InputMaybe<NumberFilter>;
   /** The number of buys in the past 12 hours. */
   buyCount12?: InputMaybe<NumberFilter>;
   /** The number of buys in the past 24 hours. */
@@ -7391,6 +7677,8 @@ export type TokenFilters = {
   change1?: InputMaybe<NumberFilter>;
   /** The percent price change in the past 4 hours. Decimal format. */
   change4?: InputMaybe<NumberFilter>;
+  /** The percent price change in the past 5 minutes. Decimal format. */
+  change5m?: InputMaybe<NumberFilter>;
   /** The percent price change in the past 12 hours. Decimal format. */
   change12?: InputMaybe<NumberFilter>;
   /** The percent price change in the past 24 hours. Decimal format. */
@@ -7409,6 +7697,8 @@ export type TokenFilters = {
   high1?: InputMaybe<NumberFilter>;
   /** The highest price in USD in the past 4 hours. */
   high4?: InputMaybe<NumberFilter>;
+  /** The highest price in USD in the past 5 minutes. */
+  high5m?: InputMaybe<NumberFilter>;
   /** The highest price in USD in the past 12 hours. */
   high12?: InputMaybe<NumberFilter>;
   /** The highest price in USD in the past 24 hours. */
@@ -7427,6 +7717,8 @@ export type TokenFilters = {
   low1?: InputMaybe<NumberFilter>;
   /** The lowest price in USD in the past 4 hours. */
   low4?: InputMaybe<NumberFilter>;
+  /** The lowest price in USD in the past 5 minutes. */
+  low5m?: InputMaybe<NumberFilter>;
   /** The lowest price in USD in the past 12 hours. */
   low12?: InputMaybe<NumberFilter>;
   /** The lowest price in USD in the past 24 hours. */
@@ -7435,6 +7727,8 @@ export type TokenFilters = {
   marketCap?: InputMaybe<NumberFilter>;
   /** The list of network IDs to filter by. Applied in conjunction with `exchangeId` filter using an OR condition. When used together, the query returns results that match either the specified exchanges or the specified network. */
   network?: InputMaybe<Array<InputMaybe<Scalars['Int']['input']>>>;
+  /** docs: hide */
+  notableHolderCount?: InputMaybe<NumberFilter>;
   /** Filter potential Scams */
   potentialScam?: InputMaybe<Scalars['Boolean']['input']>;
   /** The token price in USD. */
@@ -7443,6 +7737,8 @@ export type TokenFilters = {
   sellCount1?: InputMaybe<NumberFilter>;
   /** The number of sells in the past 4 hours. */
   sellCount4?: InputMaybe<NumberFilter>;
+  /** The number of sells in the past 5 minutes. */
+  sellCount5m?: InputMaybe<NumberFilter>;
   /** The number of sells in the past 12 hours. */
   sellCount12?: InputMaybe<NumberFilter>;
   /** The number of sells in the past 24 hours. */
@@ -7453,6 +7749,8 @@ export type TokenFilters = {
   txnCount1?: InputMaybe<NumberFilter>;
   /** The number of transactions in the past 4 hours. */
   txnCount4?: InputMaybe<NumberFilter>;
+  /** The number of transactions in the past 5 minutes. */
+  txnCount5m?: InputMaybe<NumberFilter>;
   /** The number of transactions in the past 12 hours. */
   txnCount12?: InputMaybe<NumberFilter>;
   /** The number of transactions in the past 24 hours. */
@@ -7461,6 +7759,8 @@ export type TokenFilters = {
   uniqueBuys1?: InputMaybe<NumberFilter>;
   /** The unique number of buys in the past 4 hours. */
   uniqueBuys4?: InputMaybe<NumberFilter>;
+  /** The unique number of buys in the past 5 minutes. */
+  uniqueBuys5m?: InputMaybe<NumberFilter>;
   /** The unique number of buys in the past 12 hours. */
   uniqueBuys12?: InputMaybe<NumberFilter>;
   /** The unique number of buys in the past 24 hours. */
@@ -7469,6 +7769,8 @@ export type TokenFilters = {
   uniqueSells1?: InputMaybe<NumberFilter>;
   /** The unique number of sells in the past 4 hours. */
   uniqueSells4?: InputMaybe<NumberFilter>;
+  /** The unique number of sells in the past 5 minutes. */
+  uniqueSells5m?: InputMaybe<NumberFilter>;
   /** The unique number of sells in the past 12 hours. */
   uniqueSells12?: InputMaybe<NumberFilter>;
   /** The unique number of sells in the past 24 hours. */
@@ -7477,6 +7779,8 @@ export type TokenFilters = {
   uniqueTransactions1?: InputMaybe<NumberFilter>;
   /** The unique number of transactions in the past 4 hours. */
   uniqueTransactions4?: InputMaybe<NumberFilter>;
+  /** The unique number of transactions in the past 5 minutes. */
+  uniqueTransactions5m?: InputMaybe<NumberFilter>;
   /** The unique number of transactions in the past 12 hours. */
   uniqueTransactions12?: InputMaybe<NumberFilter>;
   /** The unique number of transactions in the past 24 hours. */
@@ -7485,6 +7789,8 @@ export type TokenFilters = {
   volume1?: InputMaybe<NumberFilter>;
   /** The trade volume in USD in the past 4 hours. */
   volume4?: InputMaybe<NumberFilter>;
+  /** The trade volume in USD in the past 5 minutes. */
+  volume5m?: InputMaybe<NumberFilter>;
   /** The trade volume in USD in the past 12 hours. */
   volume12?: InputMaybe<NumberFilter>;
   /** The trade volume in USD in the past 24 hours. */
@@ -7493,6 +7799,8 @@ export type TokenFilters = {
   volumeChange1?: InputMaybe<NumberFilter>;
   /** The percent volume change in the past 4 hours. Decimal format. */
   volumeChange4?: InputMaybe<NumberFilter>;
+  /** The percent volume change in the past 5 minutes. Decimal format. */
+  volumeChange5m?: InputMaybe<NumberFilter>;
   /** The percent volume change in the past 12 hours. Decimal format. */
   volumeChange12?: InputMaybe<NumberFilter>;
   /** The percent volume change in the past 24 hours. Decimal format. */
@@ -7569,10 +7877,12 @@ export type TokenLifecycleEvent = {
   transactionIndex: Scalars['Int']['output'];
 };
 
-/** Response returned by `TokenLifecycleEvents`. */
+/** Response returned by `tokenLifecycleEvents`. */
 export type TokenLifecycleEventConnection = {
   __typename?: 'TokenLifecycleEventConnection';
+  /** A cursor for use in pagination. */
   cursor?: Maybe<Scalars['String']['output']>;
+  /** A list of transactions for a token's top pair. */
   items: Array<Maybe<TokenLifecycleEvent>>;
 };
 
@@ -7585,7 +7895,7 @@ export enum TokenLifecycleEventType {
   Mint = 'MINT'
 }
 
-/** Input type of `TokenLifecycleEvents` query. */
+/** Input type of `tokenLifecycleEvents` query. */
 export type TokenLifecycleEventsQueryInput = {
   /** The token contract address to filter by. */
   address: Scalars['String']['input'];
@@ -7610,6 +7920,7 @@ export enum TokenOfInterest {
   Token1 = 'token1'
 }
 
+/** Token pair event types. */
 export enum TokenPairEventType {
   Burn = 'BURN',
   Buy = 'BUY',
@@ -7621,33 +7932,53 @@ export enum TokenPairEventType {
   Sync = 'SYNC'
 }
 
+/** Webhook condition for token pair event type. */
 export type TokenPairEventTypeCondition = {
   __typename?: 'TokenPairEventTypeCondition';
+  /** The list of token pair event types. */
   oneOf: Array<TokenPairEventType>;
 };
 
+/** Input for token pair event type condition. */
 export type TokenPairEventTypeConditionInput = {
+  /** The list of token event types to equal. */
   oneOf: Array<TokenPairEventType>;
 };
 
+/** Webhook conditions for a token pair event. */
 export type TokenPairEventWebhookCondition = {
   __typename?: 'TokenPairEventWebhookCondition';
+  /** The event type the webhook is listening for. */
   eventType?: Maybe<TokenPairEventTypeCondition>;
+  /** The exchange contract address the webhook is listening for. */
   exchangeAddress?: Maybe<StringEqualsCondition>;
+  /** The maker wallet address the webhook is listening for. */
   maker?: Maybe<StringEqualsCondition>;
+  /** The list of network IDs the webhook is listening on. */
   networkId?: Maybe<OneOfNumberCondition>;
+  /** The pair contract address the webhook is listening for. */
   pairAddress?: Maybe<StringEqualsCondition>;
+  /** The swap values the webhook is listening for. */
   swapValue?: Maybe<ComparisonOperator>;
+  /** The token contract address the webhook is listening for. */
   tokenAddress?: Maybe<StringEqualsCondition>;
 };
 
+/** Input conditions for a token pair event webhook. */
 export type TokenPairEventWebhookConditionInput = {
+  /** The token event type to listen for. */
   eventType?: InputMaybe<TokenPairEventTypeConditionInput>;
+  /** The exchange contract address to listen for. */
   exchangeAddress?: InputMaybe<StringEqualsConditionInput>;
+  /** The maker wallet address to listen for. */
   maker?: InputMaybe<StringEqualsConditionInput>;
+  /** A list of network IDs to listen on. */
   networkId?: InputMaybe<OneOfNumberConditionInput>;
+  /** The pair contract address to listen for. */
   pairAddress?: InputMaybe<StringEqualsConditionInput>;
+  /** The swap values to listen for. */
   swapValue?: InputMaybe<ComparisonOperatorInput>;
+  /** The token contract address to listen for. */
   tokenAddress?: InputMaybe<StringEqualsConditionInput>;
 };
 
@@ -7671,15 +8002,18 @@ export enum TokenRankingAttribute {
   Age = 'age',
   BuyCount1 = 'buyCount1',
   BuyCount4 = 'buyCount4',
+  BuyCount5m = 'buyCount5m',
   BuyCount12 = 'buyCount12',
   BuyCount24 = 'buyCount24',
   Change1 = 'change1',
   Change4 = 'change4',
+  Change5m = 'change5m',
   Change12 = 'change12',
   Change24 = 'change24',
   CreatedAt = 'createdAt',
   High1 = 'high1',
   High4 = 'high4',
+  High5m = 'high5m',
   High12 = 'high12',
   High24 = 'high24',
   Holders = 'holders',
@@ -7687,12 +8021,15 @@ export enum TokenRankingAttribute {
   Liquidity = 'liquidity',
   Low1 = 'low1',
   Low4 = 'low4',
+  Low5m = 'low5m',
   Low12 = 'low12',
   Low24 = 'low24',
   MarketCap = 'marketCap',
+  NotableHolderCount = 'notableHolderCount',
   PriceUsd = 'priceUSD',
   SellCount1 = 'sellCount1',
   SellCount4 = 'sellCount4',
+  SellCount5m = 'sellCount5m',
   SellCount12 = 'sellCount12',
   SellCount24 = 'sellCount24',
   TrendingScore = 'trendingScore',
@@ -7702,26 +8039,32 @@ export enum TokenRankingAttribute {
   TrendingScore24 = 'trendingScore24',
   TxnCount1 = 'txnCount1',
   TxnCount4 = 'txnCount4',
+  TxnCount5m = 'txnCount5m',
   TxnCount12 = 'txnCount12',
   TxnCount24 = 'txnCount24',
   UniqueBuys1 = 'uniqueBuys1',
   UniqueBuys4 = 'uniqueBuys4',
+  UniqueBuys5m = 'uniqueBuys5m',
   UniqueBuys12 = 'uniqueBuys12',
   UniqueBuys24 = 'uniqueBuys24',
   UniqueSells1 = 'uniqueSells1',
   UniqueSells4 = 'uniqueSells4',
+  UniqueSells5m = 'uniqueSells5m',
   UniqueSells12 = 'uniqueSells12',
   UniqueSells24 = 'uniqueSells24',
   UniqueTransactions1 = 'uniqueTransactions1',
   UniqueTransactions4 = 'uniqueTransactions4',
+  UniqueTransactions5m = 'uniqueTransactions5m',
   UniqueTransactions12 = 'uniqueTransactions12',
   UniqueTransactions24 = 'uniqueTransactions24',
   Volume1 = 'volume1',
   Volume4 = 'volume4',
+  Volume5m = 'volume5m',
   Volume12 = 'volume12',
   Volume24 = 'volume24',
   VolumeChange1 = 'volumeChange1',
   VolumeChange4 = 'volumeChange4',
+  VolumeChange5m = 'volumeChange5m',
   VolumeChange12 = 'volumeChange12',
   VolumeChange24 = 'volumeChange24'
 }
@@ -7922,6 +8265,8 @@ export type UnconfirmedResolutionBarData = {
 
 export type UnconfirmedSwapEventData = {
   __typename?: 'UnconfirmedSwapEventData';
+  /** The amount of `baseToken` involved in the swap */
+  amountBaseToken?: Maybe<Scalars['String']['output']>;
   /** The amount of `quoteToken` involved in the swap. For example, if `quoteToken` is USDC for a USDC/WETH pair, `amountNonLiquidityToken` would be the amount of USDC involved in the swap. */
   amountNonLiquidityToken?: Maybe<Scalars['String']['output']>;
   /** The price per `quoteToken` at the time of the swap in the network's base token. For example, if `quoteToken` is USDC for a USDC/WETH pair on ETH network, `priceBaseToken` would the price of USDC in ETH. */
@@ -7936,23 +8281,10 @@ export type UnconfirmedSwapEventData = {
   type: EventType;
 };
 
-export type UniV3Tick = {
-  __typename?: 'UniV3Tick';
-  liquidityNet?: Maybe<Scalars['String']['output']>;
-  price0?: Maybe<Scalars['String']['output']>;
-  price1?: Maybe<Scalars['String']['output']>;
-  tick?: Maybe<Scalars['Int']['output']>;
-};
-
-/** Response returned by `getUniV3Ticks`. */
-export type UniV3TickConnection = {
-  __typename?: 'UniV3TickConnection';
-  /** The number of ticks returned. */
-  count?: Maybe<Scalars['Int']['output']>;
-  /** Where in the list the server started when returning items. */
-  offset?: Maybe<Scalars['Int']['output']>;
-  /** The list of Uni V3 ticks matching the filter parameters. */
-  results?: Maybe<Array<Maybe<UniV3Tick>>>;
+export type WalletChartRange = {
+  __typename?: 'WalletChartRange';
+  end: Scalars['Int']['output'];
+  start: Scalars['Int']['output'];
 };
 
 export type WalletNftCollection = {
@@ -8016,25 +8348,41 @@ export type WashtradeLabelForEvent = {
   label: Scalars['String']['output'];
 };
 
+/** Metadata for a webhook. */
 export type Webhook = {
   __typename?: 'Webhook';
+  /** The recurrence of the webhook. Can be `INDEFINITE` or `ONCE`. */
   alertRecurrence: AlertRecurrence;
+  /** An optional bucket ID (max 64 characters). Can be used to query for subgroups of webhooks (useful if you have a large number of webhooks). */
   bucketId?: Maybe<Scalars['String']['output']>;
+  /** An optional bucket sort key (max 64 characters). Can be used to query for subgroups of webhooks (useful if you have a large number of webhooks). */
   bucketSortkey?: Maybe<Scalars['String']['output']>;
+  /** The url to which the webhook message should be sent. */
   callbackUrl: Scalars['String']['output'];
+  /** The conditions which must be met in order for the webhook to send a message. */
   conditions: WebhookCondition;
+  /** The unix timestamp for the time the webhook was created. */
   created: Scalars['Int']['output'];
+  /** The webhook group ID used to group webhooks together for ordered message sending. */
   groupId?: Maybe<Scalars['String']['output']>;
+  /** The ID of the webhook. */
   id: Scalars['String']['output'];
+  /** The given name of the webhook. */
   name: Scalars['String']['output'];
+  /** The type of publishing for the webhook. If not set, it defaults to `SINGLE`. */
   publishingType?: Maybe<PublishingType>;
+  /** The settings for retrying failed webhook messages. */
   retrySettings?: Maybe<RetrySettings>;
+  /** The status of the webhook. Can be `ACTIVE` or `INACTIVE`. */
   status: Scalars['String']['output'];
+  /** The type of webhook. Can be `PRICE_EVENT`, `NFT_EVENT`, or `TOKEN_PAIR_EVENT`. */
   webhookType: WebhookType;
 };
 
+/** Webhook conditions that must be met for each webhook type. */
 export type WebhookCondition = NftEventWebhookCondition | PriceEventWebhookCondition | RawTransactionWebhookCondition | TokenPairEventWebhookCondition;
 
+/** NFT marketplace names. */
 export enum WebhookNftEventFillSource {
   Blur = 'BLUR',
   Coinbase = 'COINBASE',
@@ -8053,12 +8401,14 @@ export enum WebhookNftEventFillSource {
   Soundxyz = 'SOUNDXYZ'
 }
 
+/** NFT event types. */
 export enum WebhookNftEventType {
   Mint = 'MINT',
   Sale = 'SALE',
   Transfer = 'TRANSFER'
 }
 
+/** The type of webhook. */
 export enum WebhookType {
   NftEvent = 'NFT_EVENT',
   PriceEvent = 'PRICE_EVENT',
