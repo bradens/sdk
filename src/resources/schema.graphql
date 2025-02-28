@@ -138,6 +138,25 @@ type ApiToken {
   remaining: String
 }
 
+type AptosNetworkConfig {
+  id: ID!
+  networkId: Int!
+  baseTokenAddress: String!
+  baseTokenSymbol: String!
+  color: String
+  defaultPairAddress: String!
+  defaultPairQuoteToken: QuoteToken!
+  enabled: Boolean!
+  newTokensEnabled: Boolean
+  mainnet: Boolean!
+  name: String!
+  networkIconUrl: String!
+  networkName: String!
+  networkShortName: String!
+  stableCoinAddresses: [String!]
+  wrappedBaseTokenSymbol: String!
+}
+
 """Wallet balance of a token."""
 type Balance {
   """The ID of the wallet (`walletAddress:networkId`)."""
@@ -145,6 +164,12 @@ type Balance {
 
   """The ID of the token (`tokenAddress:networkId`)."""
   tokenId: String!
+
+  """The wallet address"""
+  address: String!
+
+  """The contract address of the token."""
+  tokenAddress: String!
 
   """The balance held by the wallet."""
   balance: String!
@@ -1163,9 +1188,13 @@ type EnhancedToken {
 
   """Whether or not the token is freezable"""
   freezable: String
+}
 
-  """Launchpad data for the token"""
-  launchpad: LaunchpadData
+enum Entitlement {
+  PriceFeed
+  BalanceFeed
+  TopTraders
+  WalletStats
 }
 
 """A token transaction."""
@@ -2188,36 +2217,6 @@ type LatestTokenSimResults {
   If a call was found to trigger liquidity & trading, this is the call name.
   """
   openTradingCall: String
-}
-
-"""Launchpad data for the token"""
-type LaunchpadData {
-  """The percentage of the pool that was sold to the public."""
-  graduationPercent: Float
-
-  """The address of the pool."""
-  poolAddress: String
-
-  """The unix timestamp when the launchpad was completed."""
-  completedAt: Int
-
-  """Indicates if the launchpad is completed."""
-  completed: Boolean
-
-  """The slot number when the launchpad was completed."""
-  completedSlot: Int
-
-  """The slot number when the launchpad was migrated."""
-  migratedSlot: Int
-
-  """The unix timestamp when the launchpad was migrated."""
-  migratedAt: Int
-
-  """Indicates if the launchpad was migrated."""
-  migrated: Boolean
-
-  """The pool address after the launchpad was migrated."""
-  migratedPoolAddress: String
 }
 
 scalar link__Import
@@ -6073,11 +6072,6 @@ input OneOfNumberConditionInput {
   oneOf: [Int!]!
 }
 
-input OnLaunchpadTokenUpdatedInput {
-  address: String
-  networkId: Int
-}
-
 input OnPricesUpdatedInput {
   address: String!
   networkId: Int!
@@ -7961,10 +7955,10 @@ type Query {
   """
   apiToken(token: String!): ApiToken!
 
-  """Returns a list of all networks supported on Defined."""
+  """Returns a list of all networks supported on Codex."""
   getNetworks: [Network!]!
 
-  """Returns the status of a list of networks supported on Defined."""
+  """Returns the status of a list of networks supported on Codex."""
   getNetworkStatus(
     """The list of network IDs."""
     networkIds: [Int!]!
@@ -8586,7 +8580,9 @@ type Query {
     resolution: String
   ): [TokenWithMetadata!]
 
-  """Returns metadata for a given pair."""
+  """
+  Returns charting metadata for a given pair. Used for implementing a Trading View datafeed.
+  """
   getSymbol(
     """The ID of the pair (`address:networkId`)."""
     symbol: String!
@@ -8597,7 +8593,7 @@ type Query {
     currencyCode: String
   ): SymbolResponse
 
-  """Returns metadata for a given network."""
+  """Returns metadata for a given network supported on Codex."""
   getNetworkStats(
     """The network Id to filter by."""
     networkId: Int!

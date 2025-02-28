@@ -124,15 +124,39 @@ export type ApiToken = {
   token: Scalars['String']['output'];
 };
 
+export type AptosNetworkConfig = {
+  __typename?: 'AptosNetworkConfig';
+  baseTokenAddress: Scalars['String']['output'];
+  baseTokenSymbol: Scalars['String']['output'];
+  color?: Maybe<Scalars['String']['output']>;
+  defaultPairAddress: Scalars['String']['output'];
+  defaultPairQuoteToken: QuoteToken;
+  enabled: Scalars['Boolean']['output'];
+  id: Scalars['ID']['output'];
+  mainnet: Scalars['Boolean']['output'];
+  name: Scalars['String']['output'];
+  networkIconUrl: Scalars['String']['output'];
+  networkId: Scalars['Int']['output'];
+  networkName: Scalars['String']['output'];
+  networkShortName: Scalars['String']['output'];
+  newTokensEnabled?: Maybe<Scalars['Boolean']['output']>;
+  stableCoinAddresses?: Maybe<Array<Scalars['String']['output']>>;
+  wrappedBaseTokenSymbol: Scalars['String']['output'];
+};
+
 /** Wallet balance of a token. */
 export type Balance = {
   __typename?: 'Balance';
+  /** The wallet address */
+  address: Scalars['String']['output'];
   /** The balance held by the wallet. */
   balance: Scalars['String']['output'];
   /** The time that this address first held a token */
   firstHeldTimestamp?: Maybe<Scalars['Int']['output']>;
   /** The balance held by the wallet, adjusted by the number of decimals in the token. */
   shiftedBalance: Scalars['Float']['output'];
+  /** The contract address of the token. */
+  tokenAddress: Scalars['String']['output'];
   /** The ID of the token (`tokenAddress:networkId`). */
   tokenId: Scalars['String']['output'];
   /** The ID of the wallet (`walletAddress:networkId`). */
@@ -891,8 +915,6 @@ export type EnhancedToken = {
   info?: Maybe<TokenInfo>;
   /** Whether the token has been flagged as a scam. */
   isScam?: Maybe<Scalars['Boolean']['output']>;
-  /** Launchpad data for the token */
-  launchpad?: Maybe<LaunchpadData>;
   /** Whether or not the token is mintable */
   mintable?: Maybe<Scalars['String']['output']>;
   /** The token name. For example, `ApeCoin`. */
@@ -914,6 +936,13 @@ export type EnhancedToken = {
    */
   totalSupply?: Maybe<Scalars['String']['output']>;
 };
+
+export enum Entitlement {
+  BalanceFeed = 'BalanceFeed',
+  PriceFeed = 'PriceFeed',
+  TopTraders = 'TopTraders',
+  WalletStats = 'WalletStats'
+}
 
 /** A token transaction. */
 export type Event = {
@@ -1689,29 +1718,6 @@ export type LatestTokenSimResults = {
   sellSuccess?: Maybe<Scalars['Boolean']['output']>;
   /** Tax paid for a sell transaction during simulation. */
   sellTax?: Maybe<Scalars['String']['output']>;
-};
-
-/** Launchpad data for the token */
-export type LaunchpadData = {
-  __typename?: 'LaunchpadData';
-  /** Indicates if the launchpad is completed. */
-  completed?: Maybe<Scalars['Boolean']['output']>;
-  /** The unix timestamp when the launchpad was completed. */
-  completedAt?: Maybe<Scalars['Int']['output']>;
-  /** The slot number when the launchpad was completed. */
-  completedSlot?: Maybe<Scalars['Int']['output']>;
-  /** The percentage of the pool that was sold to the public. */
-  graduationPercent?: Maybe<Scalars['Float']['output']>;
-  /** Indicates if the launchpad was migrated. */
-  migrated?: Maybe<Scalars['Boolean']['output']>;
-  /** The unix timestamp when the launchpad was migrated. */
-  migratedAt?: Maybe<Scalars['Int']['output']>;
-  /** The pool address after the launchpad was migrated. */
-  migratedPoolAddress?: Maybe<Scalars['String']['output']>;
-  /** The slot number when the launchpad was migrated. */
-  migratedSlot?: Maybe<Scalars['Int']['output']>;
-  /** The address of the pool. */
-  poolAddress?: Maybe<Scalars['String']['output']>;
 };
 
 export type LiquidityData = {
@@ -4576,11 +4582,6 @@ export type OnBarsUpdatedResponse = {
   timestamp: Scalars['Int']['output'];
 };
 
-export type OnLaunchpadTokenUpdatedInput = {
-  address?: InputMaybe<Scalars['String']['input']>;
-  networkId?: InputMaybe<Scalars['Int']['input']>;
-};
-
 export type OnPricesUpdatedInput = {
   address: Scalars['String']['input'];
   networkId: Scalars['Int']['input'];
@@ -6041,11 +6042,11 @@ export type Query = {
    */
   getLatestPairs?: Maybe<LatestPairConnection>;
   getLatestTokens?: Maybe<LatestTokenConnection>;
-  /** Returns metadata for a given network. */
+  /** Returns metadata for a given network supported on Codex. */
   getNetworkStats?: Maybe<GetNetworkStatsResponse>;
-  /** Returns the status of a list of networks supported on Defined. */
+  /** Returns the status of a list of networks supported on Codex. */
   getNetworkStatus?: Maybe<Array<MetadataResponse>>;
-  /** Returns a list of all networks supported on Defined. */
+  /** Returns a list of all networks supported on Codex. */
   getNetworks: Array<Network>;
   /** Returns a list of NFT assets in a given collection. */
   getNftAssets?: Maybe<NftAssetsConnection>;
@@ -6078,7 +6079,7 @@ export type Query = {
   /** Returns a list of Prime pools. */
   getPrimePools?: Maybe<PrimePoolConnection>;
   getSimulateTokenContractResults: GetSimulateTokenContractResultsConnection;
-  /** Returns metadata for a given pair. */
+  /** Returns charting metadata for a given pair. Used for implementing a Trading View datafeed. */
   getSymbol?: Maybe<SymbolResponse>;
   /** Returns transactions for a pair. */
   getTokenEvents?: Maybe<EventConnection>;
