@@ -58,7 +58,7 @@ async function getTokenPageData(networkIdNum: number, tokenId: string): Promise<
 
   // Calculate timestamps (in seconds)
   const now = Math.floor(Date.now() / 1000);
-  const oneWeekAgo = now - 7 * 24 * 60 * 60;
+  const oneDayAgo = now - 1 * 24 * 60 * 60;
   // Construct symbol identifier
   const symbolId = `${tokenId}:${networkIdNum}`;
 
@@ -67,7 +67,7 @@ async function getTokenPageData(networkIdNum: number, tokenId: string): Promise<
     codexClient.queries.token({ input: { networkId: networkIdNum, address: tokenId } }),
     codexClient.queries.getBars({
         symbol: symbolId,
-        from: oneWeekAgo,
+        from: oneDayAgo,
         to: now,
         resolution: '30'
     }),
@@ -132,7 +132,7 @@ export default async function TokenPage({ params }: TokenPageProps) {
   const { networkId, tokenId } = await params;
   const networkIdNum = parseInt(networkId, 10);
 
-  if (isNaN(networkIdNum) || !tokenId || !tokenId.startsWith('0x')) {
+  if (isNaN(networkIdNum) || !tokenId) {
     return (
       <main className="flex min-h-screen flex-col items-center p-12 md:p-24">
         <h1 className="text-2xl font-bold text-destructive">Invalid Network or Token ID</h1>
