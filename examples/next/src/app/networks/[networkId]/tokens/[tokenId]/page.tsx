@@ -1,8 +1,6 @@
 import { Codex } from "@codex-data/sdk";
-import Link from "next/link";
 import React, { Suspense } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import Image from "next/image";
+import { Card, CardContent, CardHeader} from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TokenDetailView } from "@/components/TokenDetailView";
 
