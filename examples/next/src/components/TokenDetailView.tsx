@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { useCodexSdk } from '@/hooks/useCodexSdk';
 import {
     OnTokenEventsCreatedSubscription,
     OnTokenBarsUpdatedSubscription,
-    GetTokenEventsQuery, // For RawEventData type
+    GetTokenEventsQuery,
+    EventDisplayType, // For RawEventData type
 } from '@codex-data/sdk/dist/sdk/generated/graphql';
 import { ExecutionResult } from 'graphql';
 import { CleanupFunction } from '@codex-data/sdk';
@@ -116,6 +117,17 @@ export function TokenDetailView({
 
   const tokenName = details?.name || tokenId;
   const tokenSymbol = details?.symbol ? `(${details.symbol})` : '';
+
+  const lastPrice = useMemo(() => {
+    const  allEvents = initialEvents.concat(events);
+    const lastSwapEventIndex = allEvents.findLastIndex((v) => {
+      if (v.eventDisplayType === EventDisplayType.Buy || v.eventDisplayType === EventDisplayType.Sell) {
+        return v;
+      }
+    })
+    const lastSwapEvent = allEvents[lastSwapEventIndex];
+    return lastSwapEvent.price
+  }, [events, initialEvents])
 
   // --- Effects ---
   // Effect for Transaction Animation Timeout
@@ -268,7 +280,7 @@ export function TokenDetailView({
               {/* Display LATEST Price from state */}
               <div>
                   <strong className="text-sm text-muted-foreground block">Current Price</strong>
-                  <span className="text-xl font-semibold">{formatCurrency(events[0].price)}</span>
+                  <span className="text-xl font-semibold">{formatCurrency(lastPrice)}</span>
               </div>
 
               {details ? (

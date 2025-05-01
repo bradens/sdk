@@ -3,6 +3,7 @@ import React, { Suspense } from "react";
 import { Card, CardContent, CardHeader} from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TokenDetailView } from "@/components/TokenDetailView";
+import { EventDisplayType } from "@codex-data/sdk/dist/sdk/generated/graphql";
 
 // --- Type Definitions ---
 // Keep TokenDetails definition (needed for fetching & props)
@@ -104,25 +105,24 @@ async function getTokenPageData(networkIdNum: number, tokenId: string): Promise<
 
   let events: TokenEvent[] = [];
   if (eventsResult.status === 'fulfilled' && eventsResult.value.getTokenEvents?.items) {
-      events = eventsResult.value.getTokenEvents.items
-          .filter(ev => ev != null)
-          .map((ev) => {
-            const decimals = details?.decimals ?? 18;
-            const swapValue = parseFloat(ev.token0SwapValueUsd || '0');
-            const amount0 = parseFloat(ev.data?.amount0 || '0');
-            const calculatedAmountUsd = swapValue * Math.abs(amount0 / (10 ** decimals));
-            const priceString = ev.token0Address === tokenId ? ev.token0SwapValueUsd : ev.token1SwapValueUsd;
-            const price = priceString ? parseFloat(priceString) : null;
-            return {
-              id: ev.id,
-              timestamp: ev.timestamp,
-              uniqueId: `${ev.id}-${ev.transactionHash}-${ev.blockNumber}-${ev.transactionIndex}-${ev.logIndex}`,
-              transactionHash: ev.transactionHash,
-              price: price,
-              eventDisplayType: ev.eventDisplayType,
-              amountUsd: calculatedAmountUsd,
-            }
-          });
+    const filteredEvents = eventsResult.value.getTokenEvents.items.filter(ev => ev != null)
+    events = filteredEvents.map((ev, i) => {
+          const decimals = details?.decimals ?? 18;
+          const swapValue = parseFloat(ev.token0SwapValueUsd || '0');
+          const amount0 = parseFloat(ev.data?.amount0 || '0');
+          const calculatedAmountUsd = swapValue * Math.abs(amount0 / (10 ** decimals));
+          const priceString = ev.token0Address === tokenId ? ev.token0SwapValueUsd : ev.token1SwapValueUsd;
+          const price = priceString ? parseFloat(priceString) : null;
+          return {
+            id: ev.id,
+            timestamp: ev.timestamp,
+            uniqueId: `${ev.id}-${ev.transactionHash}-${ev.blockNumber}-${ev.transactionIndex}-${ev.logIndex}`,
+            transactionHash: ev.transactionHash,
+            price: price,
+            eventDisplayType: ev.eventDisplayType,
+            amountUsd: calculatedAmountUsd,
+          }
+        });
   }
 
   if (detailsResult.status === 'rejected') console.error("Error fetching details:", detailsResult.reason);
