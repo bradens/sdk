@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { GetTokenEventsQuery, OnTokenEventsCreatedSubscription } from '@codex-data/sdk/dist/sdk/generated/graphql';
 import { ExecutionResult } from 'graphql';
 import { CleanupFunction } from '@codex-data/sdk';
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Extract the type for a single event from the query type, handling potential nulls
 type RawEventData = NonNullable<NonNullable<GetTokenEventsQuery['getTokenEvents']>['items']>[number];
@@ -50,41 +51,56 @@ function formatRawEvent(rawEvent: RawEventData): TokenEvent | null {
     };
 }
 
+// Skeleton Loader for Table Rows
+function TransactionTableSkeleton() {
+  return (
+    <>
+      {Array.from({ length: 5 }).map((_, index) => (
+        <TableRow key={`skeleton-${index}`}>
+          <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+          <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+          <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+          <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+        </TableRow>
+      ))}
+    </>
+  );
+}
+
 export function TokenTransactions({ networkId, tokenId, initialEvents }: TokenTransactionsProps) {
   // Limit initial events
   const limitedInitialEvents = initialEvents.slice(0, MAX_EVENTS);
   const [events, setEvents] = useState<TokenEvent[]>(limitedInitialEvents);
-  const [newestTimestamp, setNewestTimestamp] = useState<number | null>(null); // State to track the latest event ID
+  const [newestEventId, setNewestEventId] = useState<string | null>(null);
   const { sdk, isLoading, isAuthenticated } = useCodexSdk();
-  const newestEventTimeoutRef = useRef<NodeJS.Timeout | null>(null); // Ref to manage the timeout
-  const cleanupPromiseRef = useRef<Promise<CleanupFunction> | null>(null); // Ref to store the promise
+  const newestEventTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const cleanupPromiseRef = useRef<Promise<CleanupFunction> | null>(null);
 
   // Effect to clear the newest event ID after a delay
   useEffect(() => {
-    if (newestTimestamp) {
+    if (newestEventId) {
         if (newestEventTimeoutRef.current) {
             clearTimeout(newestEventTimeoutRef.current);
         }
         newestEventTimeoutRef.current = setTimeout(() => {
-            setNewestTimestamp(null);
+            setNewestEventId(null);
             newestEventTimeoutRef.current = null;
         }, 2000);
     }
 
-    // Cleanup timeout on component unmount or if newestTimestamp changes before timeout finishes
+    // Cleanup timeout on component unmount or if newestEventId changes before timeout finishes
     return () => {
         if (newestEventTimeoutRef.current) {
             clearTimeout(newestEventTimeoutRef.current);
         }
     };
-  }, [newestTimestamp]);
+  }, [newestEventId]);
 
   // Effect for subscription
   useEffect(() => {
     if (!sdk || !isAuthenticated || !networkId || !tokenId) {
       return;
     }
-
 
     // Define the observer object
     const observer = {
@@ -99,7 +115,7 @@ export function TokenTransactions({ networkId, tokenId, initialEvents }: TokenTr
                 if (rawEvent) {
                     const formattedEvent = formatRawEvent(rawEvent as RawEventData);
                     if (formattedEvent && formattedEvent.uniqueId) {
-                        setNewestTimestamp(formattedEvent.timestamp);
+                        setNewestEventId(formattedEvent.uniqueId);
                         setEvents((prevEvents) => {
                             const exists = prevEvents.some(ev => ev.uniqueId === formattedEvent.uniqueId);
                             if (exists) {
@@ -147,10 +163,11 @@ export function TokenTransactions({ networkId, tokenId, initialEvents }: TokenTr
     return () => {
       const promise = cleanupPromiseRef.current;
       if (promise) {
+        const subId = `${tokenId}:${networkId}`;
         promise.then((cleanup) => {
             if (typeof cleanup === 'function') {
                 cleanup();
-                console.log(`Subscription cleanup executed for ${tokenId}`);
+                console.log(`Subscription cleanup executed for ${subId}`);
             }
         }).catch(error => {
             console.error("Error during subscription cleanup promise execution:", error);
@@ -161,17 +178,16 @@ export function TokenTransactions({ networkId, tokenId, initialEvents }: TokenTr
 
   }, [sdk, isAuthenticated, networkId, tokenId]);
 
+  const showSkeleton = isLoading || (isAuthenticated && events.length === 0);
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Recent Transactions (Live)</CardTitle>
       </CardHeader>
       <CardContent>
-        {isLoading && <p className="text-muted-foreground">Initializing live updates...</p>}
-        {!isLoading && !isAuthenticated && <p className="text-muted-foreground">Session needed for live updates.</p>}
-        {!isLoading && isAuthenticated && events.length === 0 && <p className="text-muted-foreground">Waiting for live transaction data...</p>}
-        {events.length > 0 ? (
-          <Table>
+        {!isAuthenticated && !isLoading && <p className="text-muted-foreground">Session needed for live updates.</p>}
+        <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Type</TableHead>
@@ -181,27 +197,31 @@ export function TokenTransactions({ networkId, tokenId, initialEvents }: TokenTr
               </TableRow>
             </TableHeader>
             <TableBody>
-              {events.map((event) => {
-                const isNewest = event.timestamp === newestTimestamp;
-                return (
-                    <TableRow
-                      key={event.uniqueId || event.id}
-                      className={isNewest ? 'animate-row-pulse' : ''}
-                    >
-                      <TableCell>{event.eventDisplayType || 'N/A'}</TableCell>
-                      <TableCell>{new Date(event.timestamp * 1000).toLocaleString()}</TableCell>
-                      <TableCell>{event.amountUsd ? `$${event.amountUsd.toFixed(8)}` : 'N/A'}</TableCell>
-                      <TableCell className="truncate">
-                        <span title={event.transactionHash}>{event.transactionHash?.substring(0, 8) ?? 'N/A'}...</span>
-                      </TableCell>
-                    </TableRow>
-                );
-              })}
+              {showSkeleton ? (
+                <TransactionTableSkeleton />
+              ) : (
+                events.map((event) => {
+                    const isNewest = event.uniqueId === newestEventId;
+                    return (
+                        <TableRow
+                          key={event.uniqueId || event.id}
+                          className={isNewest ? 'animate-row-pulse' : ''}
+                        >
+                          <TableCell>{event.eventDisplayType || 'N/A'}</TableCell>
+                          <TableCell>{new Date(event.timestamp * 1000).toLocaleString()}</TableCell>
+                          <TableCell>{event.amountUsd ? `$${event.amountUsd.toFixed(8)}` : 'N/A'}</TableCell>
+                          <TableCell className="truncate">
+                            <span title={event.transactionHash}>{event.transactionHash?.substring(0, 8) ?? 'N/A'}...</span>
+                          </TableCell>
+                        </TableRow>
+                    );
+                })
+              )}
             </TableBody>
           </Table>
-        ) : (
-           !isLoading && !isAuthenticated && events.length === 0 && <p className="text-muted-foreground">No initial transaction data found.</p>
-        )}
+        {(events.length === 0 && !showSkeleton && !isLoading && isAuthenticated) &&
+          <p className="text-muted-foreground pt-4">No transactions found yet.</p>
+        }
       </CardContent>
     </Card>
   );

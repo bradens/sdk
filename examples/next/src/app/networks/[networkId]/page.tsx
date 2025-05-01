@@ -1,5 +1,5 @@
 import { Codex } from "@codex-data/sdk";
-import { TokenRankingAttribute, RankingDirection } from "@codex-data/sdk/dist/sdk/generated/graphql";
+import { TokenRankingAttribute, RankingDirection, FilterTokensQuery } from "@codex-data/sdk/dist/sdk/generated/graphql";
 import Link from "next/link";
 import React from "react";
 import Image from "next/image";
@@ -9,6 +9,27 @@ interface NetworkPageProps {
   params: Promise<{
     networkId: string;
   }>;
+}
+
+// Restore helper functions
+function formatCompactNumber(num: number | undefined | null): string {
+  if (num === undefined || num === null) return '-';
+  return Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 2 }).format(num);
+}
+
+function formatCurrency(num: number | undefined | null): string {
+  if (num === undefined || num === null) return '-';
+  return `$${num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })}`;
+}
+
+function formatPercentage(num: number | undefined | null): string {
+  if (num === undefined || num === null) return '-';
+  return `${(num * 100).toFixed(2)}%`;
+}
+
+function formatTimestamp(ts: number | undefined | null): string {
+  if (ts === undefined || ts === null) return '-';
+  return new Date(ts * 1000).toLocaleString();
 }
 
 export default async function NetworkPage({ params }: NetworkPageProps) {
@@ -30,9 +51,7 @@ export default async function NetworkPage({ params }: NetworkPageProps) {
   }
   const codexClient = new Codex(apiKey || '');
 
-  // Use any[] for tokenListItems to bypass complex type checks
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let tokenListItems: any[] = [];
+  let tokenListItems: NonNullable<FilterTokensQuery['filterTokens']>['results'] = [];
   let networkName: string | null = null;
   let fetchError: string | null = null;
 
@@ -96,51 +115,103 @@ export default async function NetworkPage({ params }: NetworkPageProps) {
         <Link href="/" className="hover:underline">&lt; Back to Networks</Link>
       </div>
 
-      <div className="w-full max-w-4xl">
+      <div className="w-full max-w-6xl">
         {fetchError && <p className="text-destructive mb-4">{fetchError}</p>}
 
         {!fetchError || tokenListItems.length > 0 ? (
           <>
             {tokenListItems.length === 0 && !fetchError && <p>Loading tokens or no tokens found...</p>}
             {tokenListItems.length > 0 && (
-              <table className="w-full table-fixed border-collapse border border-border">
+              <table className="w-full table-fixed border-collapse border border-border text-sm">
                 <thead>
                   <tr className="border-b border-border bg-muted/50">
-                    <th className="p-2 text-left font-semibold w-[60px]">Icon</th>
-                    <th className="p-2 text-left font-semibold flex-1">Name</th>
-                    <th className="p-2 text-left font-semibold w-1/5">Symbol</th>
+                    <th className="p-2 text-left font-semibold w-[50px]">Icon</th>
+                    <th className="p-2 text-left font-semibold">Name</th>
+                    <th className="p-2 text-left font-semibold w-[10%]">Symbol</th>
+                    <th className="p-2 text-right font-semibold w-[12%]">Price</th>
+                    <th className="p-2 text-right font-semibold w-[12%]">Change 24h</th>
+                    <th className="p-2 text-right font-semibold w-[12%]">Volume 24h</th>
+                    <th className="p-2 text-right font-semibold w-[10%]">Swaps 24h</th>
+                    <th className="p-2 text-right font-semibold w-[18%]">Last Tx</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {tokenListItems.map((item) => (
-                    <tr key={item.token.address} className="border-b border-dashed border-border/30 hover:bg-muted/30">
-                      <td className="p-2 flex items-center justify-center">
-                        {item.token.info?.imageThumbUrl ? (
-                          <Image
-                            src={item.token.info.imageThumbUrl}
-                            alt={`${item.token.name || 'Token'} icon`}
-                            width={24}
-                            height={24}
-                            className="rounded-full"
-                          />
-                        ) : (
-                          <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-semibold">
-                            {item.token.symbol ? item.token.symbol[0] : 'T'}
-                          </div>
-                        )}
-                      </td>
-                      <td className="p-2 truncate">
-                        <Link href={`/networks/${networkId}/tokens/${item.token.address}`} className="block w-full h-full">
-                          {item.token.name || "Unknown Name"}
-                        </Link>
-                      </td>
-                      <td className="p-2 truncate">
-                         <Link href={`/networks/${networkId}/tokens/${item.token.address}`} className="block w-full h-full">
-                           {item.token.symbol || "-"}
-                         </Link>
-                      </td>
+                  {tokenListItems.map((item) => {
+                    const token = item?.token;
+                    const tokenAddress = token?.address;
+                    if (!token || !tokenAddress) return null;
+
+                    const linkHref = `/networks/${networkId}/tokens/${tokenAddress}`;
+
+                    // Parse all potentially numeric fields defensively (assuming they might be strings)
+                    const change24hNum = item?.change24 != null ? parseFloat(String(item.change24)) : null;
+                    const changeColor = change24hNum == null ? 'text-muted-foreground' : change24hNum > 0 ? 'text-green-500' : change24hNum < 0 ? 'text-red-500' : 'text-muted-foreground';
+
+                    const priceNum = item?.priceUSD != null ? parseFloat(String(item.priceUSD)) : null;
+                    const volumeNum = item?.volume24 != null ? parseFloat(String(item.volume24)) : null;
+                    const txnCountNum = item?.txnCount24 != null ? parseInt(String(item.txnCount24), 10) : null;
+                    const lastTxNum = item?.lastTransaction != null ? parseInt(String(item.lastTransaction), 10) : null;
+
+                    return (
+                      <tr key={tokenAddress} className="border-b border-dashed border-border/30 hover:bg-muted/30">
+                        <td className="p-2 flex items-center justify-center">
+                          {token?.info?.imageThumbUrl ? (
+                            <Image
+                              src={token.info.imageThumbUrl}
+                              alt={`${token.name || 'Token'} icon`}
+                              width={24}
+                              height={24}
+                              className="rounded-full"
+                            />
+                          ) : (
+                            <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-semibold">
+                              {token?.symbol ? token.symbol[0] : 'T'}
+                            </div>
+                          )}
+                        </td>
+                        <td className="p-2 truncate">
+                          <Link href={linkHref} className="block w-full h-full">
+                            {token?.name || "Unknown Name"}
+                          </Link>
+                        </td>
+                        <td className="p-2 truncate">
+                          <Link href={linkHref} className="block w-full h-full">
+                            {token?.symbol || "-"}
+                          </Link>
+                        </td>
+                        <td className="p-2 text-right font-mono">
+                          <Link href={linkHref} className="block w-full h-full">
+                            {formatCurrency(priceNum)}
+                          </Link>
+                        </td>
+                        <td className={`p-2 text-right font-mono ${changeColor}`}>
+                          <Link href={linkHref} className="block w-full h-full">
+                            {formatPercentage(change24hNum)}
+                          </Link>
+                        </td>
+                        <td className="p-2 text-right font-mono">
+                          <Link href={linkHref} className="block w-full h-full">
+                            {formatCompactNumber(volumeNum)}
+                          </Link>
+                        </td>
+                        <td className="p-2 text-right font-mono">
+                          <Link href={linkHref} className="block w-full h-full">
+                            {formatCompactNumber(txnCountNum)}
+                          </Link>
+                        </td>
+                        <td className="p-2 text-right font-mono">
+                          <Link href={linkHref} className="block w-full h-full">
+                            {formatTimestamp(lastTxNum)}
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {(tokenListItems.length === 0 && !fetchError) && (
+                    <tr>
+                      <td colSpan={8} className="p-4 text-center text-muted-foreground">No tokens found matching criteria.</td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             )}

@@ -5,6 +5,7 @@ import { TokenChart, ChartDataPoint } from "@/components/TokenChart";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import Image from "next/image";
 import { TokenTransactions } from "@/components/TokenTransactions";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // --- Type Definitions ---
 // Add nested info object for icon URL
@@ -50,6 +51,9 @@ interface TokenPageProps {
 
 // --- Helper: Data Fetching Function ---
 async function getTokenPageData(networkIdNum: number, tokenId: string): Promise<TokenPageData> {
+  // Simulate loading delay ONLY FOR DEMO if needed
+  // await new Promise(resolve => setTimeout(resolve, 1500));
+
   const apiKey = process.env.CODEX_API_KEY;
   if (!apiKey) {
     console.warn("CODEX_API_KEY not set.");
@@ -111,7 +115,7 @@ async function getTokenPageData(networkIdNum: number, tokenId: string): Promise<
             return { // Map to TokenEvent
               id: ev.id,
               timestamp: ev.timestamp,
-              uniqueId: `${ev.id}-${ev.blockNumber}-${ev.transactionIndex}-${ev.logIndex}`,
+              uniqueId: `${ev.id}-${ev.transactionHash}-${ev.blockNumber}-${ev.transactionIndex}-${ev.logIndex}`,
               transactionHash: ev.transactionHash,
               eventDisplayType: ev.eventDisplayType,
               amountUsd: calculatedAmountUsd,
@@ -119,70 +123,87 @@ async function getTokenPageData(networkIdNum: number, tokenId: string): Promise<
           });
   }
 
-  if (detailsResult.status === 'rejected') console.error("Error fetching token details:", detailsResult.reason);
-  if (barsResult.status === 'rejected') console.error("Error fetching chart bars:", barsResult.reason);
-  if (eventsResult.status === 'rejected') console.error("Error fetching token events:", eventsResult.reason);
+  if (detailsResult.status === 'rejected') console.error("Error fetching details:", detailsResult.reason);
+  if (barsResult.status === 'rejected') console.error("Error fetching bars:", barsResult.reason);
+  if (eventsResult.status === 'rejected') console.error("Error fetching events:", eventsResult.reason);
 
   // Return all data including bars
   return { details, bars, events };
 }
 
-// --- Page Component ---
-export default async function TokenPage({ params }: TokenPageProps) {
-  // Extract raw params
-  const { networkId: rawNetworkId, tokenId: rawTokenId } = await params;
+// --- Skeleton Fallback Component ---
+function TokenPageSkeleton() {
+  return (
+    <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Left/Center Skeleton */}
+      <div className="lg:col-span-2 space-y-6">
+        {/* Chart Skeleton */}
+        <Card>
+          <CardHeader><Skeleton className="h-6 w-3/4" /></CardHeader>
+          <CardContent><Skeleton className="w-full h-[300px]" /></CardContent>
+        </Card>
+        {/* Transactions Skeleton */}
+        <Card>
+          <CardHeader><Skeleton className="h-6 w-1/2" /></CardHeader>
+          <CardContent className="space-y-2">
+            <Skeleton className="h-8 w-full" />
+            <Skeleton className="h-8 w-full" />
+            <Skeleton className="h-8 w-full" />
+            <Skeleton className="h-8 w-full" />
+            <Skeleton className="h-8 w-full" />
+          </CardContent>
+        </Card>
+      </div>
+      {/* Right Info Skeleton */}
+      <div className="lg:col-span-1 space-y-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center space-x-4">
+             <Skeleton className="h-10 w-10 rounded-full" />
+             <div className="space-y-1">
+               <Skeleton className="h-5 w-24" />
+               <Skeleton className="h-4 w-16" />
+             </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-3/4" />
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
 
-  // Parse networkId
-  const networkIdNum = parseInt(rawNetworkId, 10);
-
-  // Validate networkId and rawTokenId presence
-  if (isNaN(networkIdNum) || !rawTokenId) {
-    return (
-      <main className="flex min-h-screen flex-col items-center p-12 md:p-24">
-        <h1 className="text-2xl font-bold text-destructive">Invalid Network or Token ID</h1>
-        <Link href="/" className="mt-4 hover:underline">Go back home</Link>
-      </main>
-    );
-  }
-
-  // Decode the token ID
-  const tokenId = decodeURIComponent(rawTokenId);
-
-  // Fetch data using the decoded token ID
+// --- Main Page Component ---
+// Wrap main async function content in another component to use Suspense
+async function TokenPageContent({ networkIdNum, tokenId }: { networkIdNum: number; tokenId: string }) {
   const { details, bars, events } = await getTokenPageData(networkIdNum, tokenId);
-
-  // Use the decoded tokenId for display if name is missing
   const tokenName = details?.name || tokenId;
   const tokenSymbol = details?.symbol ? `(${details.symbol})` : '';
 
   return (
-    <main className="flex min-h-screen flex-col items-center p-6 md:p-12 space-y-6">
-      {/* Header */}
-      <div className="w-full max-w-6xl flex justify-between items-center">
+    <>
+      {/* Header (depends on details, render here) */}
+      <div className="w-full max-w-6xl flex justify-between items-center mb-6">
         <h1 className="text-2xl md:text-3xl font-bold truncate pr-4">
           {tokenName} {tokenSymbol}
         </h1>
-        <Link href={`/networks/${rawNetworkId}`} className="text-sm hover:underline whitespace-nowrap">
+        <Link href={`/networks/${networkIdNum}`} className="text-sm hover:underline whitespace-nowrap">
           &lt; Back to Network
         </Link>
       </div>
 
-      {/* Main Content Area (Grid Layout - adjusted) */}
-      {/* Now using 2 columns: Transactions | Info */}
+      {/* Main Content Grid */}
       <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left/Center Area (Chart and Transactions) */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Re-add Chart with Suspense */}
-          <Suspense fallback={<Card><CardHeader><CardTitle>Price Chart</CardTitle></CardHeader><CardContent><p>Loading chart...</p></CardContent></Card>}>
-             <TokenChart
-                initialData={bars}
-                networkId={networkIdNum}
-                tokenId={tokenId}
-                title={`${tokenSymbol || 'Token'} Price Chart`}
-             />
-          </Suspense>
-
-          {/* Transactions Table - Replace with Client Component */}
+          <TokenChart
+              initialData={bars}
+              networkId={networkIdNum}
+              tokenId={tokenId}
+              title={`${tokenSymbol || 'Token'} Price Chart`}
+          />
           <TokenTransactions
               networkId={networkIdNum}
               tokenId={tokenId}
@@ -190,7 +211,7 @@ export default async function TokenPage({ params }: TokenPageProps) {
           />
         </div>
 
-        {/* Right Area (Info Panel) - Takes 1 column */}
+        {/* Right Area (Info Panel) */}
         <div className="lg:col-span-1 space-y-6">
           <Card>
             <CardHeader className="flex flex-row items-center space-x-4">
@@ -233,6 +254,31 @@ export default async function TokenPage({ params }: TokenPageProps) {
           </Card>
         </div>
       </div>
+    </>
+  );
+}
+
+export default async function TokenPage({ params }: TokenPageProps) {
+  const { networkId: rawNetworkId, tokenId: rawTokenId } = await params;
+  const networkIdNum = parseInt(rawNetworkId, 10);
+
+  if (isNaN(networkIdNum) || !rawTokenId) {
+    return (
+      <main className="flex min-h-screen flex-col items-center p-12 md:p-24">
+        <h1 className="text-2xl font-bold text-destructive">Invalid Network or Token ID</h1>
+        <Link href="/" className="mt-4 hover:underline">Go back home</Link>
+      </main>
+    );
+  }
+
+  const tokenId = decodeURIComponent(rawTokenId);
+
+  return (
+    <main className="flex min-h-screen flex-col items-center p-6 md:p-12 space-y-6">
+      {/* Wrap the part needing async data in Suspense */}
+      <Suspense fallback={<TokenPageSkeleton />}>
+        <TokenPageContent networkIdNum={networkIdNum} tokenId={tokenId} />
+      </Suspense>
     </main>
   );
 }

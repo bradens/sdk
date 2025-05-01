@@ -15,6 +15,7 @@ import { useCodexSdk } from '@/hooks/useCodexSdk'; // Import SDK hook
 import { OnTokenBarsUpdatedSubscription } from '@codex-data/sdk/dist/sdk/generated/graphql'; // Import subscription type
 import { ExecutionResult } from 'graphql'; // Import ExecutionResult type
 import { CleanupFunction } from '@codex-data/sdk'; // Import CleanupFunction type
+import { Skeleton } from "@/components/ui/skeleton"; // Import Skeleton
 
 // Type for the data expected by the chart (from getBars)
 // Adjust based on actual getBars response structure
@@ -38,20 +39,20 @@ interface TokenChartProps {
 // Assuming data is nested under aggregates -> r1 -> usd
 function formatSubscriptionBar(payload: OnTokenBarsUpdatedSubscription['onTokenBarsUpdated'] | undefined | null): ChartDataPoint | null {
   // Adjust 'r1' if a different resolution is expected/relevant
-  const usdData = payload?.aggregates?.r1?.usd;
-  if (!usdData?.t || !usdData?.c) return null; // Check for time and close within the nested usd object
+  const aggs = payload?.aggregates?.r1?.usd;
+  if (!aggs?.t || !aggs?.c) return null; // Check for time and close within the nested usd object
   return {
-    time: usdData.t,
-    open: usdData.o,
-    high: usdData.h,
-    low: usdData.l,
-    close: usdData.c,
+    time: aggs.t,
+    open: aggs.o,
+    high: aggs.h,
+    low: aggs.l,
+    close: aggs.c,
   };
 }
 
 export const TokenChart: React.FC<TokenChartProps> = ({ initialData, networkId, tokenId, title = "Price Chart" }) => {
   const [chartData, setChartData] = useState<ChartDataPoint[]>(initialData);
-  const { sdk, isLoading, isAuthenticated } = useCodexSdk(); // Use SDK Hook
+  const { sdk, isLoading: isSdkLoading, isAuthenticated } = useCodexSdk(); // Use SDK Hook
   const cleanupPromiseRef = useRef<Promise<CleanupFunction> | null>(null); // Ref for cleanup
 
   // Effect for subscription
@@ -133,15 +134,32 @@ export const TokenChart: React.FC<TokenChartProps> = ({ initialData, networkId, 
 
   }, [sdk, isAuthenticated, networkId, tokenId]); // Update dependencies
 
+  // Show skeleton if SDK is loading OR if initialData is empty
+  // (assuming initialData is only empty during the initial server fetch)
+  const showSkeleton = isSdkLoading || initialData.length === 0;
+
   // Use chartData state for rendering
-  if (!chartData || chartData.length === 0) {
+  if (showSkeleton) {
     return (
       <Card>
         <CardHeader>
           <CardTitle>{title}</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">{isLoading ? 'Loading chart data...' : 'No chart data available.'}</p>
+          <Skeleton className="w-full h-[300px]" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (chartData.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>{title}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">No chart data available.</p>
         </CardContent>
       </Card>
     );
