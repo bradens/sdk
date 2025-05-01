@@ -52,7 +52,7 @@ interface TokenDetailViewProps {
   tokenId: string; // address
 }
 
-const MAX_EVENTS = 500; // Max events for transactions table
+const MAX_EVENTS = 100; // Max events for transactions table
 
 // --- Helper Functions (Moved/Adapted) ---
 function formatCurrency(num: number | undefined | null): string {
