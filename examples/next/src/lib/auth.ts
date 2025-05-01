@@ -1,5 +1,5 @@
 import CredentialsProvider from "next-auth/providers/credentials";
-import { type NextAuthOptions, type Session, type DefaultSession, type User } from "next-auth";
+import { type NextAuthOptions, type DefaultSession } from "next-auth";
 import { JWT } from "next-auth/jwt";
 import { sdk } from "./sdk";
 import { CreateApiTokensMutation } from "@codex-data/sdk/dist/sdk/generated/graphql";
@@ -42,7 +42,6 @@ declare module "next-auth" {
 // --- Refresh Function ---
 async function refreshShortLivedToken(token: JWT): Promise<JWT> {
   const now = Date.now();
-  console.log("[refreshShortLivedToken] Checking token:", { hasToken: !!token.shortLivedToken, expiresAt: token.shortLivedToken?.expiresAt, now: now, needsRefresh: token.shortLivedToken ? token.shortLivedToken.expiresAt < now + REFRESH_BUFFER_MS : true });
 
   if (token.shortLivedToken && token.shortLivedToken.expiresAt > now + REFRESH_BUFFER_MS) {
     console.log("[refreshShortLivedToken] Using existing token.");
@@ -76,16 +75,12 @@ async function refreshShortLivedToken(token: JWT): Promise<JWT> {
   return token;
 }
 
-// Minimal definition
-console.log("--- AUTH.TS --- NEXTAUTH_SECRET loaded:", process.env.NEXTAUTH_SECRET ? 'SET' : 'NOT SET');
-
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: "Anonymous",
       credentials: {},
-      async authorize(_, req) {
-        console.log("--- Authorizing Anonymous User ---");
+      async authorize() {
         return {
           id: crypto.randomUUID(),
           name: "Guest",
@@ -101,19 +96,14 @@ export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
     async jwt({ token, user }) {
-      console.log('--- JWT CALLBACK START ---', { token: JSON.stringify(token), user: JSON.stringify(user) });
       if (user) {
         token.id = user.id;
         // token.isGuest = user.isGuest;
       }
       const updatedToken = await refreshShortLivedToken(token);
-      console.log('--- JWT CALLBACK END --- Returning token:', JSON.stringify(updatedToken));
       return updatedToken;
     },
     async session({ session, token }) {
-      console.log('--- SESSION CALLBACK START ---');
-      console.log('--- SESSION token received:', JSON.stringify(token));
-
       // Transfer short-lived token
       session.shortLivedToken = token.shortLivedToken;
 
@@ -121,16 +111,7 @@ export const authOptions: NextAuthOptions = {
       if (token.id && session.user) {
         session.user.id = token.id;
       }
-      // Optionally transfer other JWT fields like isGuest
-      // if (token.isGuest !== undefined && session.user) {
-      //    session.user.isGuest = token.isGuest;
-      // }
-
-      console.log('--- SESSION CALLBACK END --- Returning session:', JSON.stringify(session));
       return session;
     },
   },
 };
-
-// Note: We are not exporting the default handler here.
-// That will be done in the [...nextauth] route handler.

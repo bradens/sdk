@@ -35,6 +35,7 @@ export function useCodexSdk() {
     }
     // Depend only on status and tokenValue. If the session object reference changes
     // but tokenValue remains the same, this effect won't re-run unnecessarily.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, tokenValue]); // sdkInstance removed from dependency array
 
   return {

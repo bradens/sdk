@@ -8,13 +8,11 @@ console.log("--- EXECUTING [...nextauth]/route.ts ---");
 console.log("--- [...nextauth]/route.ts --- Imported authOptions:", JSON.stringify(authOptions, null, 2));
 
 let handler;
-let initializationError: Error | null = null;
 
 try {
   handler = NextAuth(authOptions);
   console.log("--- [...nextauth]/route.ts --- NextAuth handler initialized successfully.");
 } catch (error) {
-  initializationError = error as Error;
   console.error("--- [...nextauth]/route.ts --- ERROR initializing NextAuth handler:", error);
   // Optionally re-throw or handle differently if needed
   // For now, we'll let requests fail if initialization fails
