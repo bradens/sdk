@@ -58,7 +58,7 @@ const MAX_EVENTS = 100; // Max events for transactions table
 function formatCurrency(num: number | undefined | null): string {
   if (num === undefined || num === null) return '-';
   num = parseFloat(num.toString());
-  return `$${num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 8 })}`;
+  return `$${num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 16 })}`;
 }
 
 // Format raw event from subscription
