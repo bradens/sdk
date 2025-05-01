@@ -168,15 +168,25 @@ export type Balance = {
 export type BalancesInput = {
   /** A cursor for use in pagination. */
   cursor?: InputMaybe<Scalars['String']['input']>;
-  /** Optional token specifically request the balance for */
+  /**
+   * Optional token specifically request the balance for.
+   * @deprecated Use tokens list instead
+   */
   filterToken?: InputMaybe<Scalars['String']['input']>;
   /** If set to true, native tokens in the response, they will have the id: native:<networkId> */
   includeNative?: InputMaybe<Scalars['Boolean']['input']>;
   /** The maximum number of holdings to return. */
   limit?: InputMaybe<Scalars['Int']['input']>;
+  /** The network IDs to filter by. */
+  networks?: InputMaybe<Array<Scalars['Int']['input']>>;
+  /** The token IDs (`address:networkId`) or addresses to request the balance for. Only applied when using `walletAddress` and `networks` (not `walletId`). */
+  tokens?: InputMaybe<Array<Scalars['String']['input']>>;
   /** The wallet address to filter by. */
   walletAddress?: InputMaybe<Scalars['String']['input']>;
-  /** The ID of the wallet (`walletAddress:networkId`). */
+  /**
+   * The ID of the wallet (`walletAddress:networkId`).
+   * @deprecated Use walletAddress and networkId instead
+   */
   walletId?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -223,7 +233,10 @@ export type BarsResponse = {
   traders: Array<Maybe<Scalars['Int']['output']>>;
   /** The number of transactions */
   transactions: Array<Maybe<Scalars['Int']['output']>>;
-  /** The volume. */
+  /**
+   * The volume.
+   * @deprecated Use volume field instead
+   */
   v: Array<Maybe<Scalars['Int']['output']>>;
   /** The volume with higher precision. */
   volume?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
@@ -1754,6 +1767,8 @@ export type LaunchpadData = {
   completedSlot?: Maybe<Scalars['Int']['output']>;
   /** The percentage of the pool that was sold to the public. */
   graduationPercent?: Maybe<Scalars['Float']['output']>;
+  /** The launchpad protocol */
+  launchpadProtocol?: Maybe<Scalars['String']['output']>;
   /** Indicates if the launchpad was migrated. */
   migrated?: Maybe<Scalars['Boolean']['output']>;
   /** The unix timestamp when the launchpad was migrated. */
@@ -1762,6 +1777,8 @@ export type LaunchpadData = {
   migratedPoolAddress?: Maybe<Scalars['String']['output']>;
   /** The slot number when the launchpad was migrated. */
   migratedSlot?: Maybe<Scalars['Int']['output']>;
+  /** The name of the launchpad. */
+  name?: Maybe<Scalars['String']['output']>;
   /** The address of the pool. */
   poolAddress?: Maybe<Scalars['String']['output']>;
 };
@@ -1797,16 +1814,23 @@ export type LaunchpadTokenEventOutput = {
 
 /** The type of event. Note that associated statistics such as `buyCount1`, `price`, etc. are only available for `Updated` events. */
 export enum LaunchpadTokenEventType {
+  /** The token has been completed */
   Completed = 'Completed',
+  /** The token has been created with metadata */
   Created = 'Created',
+  /** The token has been discovered */
+  Deployed = 'Deployed',
+  /** The token has been migrated */
   Migrated = 'Migrated',
+  /** The token's statistics have been updated */
   Updated = 'Updated'
 }
 
 /** The protocol of the token. */
 export enum LaunchpadTokenProtocol {
   FourMeme = 'FourMeme',
-  Pump = 'Pump'
+  Pump = 'Pump',
+  RaydiumLaunchpad = 'RaydiumLaunchpad'
 }
 
 export type LiquidityData = {
@@ -4680,11 +4704,11 @@ export type OnBarsUpdatedResponse = {
 
 /** Input for `onLaunchpadTokenEvent`. */
 export type OnLaunchpadTokenEventInput = {
-  /** The contract address of the token. */
+  /** The contract address of the token. Required when `networkId` is provided. */
   address?: InputMaybe<Scalars['String']['input']>;
   /** The type of event. */
   eventType?: InputMaybe<LaunchpadTokenEventType>;
-  /** The network ID that the token is deployed on. */
+  /** The network ID that the token is deployed on. Required when `address` is provided. */
   networkId?: InputMaybe<Scalars['Int']['input']>;
   /** The protocol of the token. */
   protocol?: InputMaybe<LaunchpadTokenProtocol>;
@@ -4919,6 +4943,10 @@ export type PairFilterResult = {
   sellCount12?: Maybe<Scalars['Int']['output']>;
   /** The number of sells in the past 24 hours. */
   sellCount24?: Maybe<Scalars['Int']['output']>;
+  /** The percentage of wallets that are less than 1d old that have traded in the last 24h */
+  swapPct1dOldWallet?: Maybe<Scalars['String']['output']>;
+  /** The percentage of wallets that are less than 7d old that have traded in the last 24h */
+  swapPct7dOldWallet?: Maybe<Scalars['String']['output']>;
   /** Metadata for the first token in the pair. */
   token0?: Maybe<EnhancedToken>;
   /** Metadata for the second token in the pair. */
@@ -4971,6 +4999,10 @@ export type PairFilterResult = {
   volumeUSD12?: Maybe<Scalars['String']['output']>;
   /** The trade volume in USD in the past 24 hours. */
   volumeUSD24?: Maybe<Scalars['String']['output']>;
+  /** The average age of the wallets that traded in the last 24h */
+  walletAgeAvg?: Maybe<Scalars['String']['output']>;
+  /** The standard deviation of age of the wallets that traded in the last 24h */
+  walletAgeStd?: Maybe<Scalars['String']['output']>;
 };
 
 /** Input type of `PairFilters`. */
@@ -5033,6 +5065,10 @@ export type PairFilters = {
   sellCount12?: InputMaybe<NumberFilter>;
   /** The number of sells in the past 24 hours. */
   sellCount24?: InputMaybe<NumberFilter>;
+  /** The percentage of wallets that are less than 1d old that have traded in the last 24h */
+  swapPct1dOldWallet?: InputMaybe<NumberFilter>;
+  /** The percentage of wallets that are less than 7d old that have traded in the last 24h */
+  swapPct7dOldWallet?: InputMaybe<NumberFilter>;
   /** The list of token contract addresses to filter by. */
   tokenAddress?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   /** Whether to ignore pairs/tokens not relevant to trending */
@@ -5085,6 +5121,10 @@ export type PairFilters = {
   volumeUSD12?: InputMaybe<NumberFilter>;
   /** The trade volume in USD in the past 24 hours. */
   volumeUSD24?: InputMaybe<NumberFilter>;
+  /** The average age of the wallets that traded in the last 24h */
+  walletAgeAvg?: InputMaybe<NumberFilter>;
+  /** The standard deviation of age of the wallets that traded in the last 24h */
+  walletAgeStd?: InputMaybe<NumberFilter>;
 };
 
 export type PairMetadata = {
@@ -5221,6 +5261,8 @@ export enum PairRankingAttribute {
   SellCount4 = 'sellCount4',
   SellCount12 = 'sellCount12',
   SellCount24 = 'sellCount24',
+  SwapPct1dOldWallet = 'swapPct1dOldWallet',
+  SwapPct7dOldWallet = 'swapPct7dOldWallet',
   TrendingScore = 'trendingScore',
   TrendingScore1 = 'trendingScore1',
   TrendingScore4 = 'trendingScore4',
@@ -5250,7 +5292,9 @@ export enum PairRankingAttribute {
   VolumeUsd1 = 'volumeUSD1',
   VolumeUsd4 = 'volumeUSD4',
   VolumeUsd12 = 'volumeUSD12',
-  VolumeUsd24 = 'volumeUSD24'
+  VolumeUsd24 = 'volumeUSD24',
+  WalletAgeAvg = 'walletAgeAvg',
+  WalletAgeStd = 'walletAgeStd'
 }
 
 /** Response returned by `filterNftParallelAssets`. */
@@ -7750,6 +7794,10 @@ export type TokenFilterResult = {
   sellCount12?: Maybe<Scalars['Int']['output']>;
   /** The number of sells in the past 24 hours. */
   sellCount24?: Maybe<Scalars['Int']['output']>;
+  /** The percentage of wallets that are less than 1d old that have traded in the last 24h */
+  swapPct1dOldWallet?: Maybe<Scalars['String']['output']>;
+  /** The percentage of wallets that are less than 7d old that have traded in the last 24h */
+  swapPct7dOldWallet?: Maybe<Scalars['String']['output']>;
   /** Metadata for the token. */
   token?: Maybe<EnhancedToken>;
   /** The number of transactions in the past hour. */
@@ -7812,6 +7860,10 @@ export type TokenFilterResult = {
   volumeChange12?: Maybe<Scalars['String']['output']>;
   /** The percent volume change in the past 24 hours. Decimal format. */
   volumeChange24?: Maybe<Scalars['String']['output']>;
+  /** The average age of the wallets that traded in the last 24h */
+  walletAgeAvg?: Maybe<Scalars['String']['output']>;
+  /** The standard deviation of age of the wallets that traded in the last 24h */
+  walletAgeStd?: Maybe<Scalars['String']['output']>;
 };
 
 /** Input type of `TokenFilters`. */
@@ -7880,6 +7932,8 @@ export type TokenFilters = {
   launchpadMigrated?: InputMaybe<Scalars['Boolean']['input']>;
   /** The timestamp when the launchpad was migrated */
   launchpadMigratedAt?: InputMaybe<NumberFilter>;
+  /** The launchpad protocol */
+  launchpadProtocol?: InputMaybe<Scalars['String']['input']>;
   /** The amount of liquidity in the token's top pair. */
   liquidity?: InputMaybe<NumberFilter>;
   /** The lowest price in USD in the past hour. */
@@ -7914,6 +7968,10 @@ export type TokenFilters = {
   sellCount12?: InputMaybe<NumberFilter>;
   /** The number of sells in the past 24 hours. */
   sellCount24?: InputMaybe<NumberFilter>;
+  /** The percentage of wallets that are less than 1d old that have traded in the last 24h */
+  swapPct1dOldWallet?: InputMaybe<NumberFilter>;
+  /** The percentage of wallets that are less than 7d old that have traded in the last 24h */
+  swapPct7dOldWallet?: InputMaybe<NumberFilter>;
   /** Whether to ignore pairs/tokens not relevant to trending */
   trendingIgnored?: InputMaybe<Scalars['Boolean']['input']>;
   /** The number of transactions in the past hour. */
@@ -7976,6 +8034,10 @@ export type TokenFilters = {
   volumeChange12?: InputMaybe<NumberFilter>;
   /** The percent volume change in the past 24 hours. Decimal format. */
   volumeChange24?: InputMaybe<NumberFilter>;
+  /** The average age of the wallets that traded in the last 24h */
+  walletAgeAvg?: InputMaybe<NumberFilter>;
+  /** The standard deviation of age of the wallets that traded in the last 24h */
+  walletAgeStd?: InputMaybe<NumberFilter>;
 };
 
 /** Metadata for a token. */
@@ -8206,6 +8268,8 @@ export enum TokenRankingAttribute {
   SellCount5m = 'sellCount5m',
   SellCount12 = 'sellCount12',
   SellCount24 = 'sellCount24',
+  SwapPct1dOldWallet = 'swapPct1dOldWallet',
+  SwapPct7dOldWallet = 'swapPct7dOldWallet',
   TrendingScore = 'trendingScore',
   TrendingScore1 = 'trendingScore1',
   TrendingScore4 = 'trendingScore4',
@@ -8241,7 +8305,9 @@ export enum TokenRankingAttribute {
   VolumeChange4 = 'volumeChange4',
   VolumeChange5m = 'volumeChange5m',
   VolumeChange12 = 'volumeChange12',
-  VolumeChange24 = 'volumeChange24'
+  VolumeChange24 = 'volumeChange24',
+  WalletAgeAvg = 'walletAgeAvg',
+  WalletAgeStd = 'walletAgeStd'
 }
 
 /** Response returned by `searchTokens`. */

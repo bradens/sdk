@@ -1125,15 +1125,15 @@
           },
           {
             "name": "filterToken",
-            "description": "Optional token specifically request the balance for",
+            "description": "Optional token specifically request the balance for.",
             "type": {
               "kind": "SCALAR",
               "name": "String",
               "ofType": null
             },
             "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
+            "isDeprecated": true,
+            "deprecationReason": "Use tokens list instead"
           },
           {
             "name": "includeNative",
@@ -1160,6 +1160,46 @@
             "deprecationReason": null
           },
           {
+            "name": "networks",
+            "description": "The network IDs to filter by.",
+            "type": {
+              "kind": "LIST",
+              "name": null,
+              "ofType": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "Int",
+                  "ofType": null
+                }
+              }
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "tokens",
+            "description": "The token IDs (`address:networkId`) or addresses to request the balance for. Only applied when using `walletAddress` and `networks` (not `walletId`).",
+            "type": {
+              "kind": "LIST",
+              "name": null,
+              "ofType": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              }
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "walletAddress",
             "description": "The wallet address to filter by.",
             "type": {
@@ -1180,8 +1220,8 @@
               "ofType": null
             },
             "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
+            "isDeprecated": true,
+            "deprecationReason": "Use walletAddress and networkId instead"
           }
         ],
         "interfaces": null,
@@ -1575,8 +1615,8 @@
                 }
               }
             },
-            "isDeprecated": false,
-            "deprecationReason": null
+            "isDeprecated": true,
+            "deprecationReason": "Use volume field instead"
           },
           {
             "name": "volume",
@@ -10536,6 +10576,18 @@
             "deprecationReason": null
           },
           {
+            "name": "launchpadProtocol",
+            "description": "The launchpad protocol",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "migrated",
             "description": "Indicates if the launchpad was migrated.",
             "args": [],
@@ -10578,6 +10630,18 @@
             "type": {
               "kind": "SCALAR",
               "name": "Int",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "name",
+            "description": "The name of the launchpad.",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
               "ofType": null
             },
             "isDeprecated": false,
@@ -10788,25 +10852,31 @@
         "enumValues": [
           {
             "name": "Completed",
-            "description": null,
+            "description": "The token has been completed",
             "isDeprecated": false,
             "deprecationReason": null
           },
           {
             "name": "Created",
-            "description": null,
+            "description": "The token has been created with metadata",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "Deployed",
+            "description": "The token has been discovered",
             "isDeprecated": false,
             "deprecationReason": null
           },
           {
             "name": "Migrated",
-            "description": null,
+            "description": "The token has been migrated",
             "isDeprecated": false,
             "deprecationReason": null
           },
           {
             "name": "Updated",
-            "description": null,
+            "description": "The token's statistics have been updated",
             "isDeprecated": false,
             "deprecationReason": null
           }
@@ -10830,6 +10900,12 @@
           },
           {
             "name": "Pump",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "RaydiumLaunchpad",
             "description": null,
             "isDeprecated": false,
             "deprecationReason": null
@@ -27599,7 +27675,7 @@
         "inputFields": [
           {
             "name": "address",
-            "description": "The contract address of the token.",
+            "description": "The contract address of the token. Required when `networkId` is provided.",
             "type": {
               "kind": "SCALAR",
               "name": "String",
@@ -27623,7 +27699,7 @@
           },
           {
             "name": "networkId",
-            "description": "The network ID that the token is deployed on.",
+            "description": "The network ID that the token is deployed on. Required when `address` is provided.",
             "type": {
               "kind": "SCALAR",
               "name": "Int",
@@ -28989,6 +29065,30 @@
             "deprecationReason": null
           },
           {
+            "name": "swapPct1dOldWallet",
+            "description": "The percentage of wallets that are less than 1d old that have traded in the last 24h",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "swapPct7dOldWallet",
+            "description": "The percentage of wallets that are less than 7d old that have traded in the last 24h",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "token0",
             "description": "Metadata for the first token in the pair.",
             "args": [],
@@ -29291,6 +29391,30 @@
           {
             "name": "volumeUSD24",
             "description": "The trade volume in USD in the past 24 hours.",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "walletAgeAvg",
+            "description": "The average age of the wallets that traded in the last 24h",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "walletAgeStd",
+            "description": "The standard deviation of age of the wallets that traded in the last 24h",
             "args": [],
             "type": {
               "kind": "SCALAR",
@@ -29670,6 +29794,30 @@
             "deprecationReason": null
           },
           {
+            "name": "swapPct1dOldWallet",
+            "description": "The percentage of wallets that are less than 1d old that have traded in the last 24h",
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "NumberFilter",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "swapPct7dOldWallet",
+            "description": "The percentage of wallets that are less than 7d old that have traded in the last 24h",
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "NumberFilter",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "tokenAddress",
             "description": "The list of token contract addresses to filter by.",
             "type": {
@@ -29976,6 +30124,30 @@
           {
             "name": "volumeUSD24",
             "description": "The trade volume in USD in the past 24 hours.",
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "NumberFilter",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "walletAgeAvg",
+            "description": "The average age of the wallets that traded in the last 24h",
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "NumberFilter",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "walletAgeStd",
+            "description": "The standard deviation of age of the wallets that traded in the last 24h",
             "type": {
               "kind": "INPUT_OBJECT",
               "name": "NumberFilter",
@@ -30860,6 +31032,18 @@
             "deprecationReason": null
           },
           {
+            "name": "swapPct1dOldWallet",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "swapPct7dOldWallet",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "trendingScore",
             "description": null,
             "isDeprecated": false,
@@ -31035,6 +31219,18 @@
           },
           {
             "name": "volumeUSD24",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "walletAgeAvg",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "walletAgeStd",
             "description": null,
             "isDeprecated": false,
             "deprecationReason": null
@@ -36620,7 +36816,7 @@
             "args": [
               {
                 "name": "excludeTokens",
-                "description": "A list of token IDs to exclude from results (`address:networkId`)",
+                "description": "A list of token IDs (`address:networkId`) to exclude from results",
                 "type": {
                   "kind": "LIST",
                   "name": null,
@@ -47172,6 +47368,30 @@
             "deprecationReason": null
           },
           {
+            "name": "swapPct1dOldWallet",
+            "description": "The percentage of wallets that are less than 1d old that have traded in the last 24h",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "swapPct7dOldWallet",
+            "description": "The percentage of wallets that are less than 7d old that have traded in the last 24h",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "token",
             "description": "Metadata for the token.",
             "args": [],
@@ -47534,6 +47754,30 @@
           {
             "name": "volumeChange24",
             "description": "The percent volume change in the past 24 hours. Decimal format.",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "walletAgeAvg",
+            "description": "The average age of the wallets that traded in the last 24h",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "walletAgeStd",
+            "description": "The standard deviation of age of the wallets that traded in the last 24h",
             "args": [],
             "type": {
               "kind": "SCALAR",
@@ -47949,6 +48193,18 @@
             "deprecationReason": null
           },
           {
+            "name": "launchpadProtocol",
+            "description": "The launchpad protocol",
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "liquidity",
             "description": "The amount of liquidity in the token's top pair.",
             "type": {
@@ -48147,6 +48403,30 @@
           {
             "name": "sellCount24",
             "description": "The number of sells in the past 24 hours.",
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "NumberFilter",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "swapPct1dOldWallet",
+            "description": "The percentage of wallets that are less than 1d old that have traded in the last 24h",
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "NumberFilter",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "swapPct7dOldWallet",
+            "description": "The percentage of wallets that are less than 7d old that have traded in the last 24h",
             "type": {
               "kind": "INPUT_OBJECT",
               "name": "NumberFilter",
@@ -48519,6 +48799,30 @@
           {
             "name": "volumeChange24",
             "description": "The percent volume change in the past 24 hours. Decimal format.",
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "NumberFilter",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "walletAgeAvg",
+            "description": "The average age of the wallets that traded in the last 24h",
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "NumberFilter",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "walletAgeStd",
+            "description": "The standard deviation of age of the wallets that traded in the last 24h",
             "type": {
               "kind": "INPUT_OBJECT",
               "name": "NumberFilter",
@@ -49793,6 +50097,18 @@
             "deprecationReason": null
           },
           {
+            "name": "swapPct1dOldWallet",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "swapPct7dOldWallet",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "trendingScore",
             "description": null,
             "isDeprecated": false,
@@ -50004,6 +50320,18 @@
           },
           {
             "name": "volumeChange24",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "walletAgeAvg",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "walletAgeStd",
             "description": null,
             "isDeprecated": false,
             "deprecationReason": null

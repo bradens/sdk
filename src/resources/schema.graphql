@@ -188,7 +188,7 @@ type Balance {
 
 input BalancesInput {
   """The ID of the wallet (`walletAddress:networkId`)."""
-  walletId: String
+  walletId: String @deprecated(reason: "Use walletAddress and networkId instead")
 
   """The wallet address to filter by."""
   walletAddress: String
@@ -196,8 +196,16 @@ input BalancesInput {
   """A cursor for use in pagination."""
   cursor: String
 
-  """Optional token specifically request the balance for"""
-  filterToken: String
+  """The network IDs to filter by."""
+  networks: [Int!]
+
+  """
+  The token IDs (`address:networkId`) or addresses to request the balance for. Only applied when using `walletAddress` and `networks` (not `walletId`).
+  """
+  tokens: [String!]
+
+  """Optional token specifically request the balance for."""
+  filterToken: String @deprecated(reason: "Use tokens list instead")
 
   """
   If set to true, native tokens in the response, they will have the id: native:<networkId>
@@ -231,7 +239,7 @@ type BarsResponse {
   c: [Float]!
 
   """The volume."""
-  v: [Int]!
+  v: [Int]! @deprecated(reason: "Use volume field instead")
 
   """The timestamp for the bar."""
   t: [Int!]!
@@ -2256,6 +2264,9 @@ type LatestTokenSimResults {
 }
 
 type LaunchpadData {
+  """The name of the launchpad."""
+  name: String
+
   """The percentage of the pool that was sold to the public."""
   graduationPercent: Float
 
@@ -2282,6 +2293,9 @@ type LaunchpadData {
 
   """The pool address after the launchpad was migrated."""
   migratedPoolAddress: String
+
+  """The launchpad protocol"""
+  launchpadProtocol: String
 }
 
 """Response returned by `onLaunchpadTokenEvent`."""
@@ -2327,9 +2341,19 @@ type LaunchpadTokenEventOutput {
 The type of event. Note that associated statistics such as `buyCount1`, `price`, etc. are only available for `Updated` events.
 """
 enum LaunchpadTokenEventType {
-  Updated
+  """The token has been discovered"""
+  Deployed
+
+  """The token has been created with metadata"""
   Created
+
+  """The token's statistics have been updated"""
+  Updated
+
+  """The token has been completed"""
   Completed
+
+  """The token has been migrated"""
   Migrated
 }
 
@@ -2337,6 +2361,7 @@ enum LaunchpadTokenEventType {
 enum LaunchpadTokenProtocol {
   Pump
   FourMeme
+  RaydiumLaunchpad
 }
 
 scalar link__Import
@@ -6205,10 +6230,14 @@ input OnLaunchpadTokenEventInput {
   """The type of event."""
   eventType: LaunchpadTokenEventType
 
-  """The contract address of the token."""
+  """
+  The contract address of the token. Required when `networkId` is provided.
+  """
   address: String
 
-  """The network ID that the token is deployed on."""
+  """
+  The network ID that the token is deployed on. Required when `address` is provided.
+  """
   networkId: Int
 }
 
@@ -6578,6 +6607,24 @@ type PairFilterResult {
 
   """The trade volume in USD in the past 24 hours."""
   volumeUSD24: String
+
+  """The average age of the wallets that traded in the last 24h"""
+  walletAgeAvg: String
+
+  """
+  The standard deviation of age of the wallets that traded in the last 24h
+  """
+  walletAgeStd: String
+
+  """
+  The percentage of wallets that are less than 1d old that have traded in the last 24h
+  """
+  swapPct1dOldWallet: String
+
+  """
+  The percentage of wallets that are less than 7d old that have traded in the last 24h
+  """
+  swapPct7dOldWallet: String
 }
 
 """Input type of `PairFilters`."""
@@ -6748,6 +6795,24 @@ input PairFilters {
   Whether to filter for pairs on testnet networks. Use `true` for testnet pairs only, `false` for mainnet pairs only and `undefined` (default) for both.
   """
   isTestnet: Boolean
+
+  """The average age of the wallets that traded in the last 24h"""
+  walletAgeAvg: NumberFilter
+
+  """
+  The standard deviation of age of the wallets that traded in the last 24h
+  """
+  walletAgeStd: NumberFilter
+
+  """
+  The percentage of wallets that are less than 1d old that have traded in the last 24h
+  """
+  swapPct1dOldWallet: NumberFilter
+
+  """
+  The percentage of wallets that are less than 7d old that have traded in the last 24h
+  """
+  swapPct7dOldWallet: NumberFilter
 }
 
 type PairMetadata {
@@ -6959,6 +7024,10 @@ enum PairRankingAttribute {
   volumeUSD4
   volumeUSD12
   volumeUSD24
+  walletAgeAvg
+  walletAgeStd
+  swapPct1dOldWallet
+  swapPct7dOldWallet
 }
 
 """Response returned by `filterNftParallelAssets`."""
@@ -8584,7 +8653,7 @@ type Query {
     """
     tokens: [String]
 
-    """A list of token IDs to exclude from results (`address:networkId`)"""
+    """A list of token IDs (`address:networkId`) to exclude from results"""
     excludeTokens: [String]
 
     """A list of ranking attributes to apply."""
@@ -10450,6 +10519,24 @@ type TokenFilterResult {
 
   """The number of different wallets holding the token."""
   holders: Int
+
+  """The average age of the wallets that traded in the last 24h"""
+  walletAgeAvg: String
+
+  """
+  The standard deviation of age of the wallets that traded in the last 24h
+  """
+  walletAgeStd: String
+
+  """
+  The percentage of wallets that are less than 1d old that have traded in the last 24h
+  """
+  swapPct1dOldWallet: String
+
+  """
+  The percentage of wallets that are less than 7d old that have traded in the last 24h
+  """
+  swapPct7dOldWallet: String
 }
 
 """Input type of `TokenFilters`."""
@@ -10677,6 +10764,9 @@ input TokenFilters {
   """The address of the creator of the token"""
   creatorAddress: String
 
+  """The launchpad protocol"""
+  launchpadProtocol: String
+
   """Indicates if the launchpad is completed"""
   launchpadCompleted: Boolean
 
@@ -10697,6 +10787,24 @@ input TokenFilters {
 
   """The token in mintable"""
   mintable: Boolean
+
+  """The average age of the wallets that traded in the last 24h"""
+  walletAgeAvg: NumberFilter
+
+  """
+  The standard deviation of age of the wallets that traded in the last 24h
+  """
+  walletAgeStd: NumberFilter
+
+  """
+  The percentage of wallets that are less than 1d old that have traded in the last 24h
+  """
+  swapPct1dOldWallet: NumberFilter
+
+  """
+  The percentage of wallets that are less than 7d old that have traded in the last 24h
+  """
+  swapPct7dOldWallet: NumberFilter
 }
 
 """Metadata for a token."""
@@ -11002,6 +11110,10 @@ enum TokenRankingAttribute {
   launchpadCompletedAt
   launchpadMigratedAt
   graduationPercent
+  walletAgeAvg
+  walletAgeStd
+  swapPct1dOldWallet
+  swapPct7dOldWallet
 }
 
 """Response returned by `searchTokens`."""
