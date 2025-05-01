@@ -3,7 +3,6 @@ import React, { Suspense } from "react";
 import { Card, CardContent, CardHeader} from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TokenDetailView } from "@/components/TokenDetailView";
-import { EventDisplayType } from "@codex-data/sdk/dist/sdk/generated/graphql";
 
 // --- Type Definitions ---
 // Keep TokenDetails definition (needed for fetching & props)
@@ -106,7 +105,7 @@ async function getTokenPageData(networkIdNum: number, tokenId: string): Promise<
   let events: TokenEvent[] = [];
   if (eventsResult.status === 'fulfilled' && eventsResult.value.getTokenEvents?.items) {
     const filteredEvents = eventsResult.value.getTokenEvents.items.filter(ev => ev != null)
-    events = filteredEvents.map((ev, i) => {
+    events = filteredEvents.map((ev) => {
           const decimals = details?.decimals ?? 18;
           const swapValue = parseFloat(ev.token0SwapValueUsd || '0');
           const amount0 = parseFloat(ev.data?.amount0 || '0');
