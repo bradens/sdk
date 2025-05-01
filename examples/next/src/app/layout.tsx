@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
+import Script from 'next/script';
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
@@ -19,7 +20,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark" style={{ colorScheme: 'dark'}}>
+      <head>
+        <Script
+          src="/charting_library/charting_library.js"
+          strategy="beforeInteractive"
+        />
+      </head>
       <body className={`${geistMono.variable} antialiased`}>
         <Providers>
           {children}

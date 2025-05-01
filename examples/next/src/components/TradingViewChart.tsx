@@ -1,0 +1,411 @@
+'use client';
+
+import React, { useEffect, useRef, memo } from 'react';
+import {
+    IChartingLibraryWidget as TradingViewWidget,
+    ChartingLibraryWidgetOptions,
+    LanguageCode,
+    ResolutionString,
+    IBasicDataFeed,
+    LibrarySymbolInfo,
+    OnReadyCallback,
+    SearchSymbolsCallback,
+    ResolveCallback,
+    HistoryCallback,
+    SubscribeBarsCallback,
+} from './charting_library/charting_library';
+import { useCodexSdk } from '@/hooks/useCodexSdk';
+import { Codex, CleanupFunction } from '@codex-data/sdk';
+import { OnTokenBarsUpdatedSubscription } from '@codex-data/sdk/dist/sdk/generated/graphql';
+import { ExecutionResult } from 'graphql';
+
+// Type definition for the expected TradingView object on window
+interface TradingViewGlobal {
+    widget: new (options: ChartingLibraryWidgetOptions) => TradingViewWidget;
+    // Add other potential properties if needed, e.g., version
+}
+
+// Extend the global Window interface
+declare global {
+    interface Window {
+        TradingView?: TradingViewGlobal;
+    }
+}
+
+// Define the bar type TradingView expects
+interface TradingViewBar {
+    time: number; // TradingView expects milliseconds
+    open: number;
+    high: number;
+    low: number;
+    close: number;
+    volume?: number;
+}
+
+// Assuming ChartDataPoint is defined elsewhere and imported, or define it here
+// export interface ChartDataPoint { ... }
+
+// --- Component Props ---
+export interface TradingViewChartProps {
+  symbol: string; // Now expected format: "<tokenId>:<networkId>"
+  interval: ResolutionString;
+  libraryPath?: string;
+  containerId?: string;
+  clientId?: string;
+  userId?: string;
+  fullscreen?: boolean;
+  autosize?: boolean;
+  studiesOverrides?: object;
+}
+
+// LocalStorage key for saving the interval
+const LOCALSTORAGE_INTERVAL_KEY = 'tradingview_chart_interval';
+
+const TradingViewChart: React.FC<TradingViewChartProps> = ({
+    symbol, // Use the passed symbol directly
+    interval: defaultInterval = '30' as ResolutionString, // Use prop as default
+    containerId = 'tv_chart_container',
+    libraryPath = '/charting_library/',
+    clientId = 'tradingview.com',
+    userId = 'public_user_id',
+    fullscreen = false,
+    autosize = true,
+    studiesOverrides = {},
+}) => {
+  const chartContainerRef = useRef<HTMLDivElement>(null);
+  const tvWidgetRef = useRef<TradingViewWidget | null>(null);
+  const { sdk, isLoading: isSdkLoading } = useCodexSdk();
+  const sdkRef = useRef<Codex | null>(null);
+  const activeSubscriptionsRef = useRef<Record<string, Promise<CleanupFunction>>>({});
+  const lastBarTimestampRef = useRef<Record<string, number>>({});
+
+  useEffect(() => {
+      sdkRef.current = sdk;
+  }, [sdk]);
+
+  useEffect(() => {
+    if (!chartContainerRef.current || isSdkLoading) {
+        console.log("[TradingViewChart] Waiting for container or SDK...");
+        return;
+    }
+
+    const datafeed: IBasicDataFeed = {
+        onReady: (callback: OnReadyCallback) => {
+            console.log('[TradingViewChart Datafeed] onReady called');
+            setTimeout(() => callback({ supported_resolutions: ["1", "5", "15", "30", "60", "1D"] as ResolutionString[] }), 0);
+        },
+        searchSymbols: async (userInput: string, exchange: string, symbolType: string, onResultReadyCallback: SearchSymbolsCallback) => {
+            console.log('[TradingViewChart Datafeed] searchSymbols called', {userInput, exchange, symbolType});
+            onResultReadyCallback([]);
+        },
+        resolveSymbol: async (symbolName: string, onSymbolResolvedCallback: ResolveCallback) => {
+            console.log('[TradingViewChart Datafeed] resolveSymbol called for:', symbolName);
+            const symbolInfo: LibrarySymbolInfo = {
+                ticker: symbolName,
+                name: symbolName,
+                description: symbolName,
+                type: 'crypto',
+                session: '24x7',
+                timezone: 'Etc/UTC',
+                exchange: 'Codex',
+                listed_exchange: 'Codex',
+                minmov: 1,
+                pricescale: 100000000,
+                has_intraday: true,
+                has_weekly_and_monthly: true,
+                supported_resolutions: ["1", "5", "15", "30", "60", "1D"] as ResolutionString[],
+                volume_precision: 2,
+                data_status: 'streaming',
+                format: 'price',
+            };
+            setTimeout(() => onSymbolResolvedCallback(symbolInfo), 0);
+        },
+        getBars: async (symbolInfo: LibrarySymbolInfo, resolution: ResolutionString, periodParams: { from: number; to: number; firstDataRequest: boolean; countBack?: number }, onHistoryCallback: HistoryCallback, _onErrorCallback: (reason: string) => void) => {
+            // Add guard for ticker
+            if (!symbolInfo.ticker) {
+                console.error("[TradingViewChart getBars] Symbol ticker is missing.");
+                _onErrorCallback("Symbol ticker missing");
+                return;
+            }
+
+            const currentSdk = sdkRef.current;
+            if (!currentSdk) {
+                console.error("[TradingViewChart getBars] SDK not available.");
+                _onErrorCallback("SDK not available");
+                return;
+            }
+            const { from, to } = periodParams;
+
+            try {
+                const sdkResolution = resolution.toString();
+                console.log(`[TradingViewChart getBars] Fetching bars for ${symbolInfo.ticker} from ${new Date(from*1000)} to ${new Date(to*1000)} resolution ${sdkResolution}`);
+
+                const barsResult = await currentSdk.queries.getBars({
+                    symbol: symbolInfo.ticker, // Now guaranteed to be string
+                    from: from,
+                    to: to,
+                    resolution: sdkResolution,
+                });
+
+                const barsData = barsResult.getBars;
+                let tradingViewBars: TradingViewBar[] = [];
+
+                if (barsData?.t) {
+                    tradingViewBars = barsData.t.map((time: number, index: number) => {
+                        const open = barsData.o?.[index];
+                        const high = barsData.h?.[index];
+                        const low = barsData.l?.[index];
+                        const close = barsData.c?.[index];
+                        const volume = barsData.v?.[index];
+
+                        if (open == null || high == null || low == null || close == null) {
+                            return null;
+                        }
+
+                        // Create the bar object explicitly matching TradingViewBar
+                        const bar: TradingViewBar = {
+                            time: time * 1000,
+                            open: open,
+                            high: high,
+                            low: low,
+                            close: close,
+                        };
+                        // Add volume only if it exists
+                        if (volume != null) {
+                            bar.volume = volume;
+                        }
+                        return bar;
+
+                    }).filter(Boolean) as TradingViewBar[]; // Add type assertion
+
+                    console.log(`[TradingViewChart getBars] Mapped ${tradingViewBars.length} valid bars.`);
+                    onHistoryCallback(tradingViewBars, { noData: tradingViewBars.length === 0 });
+                } else {
+                    console.log(`[TradingViewChart getBars] No time data returned from SDK.`);
+                    onHistoryCallback([], { noData: true });
+                }
+            } catch (error) {
+                 console.error("[TradingViewChart getBars] Error fetching bars:", error);
+                _onErrorCallback("Failed to fetch bars");
+            }
+        },
+        subscribeBars: (symbolInfo: LibrarySymbolInfo, resolution: ResolutionString, onRealtimeCallback: SubscribeBarsCallback, subscriberUID: string) => {
+            console.log('[TradingViewChart Datafeed] subscribeBars called', { symbolInfo, resolution, subscriberUID });
+            const currentSdk = sdkRef.current;
+            if (!currentSdk) {
+                console.error("[TradingViewChart subscribeBars] SDK not available.");
+                return;
+            }
+
+            // Parse networkId and tokenId from ticker
+            const tickerParts = symbolInfo.ticker?.split(':');
+            if (!tickerParts || tickerParts.length !== 2) {
+                console.error(`[TradingViewChart subscribeBars] Invalid ticker format: ${symbolInfo.ticker}. Expected "<tokenId>:<networkId>".`);
+                return;
+            }
+            const [tokenId, networkIdStr] = tickerParts;
+            const networkId = parseInt(networkIdStr, 10);
+            if (isNaN(networkId)) {
+                 console.error(`[TradingViewChart subscribeBars] Invalid networkId in ticker: ${symbolInfo.ticker}`);
+                return;
+            }
+
+            // --- Define the SDK observer ---
+            const observer = {
+                next: (result: ExecutionResult<OnTokenBarsUpdatedSubscription>) => {
+                    if (result.errors) {
+                        console.error("[TradingViewChart subscribeBars] GraphQL errors:", result.errors);
+                        return;
+                    }
+                    const barPayload = result.data?.onTokenBarsUpdated;
+                    const aggs = barPayload?.aggregates?.r1?.usd; // Assuming r1 resolution for now
+                    if (aggs?.t && aggs.o && aggs.h && aggs.l && aggs.c) {
+                        const newBar: TradingViewBar = {
+                            time: aggs.t * 1000, // Convert s to ms
+                            open: aggs.o,
+                            high: aggs.h,
+                            low: aggs.l,
+                            close: aggs.c,
+                            volume: aggs.v ?? undefined, // Handle volume
+                        };
+
+                        // --- Time Violation Check ---
+                        const lastTimestamp = lastBarTimestampRef.current[subscriberUID];
+                        if (lastTimestamp != null && newBar.time < lastTimestamp) {
+                            console.warn(`[TradingViewChart subscribeBars] Ignoring out-of-order bar for ${subscriberUID}. New: ${new Date(newBar.time)}, Last: ${new Date(lastTimestamp)}`);
+                            return; // Discard older bar
+                        }
+
+                        onRealtimeCallback(newBar); // Pass valid bar to TradingView
+
+                        // Update the last timestamp for this subscription
+                        lastBarTimestampRef.current[subscriberUID] = newBar.time;
+
+                    } else {
+                        console.warn("[TradingViewChart subscribeBars] Received payload without complete bar data.", barPayload);
+                    }
+                },
+                error: (error: Error) => {
+                    console.error('[TradingViewChart subscribeBars] Subscription transport error:', error);
+                    // Potentially notify the chart library of the error?
+                    delete lastBarTimestampRef.current[subscriberUID];
+                },
+                complete: () => {
+                    console.log('[TradingViewChart subscribeBars] Subscription completed by server.');
+                    // Remove subscription from tracking if completed?
+                    delete activeSubscriptionsRef.current[subscriberUID];
+                    delete lastBarTimestampRef.current[subscriberUID];
+                },
+            };
+
+            // --- Initiate SDK subscription ---
+            try {
+                console.log(`[TradingViewChart subscribeBars] Initiating SDK subscription for ${tokenId}:${networkId}`);
+                const subscriptionPromise = currentSdk.subscriptions.onTokenBarsUpdated(
+                    {tokenId: `${tokenId}:${networkId}` },
+                    observer
+                );
+
+                // Store the promise containing the cleanup function
+                activeSubscriptionsRef.current[subscriberUID] = subscriptionPromise;
+
+                subscriptionPromise.catch(error => {
+                    console.error("[TradingViewChart subscribeBars] Error obtaining cleanup promise:", error);
+                    // Remove from tracking if promise itself fails
+                    delete activeSubscriptionsRef.current[subscriberUID];
+                    delete lastBarTimestampRef.current[subscriberUID];
+                });
+
+            } catch (error) {
+                 console.error("[TradingViewChart subscribeBars] Failed to initiate SDK subscription call:", error);
+            }
+        },
+        unsubscribeBars: (subscriberUID: string) => {
+            console.log('[TradingViewChart Datafeed] unsubscribeBars called', { subscriberUID });
+            // Clear timestamp ref immediately
+            delete lastBarTimestampRef.current[subscriberUID];
+            const subscriptionPromise = activeSubscriptionsRef.current[subscriberUID];
+            if (subscriptionPromise) {
+                subscriptionPromise.then(cleanup => {
+                    if (typeof cleanup === 'function') {
+                        console.log(`[TradingViewChart unsubscribeBars] Executing cleanup for ${subscriberUID}`);
+                        cleanup();
+                    }
+                }).catch(error => {
+                    console.error("[TradingViewChart unsubscribeBars] Error during cleanup promise execution:", error);
+                }).finally(() => {
+                    // Always remove from tracking after attempt
+                    delete activeSubscriptionsRef.current[subscriberUID];
+                });
+            } else {
+                console.warn(`[TradingViewChart unsubscribeBars] No active subscription found for UID: ${subscriberUID}`);
+            }
+        },
+    };
+
+    const widgetOptions: ChartingLibraryWidgetOptions = {
+      symbol: symbol,
+      datafeed: datafeed,
+      interval: localStorage.getItem(LOCALSTORAGE_INTERVAL_KEY) as ResolutionString || defaultInterval,
+      container: chartContainerRef.current,
+      library_path: libraryPath,
+      locale: 'en' as LanguageCode,
+      client_id: clientId,
+      user_id: userId,
+      fullscreen: fullscreen,
+      autosize: autosize,
+      studies_overrides: studiesOverrides,
+      toolbar_bg: '#030303',
+      theme: 'dark',
+      load_last_chart: false,
+      enabled_features: [
+        "seconds_resolution",
+        "use_localstorage_for_settings",
+        "save_chart_properties_to_local_storage",
+      ],
+      disabled_features: ["left_toolbar",
+        "display_market_status",
+        "header_compare",
+        "header_symbol_search",
+        "popup_hints",
+        "save_shortcut",
+        "symbol_search_hot_key",
+        "header_saveload"
+      ],
+    };
+
+    // Access widget constructor via typed window object
+    if (!window.TradingView || !window.TradingView.widget) {
+        console.error("[TradingViewChart] TradingView library or widget constructor not found on window object.");
+        return;
+    }
+
+    console.log("[TradingViewChart Effect] Initializing widget...");
+    // Instantiate using the typed window object
+    const tvWidget = new window.TradingView.widget(widgetOptions);
+    tvWidgetRef.current = tvWidget;
+
+    tvWidget.onChartReady(() => {
+      console.log("[TradingViewChart Effect] Chart is ready, subscribing to interval changes.");
+      tvWidget.activeChart().onDataLoaded().subscribe(null, () => {
+        const res = tvWidget.activeChart().resolution();
+        if (typeof window !== 'undefined') {
+            console.log('[TradingViewChart Event] Saving to localStorage:', res);
+            localStorage.setItem(LOCALSTORAGE_INTERVAL_KEY, res);
+        }
+      });
+    });
+
+    // --- Cleanup Function ---
+    return () => {
+      // Remove the explicit unsubscribe call for interval_changed
+      /*
+      if (tvWidgetRef.current) {
+          try {
+              if (typeof tvWidgetRef.current.unsubscribe === 'function') {
+                 tvWidgetRef.current.unsubscribe('interval_changed' as any, handleIntervalChange as any);
+                 console.log("[TradingViewChart] Unsubscribed from interval_changed");
+              } else {
+                  console.warn("[TradingViewChart] Widget unsubscribe method not found.");
+              }
+          } catch (error) {
+              console.error("[TradingViewChart] Error unsubscribing from interval_changed:", error);
+          }
+      }
+      */
+
+      // Cleanup widget using remove() - this should handle internal listeners
+      if (tvWidgetRef.current) {
+        console.log("[TradingViewChart] Removing widget");
+        tvWidgetRef.current.remove();
+        tvWidgetRef.current = null;
+      }
+      // Cleanup SDK subscriptions & timestamps
+      console.log("[TradingViewChart] Cleaning up any dangling subscriptions and timestamps...");
+      Object.keys(activeSubscriptionsRef.current).forEach(uid => {
+          const promise = activeSubscriptionsRef.current[uid];
+          promise.then(cleanup => { if(typeof cleanup === 'function') cleanup(); })
+                 .catch(e => console.error("[TradingViewChart] Error during final subscription cleanup:", e));
+      });
+      activeSubscriptionsRef.current = {};
+      lastBarTimestampRef.current = {};
+    };
+  }, [symbol, /* defaultInterval? */ libraryPath, clientId, userId, fullscreen, autosize, studiesOverrides, isSdkLoading]);
+
+  return (
+    <div style={{ height: '100%', width: '100%' }}>
+      {isSdkLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-background/50 z-10">
+           <p>Loading Chart...</p>
+        </div>
+      )}
+      <div
+          ref={chartContainerRef}
+          id={containerId}
+          style={{ height: '100%', width: '100%' }}
+      />
+    </div>
+  );
+};
+
+export default memo(TradingViewChart);
