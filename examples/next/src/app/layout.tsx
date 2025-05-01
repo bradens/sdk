@@ -1,22 +1,15 @@
+import type { Metadata } from "next";
+import { Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-import type { Metadata } from "next";
-import localFont from "next/font/local";
-
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-});
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
+const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
-  weight: "100 900",
+  subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "Codex SDK Example",
-  description: "Example codex chart viewing application",
+  title: "Tokedex",
+  description: "A terminal-inspired crypto token screener",
 };
 
 export default function RootLayout({
@@ -26,9 +19,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`dark ${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${geistMono.variable} antialiased`}>
         {children}
       </body>
     </html>
