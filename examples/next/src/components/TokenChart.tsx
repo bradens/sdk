@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React from 'react';
 import {
   LineChart,
   Line,
@@ -10,12 +10,8 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'; // Assuming shadcn Card is installed
-import { useCodexSdk } from '@/hooks/useCodexSdk'; // Import SDK hook
-import { OnTokenBarsUpdatedSubscription } from '@codex-data/sdk/dist/sdk/generated/graphql'; // Import subscription type
-import { ExecutionResult } from 'graphql'; // Import ExecutionResult type
-import { CleanupFunction } from '@codex-data/sdk'; // Import CleanupFunction type
-import { Skeleton } from "@/components/ui/skeleton"; // Import Skeleton
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Type for the data expected by the chart (from getBars)
 // Adjust based on actual getBars response structure
@@ -28,117 +24,38 @@ export interface ChartDataPoint {
   // Add other fields like volume if needed
 }
 
+// Update Props Interface
 interface TokenChartProps {
-  initialData: ChartDataPoint[]; // Renamed from data
-  networkId: number; // Need networkId separately
-  tokenId: string; // Need tokenId (address) separately
+  chartData: ChartDataPoint[]; // Renamed from initialData, now the main data source
+  isLoading: boolean; // Added prop for loading state
   title?: string;
 }
 
-// Helper to format incoming bar data from subscription
-// Assuming data is nested under aggregates -> r1 -> usd
-function formatSubscriptionBar(payload: OnTokenBarsUpdatedSubscription['onTokenBarsUpdated'] | undefined | null): ChartDataPoint | null {
-  // Adjust 'r1' if a different resolution is expected/relevant
-  const aggs = payload?.aggregates?.r1?.usd;
-  if (!aggs?.t || !aggs?.c) return null; // Check for time and close within the nested usd object
-  return {
-    time: aggs.t,
-    open: aggs.o,
-    high: aggs.h,
-    low: aggs.l,
-    close: aggs.c,
-  };
-}
+export const TokenChart: React.FC<TokenChartProps> = ({
+    chartData, // Use directly
+    isLoading, // Use directly
+    title = "Price Chart"
+}) => {
+  // Use isLoading prop directly for skeleton condition
+  const showSkeleton = isLoading;
 
-export const TokenChart: React.FC<TokenChartProps> = ({ initialData, networkId, tokenId, title = "Price Chart" }) => {
-  const [chartData, setChartData] = useState<ChartDataPoint[]>(initialData);
-  const { sdk, isLoading: isSdkLoading, isAuthenticated } = useCodexSdk(); // Use SDK Hook
-  const cleanupPromiseRef = useRef<Promise<CleanupFunction> | null>(null); // Ref for cleanup
-
-  // Effect for subscription
-  useEffect(() => {
-    if (!sdk || !isAuthenticated || !networkId || !tokenId) {
-      console.log('[TokenChart] SDK not ready or missing params for subscription.');
-      return;
+  // Calculate the minimum timestamp from the available bar data
+  const minTime = React.useMemo(() => {
+    if (!chartData || chartData.length === 0) {
+      return 'auto'; // Default if no data
     }
+    // Find the first bar with a valid price value (o, h, l, or c)
+    const firstValidBar = chartData.find(d =>
+        d.open != null ||
+        d.high != null ||
+        d.low != null ||
+        d.close != null
+    );
+    // Use its timestamp, or default to 'auto' if none found
+    return firstValidBar ? firstValidBar.time : 'auto';
+  }, [chartData]);
 
-    // Use networkId and tokenId for subscription input
-    console.log(`[TokenChart] Subscribing to bars for ${tokenId} on network ${networkId}...`);
-
-    const observer = {
-      next: (result: ExecutionResult<OnTokenBarsUpdatedSubscription>) => {
-        if (result.errors) {
-          console.error("[TokenChart] GraphQL errors:", result.errors);
-        }
-
-        // Pass the correct payload object to the formatter
-        const newBarRawPayload = result.data?.onTokenBarsUpdated;
-        const newBar = formatSubscriptionBar(newBarRawPayload);
-
-        if (newBar) {
-          console.log("[TokenChart] Received bar update:", newBar);
-          setChartData((currentData) => {
-            const lastBar = currentData[currentData.length - 1];
-            if (lastBar && lastBar.time === newBar.time) {
-              console.log("[TokenChart] Updating last bar.");
-              return [...currentData.slice(0, -1), newBar];
-            } else if (!lastBar || newBar.time > lastBar.time) {
-              console.log("[TokenChart] Appending new bar.");
-              return [...currentData, newBar];
-            } else {
-              console.log("[TokenChart] Received out-of-order or duplicate bar, ignoring.");
-              return currentData;
-            }
-          });
-        }
-      },
-      error: (error: Error) => {
-        console.error('[TokenChart] Subscription transport error:', error);
-      },
-      complete: () => {
-        console.log('[TokenChart] Bar subscription completed by server.');
-      },
-    };
-
-    try {
-      cleanupPromiseRef.current = sdk.subscriptions.onTokenBarsUpdated(
-        { tokenId: `${tokenId}:${networkId}` },
-        observer
-      );
-
-      cleanupPromiseRef.current.catch(error => {
-        console.error("[TokenChart] Error obtaining cleanup function promise:", error);
-      });
-
-    } catch (error) {
-      console.error("[TokenChart] Failed to initiate subscription call:", error);
-    }
-
-    // Cleanup
-    return () => {
-      const promise = cleanupPromiseRef.current;
-      if (promise) {
-        const subId = `${tokenId}:${networkId}`; // Recreate identifier for logging
-        console.log(`[TokenChart] Requesting cleanup for subscription ${subId}`);
-        promise.then((cleanup) => {
-          if (typeof cleanup === 'function') {
-            cleanup();
-            console.log(`[TokenChart] Subscription cleanup executed for ${subId}`);
-          }
-        }).catch(error => {
-          console.error("[TokenChart] Error during subscription cleanup promise execution:", error);
-        });
-        cleanupPromiseRef.current = null;
-      }
-    };
-
-  }, [sdk, isAuthenticated, networkId, tokenId]); // Update dependencies
-
-  // Show skeleton if SDK is loading OR if initialData is empty
-  // (assuming initialData is only empty during the initial server fetch)
-  const showSkeleton = isSdkLoading || initialData.length === 0;
-
-  // Use chartData state for rendering
+  // Use chartData prop for rendering
   if (showSkeleton) {
     return (
       <Card>
@@ -199,6 +116,7 @@ export const TokenChart: React.FC<TokenChartProps> = ({ initialData, networkId, 
               fontSize={12}
               tickLine={false}
               axisLine={false}
+              domain={[minTime, 'auto']}
             />
             <YAxis
               stroke="#AAAAAA"

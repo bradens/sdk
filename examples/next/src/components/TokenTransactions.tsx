@@ -1,18 +1,11 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { useCodexSdk } from '@/hooks/useCodexSdk';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { GetTokenEventsQuery, OnTokenEventsCreatedSubscription } from '@codex-data/sdk/dist/sdk/generated/graphql';
-import { ExecutionResult } from 'graphql';
-import { CleanupFunction } from '@codex-data/sdk';
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from '@/lib/utils';
 
-// Extract the type for a single event from the query type, handling potential nulls
-type RawEventData = NonNullable<NonNullable<GetTokenEventsQuery['getTokenEvents']>['items']>[number];
-
-// Define the structure for our formatted event data
 type TokenEvent = {
   id: string;
   timestamp: number;
@@ -23,35 +16,12 @@ type TokenEvent = {
 };
 
 interface TokenTransactionsProps {
-  networkId: number;
-  tokenId: string; // This is the token address
-  initialEvents: TokenEvent[];
+  events: TokenEvent[];
+  newestEventTimestamp: number | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
 }
 
-const MAX_EVENTS = 500; // Define the maximum number of events to keep
-
-// Updated helper function to process a single RawEventData object
-function formatRawEvent(rawEvent: RawEventData): TokenEvent | null {
-    if (!rawEvent) return null;
-
-    // TODO: Adjust calculation if needed based on subscription payload
-    // We might need to fetch token decimals separately or pass them as a prop if required for amountUsd calculation
-    const decimals = 18; // Placeholder: ideally get this dynamically or pass as prop
-    const swapValue = parseFloat(rawEvent.token0SwapValueUsd || '0');
-    const amount0 = parseFloat(rawEvent.data?.amount0 || '0');
-    const calculatedAmountUsd = swapValue * Math.abs(amount0 / (10 ** decimals));
-
-    return {
-        id: rawEvent.id,
-        timestamp: rawEvent.timestamp,
-        uniqueId: `${rawEvent.id}-${rawEvent.transactionHash}-${rawEvent.blockNumber}-${rawEvent.transactionIndex}-${rawEvent.logIndex}`,
-        transactionHash: rawEvent.transactionHash,
-        eventDisplayType: rawEvent.eventDisplayType,
-        amountUsd: calculatedAmountUsd,
-    };
-}
-
-// Skeleton Loader for Table Rows
 function TransactionTableSkeleton() {
   return (
     <>
@@ -67,118 +37,13 @@ function TransactionTableSkeleton() {
   );
 }
 
-export function TokenTransactions({ networkId, tokenId, initialEvents }: TokenTransactionsProps) {
-  // Limit initial events
-  const limitedInitialEvents = initialEvents.slice(0, MAX_EVENTS);
-  const [events, setEvents] = useState<TokenEvent[]>(limitedInitialEvents);
-  const [newestEventId, setNewestEventId] = useState<string | null>(null);
-  const { sdk, isLoading, isAuthenticated } = useCodexSdk();
-  const newestEventTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const cleanupPromiseRef = useRef<Promise<CleanupFunction> | null>(null);
-
-  // Effect to clear the newest event ID after a delay
-  useEffect(() => {
-    if (newestEventId) {
-        if (newestEventTimeoutRef.current) {
-            clearTimeout(newestEventTimeoutRef.current);
-        }
-        newestEventTimeoutRef.current = setTimeout(() => {
-            setNewestEventId(null);
-            newestEventTimeoutRef.current = null;
-        }, 2000);
-    }
-
-    // Cleanup timeout on component unmount or if newestEventId changes before timeout finishes
-    return () => {
-        if (newestEventTimeoutRef.current) {
-            clearTimeout(newestEventTimeoutRef.current);
-        }
-    };
-  }, [newestEventId]);
-
-  // Effect for subscription
-  useEffect(() => {
-    if (!sdk || !isAuthenticated || !networkId || !tokenId) {
-      return;
-    }
-
-    // Define the observer object
-    const observer = {
-        next: (result: ExecutionResult<OnTokenEventsCreatedSubscription>) => {
-            if (result.errors) {
-                console.error("GraphQL errors:", result.errors);
-            }
-            const payload = result.data;
-            const receivedEvents = payload?.onTokenEventsCreated?.events;
-            if (Array.isArray(receivedEvents) && receivedEvents.length > 0) {
-                const rawEvent = receivedEvents[0];
-                if (rawEvent) {
-                    const formattedEvent = formatRawEvent(rawEvent as RawEventData);
-                    if (formattedEvent && formattedEvent.uniqueId) {
-                        setNewestEventId(formattedEvent.uniqueId);
-                        setEvents((prevEvents) => {
-                            const exists = prevEvents.some(ev => ev.uniqueId === formattedEvent.uniqueId);
-                            if (exists) {
-                                return prevEvents;
-                            } else {
-                                const updatedEvents = [formattedEvent, ...prevEvents];
-                                if (updatedEvents.length > MAX_EVENTS) {
-                                    updatedEvents.splice(MAX_EVENTS);
-                                }
-                                return updatedEvents;
-                            }
-                        });
-                    }
-                }
-            } else if (!result.errors) {
-                console.log("Received subscription payload without data or events.");
-            }
-        },
-        error: (error: Error) => {
-            console.error('Subscription transport error:', error);
-        },
-        complete: () => {
-            console.log('Subscription completed by server.');
-        },
-    };
-
-    try {
-        cleanupPromiseRef.current = sdk.subscriptions.onTokenEventsCreated(
-            { // Argument 1: Input
-                input: { networkId: networkId, tokenAddress: tokenId }
-            },
-            observer // Argument 2: Observer object
-        );
-
-        // Handle potential errors during promise resolution (optional)
-        cleanupPromiseRef.current.catch(error => {
-             console.error("Error obtaining cleanup function promise:", error);
-        });
-
-    } catch (error) {
-        console.error("Failed to initiate subscription call:", error);
-    }
-
-    // Cleanup: Use the promise stored in the ref
-    return () => {
-      const promise = cleanupPromiseRef.current;
-      if (promise) {
-        const subId = `${tokenId}:${networkId}`;
-        promise.then((cleanup) => {
-            if (typeof cleanup === 'function') {
-                cleanup();
-                console.log(`Subscription cleanup executed for ${subId}`);
-            }
-        }).catch(error => {
-            console.error("Error during subscription cleanup promise execution:", error);
-        });
-        cleanupPromiseRef.current = null; // Clear the ref
-      }
-    };
-
-  }, [sdk, isAuthenticated, networkId, tokenId]);
-
-  const showSkeleton = isLoading || (isAuthenticated && events.length === 0);
+export function TokenTransactions({
+    events,
+    newestEventTimestamp,
+    isLoading,
+    isAuthenticated
+}: TokenTransactionsProps) {
+  const showSkeleton = isLoading;
 
   return (
     <Card>
@@ -198,30 +63,41 @@ export function TokenTransactions({ networkId, tokenId, initialEvents }: TokenTr
             </TableHeader>
             <TableBody>
               {showSkeleton ? (
-                <TransactionTableSkeleton />
+                 <TransactionTableSkeleton />
+              ) : events.length > 0 ? (
+                events.map((event) => (
+                  <TableRow
+                    key={event.uniqueId}
+                    className={cn(
+                      'transition-colors duration-1000 ease-out',
+                      newestEventTimestamp === event.timestamp ? 'animate-row-pulse' : ''
+                    )}
+                  >
+                    <TableCell className="capitalize">{event.eventDisplayType || 'Unknown'}</TableCell>
+                    <TableCell>{new Date(event.timestamp * 1000).toLocaleString()}</TableCell>
+                    <TableCell>{event.amountUsd?.toFixed(2) ?? '-'}</TableCell>
+                    <TableCell className="font-mono truncate max-w-[100px] md:max-w-[150px]">
+                      <a
+                        href={`https://etherscan.io/tx/${event.transactionHash}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:underline"
+                        title={event.transactionHash}
+                      >
+                        {event.transactionHash}
+                      </a>
+                    </TableCell>
+                  </TableRow>
+                ))
               ) : (
-                events.map((event) => {
-                    const isNewest = event.uniqueId === newestEventId;
-                    return (
-                        <TableRow
-                          key={event.uniqueId || event.id}
-                          className={isNewest ? 'animate-row-pulse' : ''}
-                        >
-                          <TableCell>{event.eventDisplayType || 'N/A'}</TableCell>
-                          <TableCell>{new Date(event.timestamp * 1000).toLocaleString()}</TableCell>
-                          <TableCell>{event.amountUsd ? `$${event.amountUsd.toFixed(8)}` : 'N/A'}</TableCell>
-                          <TableCell className="truncate">
-                            <span title={event.transactionHash}>{event.transactionHash?.substring(0, 8) ?? 'N/A'}...</span>
-                          </TableCell>
-                        </TableRow>
-                    );
-                })
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center text-muted-foreground">
+                    No recent transactions found.
+                  </TableCell>
+                </TableRow>
               )}
             </TableBody>
-          </Table>
-        {(events.length === 0 && !showSkeleton && !isLoading && isAuthenticated) &&
-          <p className="text-muted-foreground pt-4">No transactions found yet.</p>
-        }
+        </Table>
       </CardContent>
     </Card>
   );
