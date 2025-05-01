@@ -127,7 +127,6 @@ export function TokenTransactions({ networkId, tokenId, initialEvents }: TokenTr
     };
 
     try {
-        // Use the correct 2-argument call signature
         cleanupPromiseRef.current = sdk.subscriptions.onTokenEventsCreated(
             { // Argument 1: Input
                 input: { networkId: networkId, tokenAddress: tokenId }

@@ -174,7 +174,12 @@ export default async function TokenPage({ params }: TokenPageProps) {
         <div className="lg:col-span-2 space-y-6">
           {/* Re-add Chart with Suspense */}
           <Suspense fallback={<Card><CardHeader><CardTitle>Price Chart</CardTitle></CardHeader><CardContent><p>Loading chart...</p></CardContent></Card>}>
-             <TokenChart data={bars} title={`${tokenSymbol || 'Token'} Price Chart`} />
+             <TokenChart
+                initialData={bars}
+                networkId={networkIdNum}
+                tokenId={tokenId}
+                title={`${tokenSymbol || 'Token'} Price Chart`}
+             />
           </Suspense>
 
           {/* Transactions Table - Replace with Client Component */}
