@@ -43,7 +43,6 @@ export interface ChartDataPoint {
 // Combined data structure for the page (Keep as is)
 interface TokenPageData {
   details: TokenDetails | null;
-  bars: ChartDataPoint[];
   events: TokenEvent[];
 }
 
@@ -63,44 +62,17 @@ async function getTokenPageData(networkIdNum: number, tokenId: string): Promise<
   }
   const codexClient = new Codex(apiKey || '');
 
-  // Calculate timestamps (in seconds)
-  const now = Math.floor(Date.now() / 1000);
-  const oneWeekAgo = now - 7 * 24 * 60 * 60; // Keep using oneWeekAgo for bars
-  const symbolId = `${tokenId}:${networkIdNum}`;
-
   // Fetch details, bars (using oneWeekAgo), and recent events concurrently
   const results = await Promise.allSettled([
     codexClient.queries.token({ input: { networkId: networkIdNum, address: tokenId } }),
-    codexClient.queries.getBars({
-        symbol: symbolId,
-        from: oneWeekAgo, // Back to using oneWeekAgo
-        to: now,
-        resolution: '30',
-        removeLeadingNullValues: true,
-    }),
     // Fetch recent events (limit 50, default sort is DESC timestamp)
     codexClient.queries.getTokenEvents({ query: { networkId: networkIdNum, address: tokenId }, limit: 50 }),
   ]);
 
   const detailsResult = results[0];
-  const barsResult = results[1];
-  const eventsResult = results[2]; // Renamed back from recentEventsResult
+  const eventsResult = results[1]; // Renamed back from recentEventsResult
 
   const details: TokenDetails | null = detailsResult.status === 'fulfilled' ? detailsResult.value.token as TokenDetails : null;
-
-  let bars: ChartDataPoint[] = [];
-  if (barsResult.status === 'fulfilled') {
-    const b = barsResult.value.getBars;
-    if (b?.t && b?.c) {
-        bars = b.t.map((time: number, index: number) => ({
-            time: time,
-            open: b.o?.[index],
-            high: b.h?.[index],
-            low: b.l?.[index],
-            close: b.c?.[index],
-        }));
-    }
-  }
 
   let events: TokenEvent[] = [];
   if (eventsResult.status === 'fulfilled' && eventsResult.value.getTokenEvents?.items) {
@@ -125,10 +97,9 @@ async function getTokenPageData(networkIdNum: number, tokenId: string): Promise<
   }
 
   if (detailsResult.status === 'rejected') console.error("Error fetching details:", detailsResult.reason);
-  if (barsResult.status === 'rejected') console.error("Error fetching bars:", barsResult.reason);
   if (eventsResult.status === 'rejected') console.error("Error fetching events:", eventsResult.reason);
 
-  return { details, bars, events };
+  return { details, events };
 }
 
 // --- Skeleton Fallback Component (Keep as is for Suspense) ---
@@ -177,13 +148,12 @@ function TokenPageSkeleton() {
 
 // --- Main Page Content Component (Update to use TokenDetailView) ---
 async function TokenPageContent({ networkIdNum, tokenId }: { networkIdNum: number; tokenId: string }) {
-  const { details, bars, events } = await getTokenPageData(networkIdNum, tokenId);
+  const { details, events } = await getTokenPageData(networkIdNum, tokenId);
 
   // Pass fetched data directly to the client component
   return (
     <TokenDetailView
       initialDetails={details}
-      initialBars={bars}
       initialEvents={events}
       networkId={networkIdNum}
       tokenId={tokenId}
