@@ -19,6 +19,33 @@ import { Codex, CleanupFunction } from '@codex-data/sdk';
 import { OnTokenBarsUpdatedSubscription } from '@codex-data/sdk/dist/sdk/generated/graphql';
 import { ExecutionResult } from 'graphql';
 
+const convertResolutionToBarPayload = (resolution: ResolutionString) => {
+  switch (resolution) {
+    case "1S":
+      return "r1S";
+    case "5S":
+      return "r5S";
+    case "15S":
+      return "r15S";
+    case "30S":
+      return "r30S";
+    case "1":
+      return "r1";
+    case "5":
+      return "r5";
+    case "15":
+      return "r15";
+    case "30":
+      return "r30";
+    case "60":
+      return "r60";
+    case "1D":
+      return "r1D";
+    default:
+      return "r1";
+  }
+}
+
 // Type definition for the expected TradingView object on window
 interface TradingViewGlobal {
     widget: new (options: ChartingLibraryWidgetOptions) => TradingViewWidget;
@@ -92,7 +119,7 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
     const datafeed: IBasicDataFeed = {
         onReady: (callback: OnReadyCallback) => {
             console.log('[TradingViewChart Datafeed] onReady called');
-            setTimeout(() => callback({ supported_resolutions: ["1", "5", "15", "30", "60", "1D"] as ResolutionString[] }), 0);
+            setTimeout(() => callback({ supported_resolutions: ["1S", "5S", "15S", "30S", "1", "5", "15", "30", "60", "1D"] as ResolutionString[] }), 0);
         },
         searchSymbols: async (userInput: string, exchange: string, symbolType: string, onResultReadyCallback: SearchSymbolsCallback) => {
             console.log('[TradingViewChart Datafeed] searchSymbols called', {userInput, exchange, symbolType});
@@ -110,12 +137,14 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
                 exchange: 'Codex',
                 listed_exchange: 'Codex',
                 minmov: 1,
+                minmove2: 1,
                 pricescale: 100000000,
                 has_intraday: true,
                 has_weekly_and_monthly: true,
-                supported_resolutions: ["1", "5", "15", "30", "60", "1D"] as ResolutionString[],
+                has_seconds: true,
                 volume_precision: 2,
                 data_status: 'streaming',
+                supported_resolutions: ["1S", "5S", "15S", "30S", "1", "5", "15", "30", "60", "1D"] as ResolutionString[],
                 format: 'price',
             };
             setTimeout(() => onSymbolResolvedCallback(symbolInfo), 0);
@@ -136,6 +165,8 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
             }
             const { from, to } = periodParams;
 
+            const adjustedTo = to > Math.floor(Date.now() / 1000) ? Math.floor(Date.now() / 1000) : to;
+
             try {
                 const sdkResolution = resolution.toString();
                 console.log(`[TradingViewChart getBars] Fetching bars for ${symbolInfo.ticker} from ${new Date(from*1000)} to ${new Date(to*1000)} resolution ${sdkResolution}`);
@@ -143,8 +174,10 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
                 const barsResult = await currentSdk.queries.getBars({
                     symbol: symbolInfo.ticker, // Now guaranteed to be string
                     from: from,
-                    to: to,
+                    to: adjustedTo,
                     resolution: sdkResolution,
+                    removeEmptyBars: true,
+                    removeLeadingNullValues: true
                 });
 
                 const barsData = barsResult.getBars;
@@ -218,24 +251,41 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
                         return;
                     }
                     const barPayload = result.data?.onTokenBarsUpdated;
-                    const aggs = barPayload?.aggregates?.r1?.usd; // Assuming r1 resolution for now
-                    if (aggs?.t && aggs.o && aggs.h && aggs.l && aggs.c) {
+
+                    const aggs = barPayload?.aggregates?.[convertResolutionToBarPayload(resolution)]
+
+                    const aggsUsd = aggs?.usd
+
+                    console.log("[TradingViewChart subscribeBars] Received payload:",
+                      aggsUsd?.t,
+                      aggsUsd?.o,
+                      aggsUsd?.h,
+                      aggsUsd?.l,
+                      aggsUsd?.c,
+                      aggsUsd?.v,
+                      !!(aggsUsd?.t && aggsUsd.o && aggsUsd.h && aggsUsd.l && aggsUsd.c)
+                    );
+                    if (aggsUsd?.t && aggsUsd.o && aggsUsd.h && aggsUsd.l && aggsUsd.c) {
                         const newBar: TradingViewBar = {
-                            time: aggs.t * 1000, // Convert s to ms
-                            open: aggs.o,
-                            high: aggs.h,
-                            low: aggs.l,
-                            close: aggs.c,
-                            volume: aggs.v ?? undefined, // Handle volume
+                            time: aggsUsd.t * 1000, // Convert s to ms
+                            open: aggsUsd.o,
+                            high: aggsUsd.h,
+                            low: aggsUsd.l,
+                            close: aggsUsd.c,
+                            volume: aggsUsd.v ?? undefined, // Handle volume
                         };
+
+                        console.log("New bar", newBar)
 
                         // --- Time Violation Check ---
                         const lastTimestamp = lastBarTimestampRef.current[subscriberUID];
+
                         if (lastTimestamp != null && newBar.time < lastTimestamp) {
-                            console.warn(`[TradingViewChart subscribeBars] Ignoring out-of-order bar for ${subscriberUID}. New: ${new Date(newBar.time)}, Last: ${new Date(lastTimestamp)}`);
+                            console.error(`[TradingViewChart subscribeBars] Ignoring out-of-order bar for ${subscriberUID}. New: ${new Date(newBar.time)}, Last: ${new Date(lastTimestamp)}`);
                             return; // Discard older bar
                         }
 
+                        console.log("Pushing new bar", newBar)
                         onRealtimeCallback(newBar); // Pass valid bar to TradingView
 
                         // Update the last timestamp for this subscription
@@ -262,7 +312,7 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
             try {
                 console.log(`[TradingViewChart subscribeBars] Initiating SDK subscription for ${tokenId}:${networkId}`);
                 const subscriptionPromise = currentSdk.subscriptions.onTokenBarsUpdated(
-                    {tokenId: `${tokenId}:${networkId}` },
+                    { tokenId: `${tokenId}:${networkId}` },
                     observer
                 );
 
@@ -317,13 +367,14 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
       studies_overrides: studiesOverrides,
       toolbar_bg: '#030303',
       theme: 'dark',
-      load_last_chart: false,
+      load_last_chart: true,
       enabled_features: [
         "seconds_resolution",
         "use_localstorage_for_settings",
         "save_chart_properties_to_local_storage",
       ],
-      disabled_features: ["left_toolbar",
+      disabled_features: [
+        "left_toolbar",
         "display_market_status",
         "header_compare",
         "header_symbol_search",
@@ -358,22 +409,6 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
 
     // --- Cleanup Function ---
     return () => {
-      // Remove the explicit unsubscribe call for interval_changed
-      /*
-      if (tvWidgetRef.current) {
-          try {
-              if (typeof tvWidgetRef.current.unsubscribe === 'function') {
-                 tvWidgetRef.current.unsubscribe('interval_changed' as any, handleIntervalChange as any);
-                 console.log("[TradingViewChart] Unsubscribed from interval_changed");
-              } else {
-                  console.warn("[TradingViewChart] Widget unsubscribe method not found.");
-              }
-          } catch (error) {
-              console.error("[TradingViewChart] Error unsubscribing from interval_changed:", error);
-          }
-      }
-      */
-
       // Cleanup widget using remove() - this should handle internal listeners
       if (tvWidgetRef.current) {
         console.log("[TradingViewChart] Removing widget");
@@ -390,7 +425,7 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
       activeSubscriptionsRef.current = {};
       lastBarTimestampRef.current = {};
     };
-  }, [symbol, /* defaultInterval? */ libraryPath, clientId, userId, fullscreen, autosize, studiesOverrides, isSdkLoading]);
+  }, [symbol, libraryPath, clientId, userId, fullscreen, autosize, studiesOverrides, isSdkLoading, defaultInterval]);
 
   return (
     <div style={{ height: '100%', width: '100%' }}>
