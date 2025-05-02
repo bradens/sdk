@@ -27,23 +27,46 @@ interface CustomCellProps {
   y: number;
   width: number;
   height: number;
-  fill: string;
+  fill: string; // Default fill passed by Treemap
   name?: string;
   change24?: number;
 }
 
+// Function to calculate color based on change percentage
+function calculateColor(change: number | null | undefined): string {
+  const defaultFill = '#8884d8'; // Default Recharts fill or a neutral gray
+  if (change == null) {
+    return defaultFill;
+  }
+
+  const maxAbsChange = 1; // Consider 10% change as max intensity
+  const intensityFactor = Math.min(Math.abs(change), maxAbsChange) / maxAbsChange;
+
+  let hue: number;
+  let saturation: number = 40; // Keep saturation constant for simplicity
+  // Adjust lightness: 65% (low intensity) down to 45% (high intensity)
+  let lightness: number = 60 - intensityFactor * 40;
+
+  if (change > 0) {
+    hue = 120; // Green
+  } else if (change < 0) {
+    hue = 0; // Red
+  } else {
+    // Zero change - make it gray
+    hue = 0;
+    saturation = 0;
+    lightness = 50; // Neutral gray lightness
+  }
+
+  return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+}
+
 // Custom Cell Component for Treemap
 const CustomTreemapCell = (props: CustomCellProps) => {
-  // Destructure props expected based on interface and usage
-  const { name, change24, depth, x, y, width, height, fill } = props;
+  const { name, change24, depth, x, y, width, height } = props; // Removed unused default `fill`
 
-  // Determine fill color based on change24
-  let cellFill = fill; // Start with default fill
-  if (change24 != null) {
-    if (change24 > 0) cellFill = '#22c55e'; // Green
-    else if (change24 < 0) cellFill = '#ef4444'; // Red
-    else cellFill = '#888'; // Gray
-  }
+  // Calculate fill color based on change24
+  const cellFill = calculateColor(change24);
 
   return (
     <g>
@@ -91,11 +114,11 @@ export const OverviewTreemap: React.FC<OverviewTreemapProps> = ({ data }) => {
         data={treemapChartData}
         dataKey="size"
         stroke="#fff"
-        fill="#8884d8" // Default fill
+        fill="#8884d8" // Default fill (will be overridden by content renderer)
         isAnimationActive={false}
         nameKey="name"
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        content={CustomTreemapCell as any} // Keep workaround for type issue
+        content={CustomTreemapCell as any}
       >
         <Tooltip content={<CustomTooltip />} />
       </Treemap>
