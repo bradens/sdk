@@ -1,11 +1,41 @@
-
 import React from 'react';
-import { Codex } from '@codex-data/sdk'; // Keep base import
-import { OverviewTreemap } from '@/components/OverviewTreemap';
+import { Codex } from '@codex-data/sdk';
+import OverviewClientPage from './OverviewClientPage'; // Import the new client component
 import { RankingDirection, TokenRankingAttribute } from '@codex-data/sdk/dist/sdk/generated/graphql';
 
+// Interface for the data structure passed to the client/treemap component
+interface TreemapTokenData {
+  name: string;
+  symbol: string;
+  marketCap: number;
+  change24?: number;
+  networkId?: number;
+  priceUSD?: number;
+  volume24?: number;
+}
+
+// Updated type for SDK results, reflecting potential string types for numbers
+type SdkResultItem = {
+  marketCap?: string | number | null; // Allow string or number
+  change24?: string | number | null;
+  priceUSD?: string | number | null;
+  volume24?: string | number | null;
+  token?: {
+    name?: string | null;
+    symbol?: string | null;
+    networkId?: number | null;
+  } | null;
+} | null;
+
+// Helper to safely convert string/number/null to number or undefined
+function safeToNumber(value: string | number | null | undefined): number | undefined {
+  if (value == null) return undefined;
+  const num = Number(value);
+  return isNaN(num) ? undefined : num;
+}
+
 // Data fetching function
-async function getTreemapData(): Promise<{ name: string; symbol: string; marketCap: number; networkId: number; priceUSD: number; volume24: number; }[]> {
+async function getTreemapData(): Promise<TreemapTokenData[]> {
   const apiKey = process.env.CODEX_API_KEY;
   if (!apiKey) {
     console.warn("CODEX_API_KEY not set.");
@@ -22,38 +52,39 @@ async function getTreemapData(): Promise<{ name: string; symbol: string; marketC
         priceUSD: { lt: 1000000 },
         liquidity: { gt: 100000 }
       },
-      // Revert to using string literals as enums might not be exported/correct
-      rankings: [{ attribute: TokenRankingAttribute.MarketCap, direction: RankingDirection.Desc }],
-      limit: 200, // Consider adding a limit
+      rankings: [{ attribute: TokenRankingAttribute.MarketCap, direction: RankingDirection.Desc }], // Keep strings - known lint issue
+      limit: 100,
     });
 
-    const results = response.filterTokens?.results;
+    // Use the updated SdkResultItem type hint for results
+    const results: SdkResultItem[] | null | undefined = response.filterTokens?.results;
 
     if (!results) {
       console.warn("No results found in filterTokens response.");
       return [];
     }
 
-    // Simplify filtering and mapping, use optional chaining
-    const treemapData = results
-      .map((item) => {
-        const marketCap = item?.marketCap;
-
-        if (marketCap == null || !item) {
-          return null; // Filter this out later
+    const treemapData: TreemapTokenData[] = results
+      .map((item: SdkResultItem) => {
+        const marketCapNum = safeToNumber(item?.marketCap);
+        // Ensure we have a valid marketCap and the token object exists
+        if (marketCapNum == null || !item?.token) {
+          return null;
         }
-
-        return {
-          name: item?.token?.name || 'N/A',
-          symbol: item?.token?.symbol || 'N/A',
-          marketCap: Number(marketCap),
-          change24:  Number(item.change24),
-          networkId: item.token!.networkId!,
-          priceUSD: Number(item.priceUSD),
-          volume24: Number(item.volume24)
+        // Construct the object matching TreemapTokenData
+        const tokenData: TreemapTokenData = {
+          name: item.token.name || 'N/A',
+          symbol: item.token.symbol || 'N/A',
+          marketCap: marketCapNum,
+          change24: safeToNumber(item.change24),
+          networkId: item.token.networkId ?? undefined,
+          priceUSD: safeToNumber(item.priceUSD),
+          volume24: safeToNumber(item.volume24),
         };
+        return tokenData;
       })
-      .filter((item): item is NonNullable<typeof item> => item !== null);
+      // Filter out the nulls, the remaining items should match TreemapTokenData
+      .filter((item): item is TreemapTokenData => item !== null);
 
     return treemapData;
 
@@ -65,14 +96,9 @@ async function getTreemapData(): Promise<{ name: string; symbol: string; marketC
 
 // The Page component (Server Component)
 export default async function OverviewPage() {
-  const treemapData = await getTreemapData();
+  // Fetch data on the server
+  const initialTreemapData = await getTreemapData();
 
-  return (
-    <main className="flex flex-col w-full h-screen p-4">
-      <h1 className="text-2xl font-bold mb-4">Token Overview Treemap</h1>
-      <div className="flex-grow">
-        <OverviewTreemap data={treemapData} />
-      </div>
-    </main>
-  );
+  // Render the client component, passing the initial data
+  return <OverviewClientPage initialData={initialTreemapData} />;
 }
