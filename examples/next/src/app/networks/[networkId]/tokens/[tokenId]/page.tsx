@@ -133,7 +133,7 @@ async function TokenPageContent({ networkIdNum, tokenId }: { networkIdNum: numbe
 export default async function TokenPage({ params }: TokenPageProps) {
   const resolvedParams = await params;
   const networkIdNum = parseInt(resolvedParams.networkId, 10);
-  const tokenId = resolvedParams.tokenId;
+  const tokenId = decodeURIComponent(resolvedParams.tokenId);
 
   if (isNaN(networkIdNum)) {
     return <div>Invalid Network ID</div>;

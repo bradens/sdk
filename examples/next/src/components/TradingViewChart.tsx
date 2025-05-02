@@ -231,12 +231,17 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
             }
 
             // Parse networkId and tokenId from ticker
-            const tickerParts = symbolInfo.ticker?.split(':');
-            if (!tickerParts || tickerParts.length !== 2) {
+            const networkBoundaryIndex = symbolInfo.ticker?.lastIndexOf(':');
+            if (!networkBoundaryIndex) {
                 console.error(`[TradingViewChart subscribeBars] Invalid ticker format: ${symbolInfo.ticker}. Expected "<tokenId>:<networkId>".`);
                 return;
             }
-            const [tokenId, networkIdStr] = tickerParts;
+            const tokenId = symbolInfo.ticker?.slice(0, networkBoundaryIndex);
+            const networkIdStr = symbolInfo.ticker?.slice(networkBoundaryIndex + 1);
+            if (!networkIdStr) {
+                console.error(`[TradingViewChart subscribeBars] Invalid networkId in ticker: ${symbolInfo.ticker}`);
+                return;
+            }
             const networkId = parseInt(networkIdStr, 10);
             if (isNaN(networkId)) {
                  console.error(`[TradingViewChart subscribeBars] Invalid networkId in ticker: ${symbolInfo.ticker}`);
