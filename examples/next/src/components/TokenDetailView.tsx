@@ -1,19 +1,13 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useMemo, Suspense } from 'react';
 import Link from 'next/link';
-import { useCodexSdk } from '@/hooks/useCodexSdk';
-import {
-    OnTokenEventsCreatedSubscription,
-    GetTokenEventsQuery,
-} from '@codex-data/sdk/dist/sdk/generated/graphql';
-import { ExecutionResult } from 'graphql';
-import { CleanupFunction } from '@codex-data/sdk';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import Image from "next/image";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TokenChart } from "@/components/TokenChart";
-import { TokenTransactions } from "@/components/TokenTransactions";
+import TokenChartLoader from './TokenChartLoader';
+import TokenTransactionsLoader from './TokenTransactionsLoader';
+import { GetTokenEventsQuery } from '@codex-data/sdk/dist/sdk/generated/graphql';
 
 // --- Types (Copied/adapted from page.tsx and child components) ---
 // Event type for display
@@ -45,135 +39,66 @@ type TokenDetails = {
 // --- Component Props ---
 interface TokenDetailViewProps {
   initialDetails: TokenDetails | null;
-  initialEvents: TokenEvent[];
   networkId: number;
   tokenId: string; // address
 }
 
-const MAX_EVENTS = 500; // Max events for transactions table
+// --- Skeleton Components (Define or import for Suspense fallbacks) ---
+function ChartSkeleton() {
+  return (
+    <Card>
+      <CardHeader><Skeleton className="h-6 w-1/2" /></CardHeader>
+      <CardContent><Skeleton className="w-full h-[300px] md:h-[400px]" /></CardContent>
+    </Card>
+  );
+}
 
-// --- Helper Functions (Moved/Adapted) ---
+function TransactionsSkeleton() {
+  return (
+    <Card>
+      <CardHeader><Skeleton className="h-6 w-1/2" /></CardHeader>
+      <CardContent className="space-y-2">
+         <Skeleton className="h-8 w-full" />
+         <Skeleton className="h-8 w-full" />
+         <Skeleton className="h-8 w-full" />
+         <Skeleton className="h-8 w-full" />
+         <Skeleton className="h-8 w-full" />
+      </CardContent>
+    </Card>
+  );
+}
+
+// Add back formatCurrency helper
 function formatCurrency(num: number | undefined | null): string {
   if (num === undefined || num === null) return '-';
   num = parseFloat(num.toString());
   return `$${num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 16 })}`;
 }
 
-// Format raw bar from subscription
-function formatRawEvent(rawEvent: RawEventData, decimals: number | null | undefined, tokenAddress: string): TokenEvent | null {
-    if (!rawEvent) return null;
-    const resolvedDecimals = decimals ?? 18;
-    const swapValue = parseFloat(rawEvent.token0SwapValueUsd || '0');
-    const amount0 = parseFloat(rawEvent.data?.amount0 || '0');
-    const calculatedAmountUsd = swapValue * Math.abs(amount0 / (10 ** resolvedDecimals));
-    const priceString = rawEvent.token0Address === tokenAddress ? rawEvent.token0SwapValueUsd : rawEvent.token1SwapValueUsd;
-    const price = priceString ? parseFloat(priceString) : null;
-    return {
-        id: rawEvent.id,
-        timestamp: rawEvent.timestamp,
-        uniqueId: `${rawEvent.id}-${rawEvent.transactionHash}-${rawEvent.blockNumber}-${rawEvent.transactionIndex}-${rawEvent.logIndex}`,
-        price: price,
-        transactionHash: rawEvent.transactionHash,
-        eventDisplayType: rawEvent.eventDisplayType,
-        amountUsd: calculatedAmountUsd,
-    };
-}
-
 // --- Main Client Component ---
 export function TokenDetailView({
   initialDetails,
-  initialEvents,
   networkId,
   tokenId
 }: TokenDetailViewProps) {
 
   // --- State Management ---
-  const [details] = useState<TokenDetails | null>(initialDetails); // Details generally don't change
-  const [events, setEvents] = useState<TokenEvent[]>(initialEvents.slice(0, MAX_EVENTS));
-  const [newestEventTimestamp, setNewestEventTimestamp] = useState<number | null>(null);
-
-  const { sdk, isLoading: isSdkLoading, isAuthenticated } = useCodexSdk();
-
-  // Refs for cleanup functions and animation timeout
-  const eventsCleanupPromiseRef = useRef<Promise<CleanupFunction> | null>(null);
-  // Ref for animation timeout using newestEventTimestamp
-  const newestTimestampTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [details] = useState<TokenDetails | null>(initialDetails); // Keep details state
 
   const tokenName = details?.name || tokenId;
   const tokenSymbol = details?.symbol ? `(${details.symbol})` : '';
 
+  // Derive latestPrice from initialDetails if possible, or fetch separately
+  // For now, remove dependence on live events state
   const latestPrice = useMemo(() => {
-      if (events && events.length > 0 && events[0].price != null) {
-          return events[0].price;
-      }
-      return null;
-  }, [events]); // Depends on events state
-
-  // --- Effects ---
-  // Effect for Transaction Animation Timeout (using newestEventTimestamp)
-  useEffect(() => {
-    if (newestEventTimestamp) {
-        if (newestTimestampTimeoutRef.current) clearTimeout(newestTimestampTimeoutRef.current);
-        newestTimestampTimeoutRef.current = setTimeout(() => {
-            setNewestEventTimestamp(null);
-            newestTimestampTimeoutRef.current = null;
-        }, 2000);
-    }
-    return () => {
-        if (newestTimestampTimeoutRef.current) clearTimeout(newestTimestampTimeoutRef.current);
-    };
-  }, [newestEventTimestamp]); // Dependency is newestEventTimestamp
-
-  // Effect for Events Subscription
-  useEffect(() => {
-    if (!sdk || !isAuthenticated || !networkId || !tokenId) return;
-    console.log(`[TokenDetailView] Subscribing to events for ${tokenId}`);
-
-    const observer = {
-        next: (result: ExecutionResult<OnTokenEventsCreatedSubscription>) => {
-            if (result.errors) console.error("[TokenDetailView Events] GraphQL errors:", result.errors);
-            const payload = result.data;
-            const receivedEvents = payload?.onTokenEventsCreated?.events;
-            if (Array.isArray(receivedEvents) && receivedEvents.length > 0) {
-                const rawEvent = receivedEvents[0];
-                if (rawEvent) {
-                    const formattedEvent = formatRawEvent(rawEvent as RawEventData, details?.decimals, tokenId);
-                    if (formattedEvent && formattedEvent.uniqueId) {
-                        // Set the timestamp for animation trigger
-                        setNewestEventTimestamp(formattedEvent.timestamp);
-                        setEvents((prevEvents) => {
-                            const exists = prevEvents.some(ev => ev.uniqueId === formattedEvent.uniqueId);
-                            if (exists) return prevEvents;
-                            const updatedEvents = [formattedEvent, ...prevEvents];
-                            if (updatedEvents.length > MAX_EVENTS) updatedEvents.splice(MAX_EVENTS);
-                            return updatedEvents;
-                        });
-                    }
-                }
-            }
-        },
-        error: (error: Error) => console.error('[TokenDetailView Events] Subscription transport error:', error),
-        complete: () => console.log('[TokenDetailView Events] Subscription completed by server.'),
-    };
-    try {
-        eventsCleanupPromiseRef.current = sdk.subscriptions.onTokenEventsCreated({ input: { networkId: networkId, tokenAddress: tokenId } }, observer);
-        eventsCleanupPromiseRef.current.catch(error => console.error("[TokenDetailView Events] Error obtaining cleanup promise:", error));
-    } catch (error) { console.error("[TokenDetailView Events] Failed to initiate subscription call:", error); }
-
-    return () => {
-      const promise = eventsCleanupPromiseRef.current;
-      if (promise) {
-        promise.then(cleanup => { if (typeof cleanup === 'function') cleanup(); })
-               .catch(error => console.error("[TokenDetailView Events] Error during cleanup promise:", error));
-        eventsCleanupPromiseRef.current = null;
-      }
-    };
-  }, [sdk, isAuthenticated, networkId, tokenId, details?.decimals]); // Add decimals dependency
+      // TODO: How to get latest price? Fetch separately? Use details? Placeholder:
+      return null; // Or fetch/derive differently
+  }, [details]);
 
   // --- Render Logic ---
   return (
     <>
-      {/* Header (using potentially stale initialDetails, could be updated if needed) */}
+      {/* Header */}
       <div className="w-full max-w-6xl flex justify-between items-center mb-6">
         <h1 className="text-2xl md:text-3xl font-bold truncate pr-4">
           {tokenName} {tokenSymbol}
@@ -187,28 +112,25 @@ export function TokenDetailView({
       <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left/Center Area (Chart and Transactions) */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Updated TokenChart props */}
-          <TokenChart
-              title={`${tokenSymbol || 'Token'} Price Chart`}
-              isLoading={isSdkLoading}
-              networkId={networkId}
-              tokenId={tokenId}
-          />
-          {/* TokenTransactions now receives events state and newestEventTimestamp */}
-          <TokenTransactions
-              events={events}
-              newestEventTimestamp={newestEventTimestamp}
-              isLoading={isSdkLoading || (isAuthenticated && events.length === 0 && initialEvents.length > 0)}
-              isAuthenticated={isAuthenticated}
-          />
+          {/* Chart with Suspense */}
+          <Suspense fallback={<ChartSkeleton />}>
+             {/* Assuming TokenChartLoader handles its own loading state */}
+             <TokenChartLoader networkId={networkId} tokenId={tokenId} title={`${tokenSymbol || 'Token'} Price Chart`} />
+          </Suspense>
+
+          {/* Transactions with Suspense */}
+          <Suspense fallback={<TransactionsSkeleton />}>
+              {/* Assuming TokenTransactionsLoader handles its own data fetching and state */}
+              <TokenTransactionsLoader networkId={networkId} tokenId={tokenId} decimals={details?.decimals} />
+          </Suspense>
         </div>
 
-        {/* Right Area (Info Panel - uses latestPrice derived from events) */}
+        {/* Right Area (Info Panel - primarily uses initialDetails) */}
         <div className="lg:col-span-1 space-y-6">
           <Card>
             <CardHeader className="flex flex-row items-center space-x-4">
               {details?.info?.imageThumbUrl ? (
-                 <Image src={details.info.imageThumbUrl} alt={`${details.name || 'Token'} icon`} width={40} height={40} className="rounded-full" />
+                 <Image src={details.info.imageThumbUrl} alt={`${tokenName} icon`} width={40} height={40} className="rounded-full" />
               ) : (
                   <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-lg font-semibold">
                     {details?.symbol ? details.symbol[0] : 'T'}
@@ -220,7 +142,7 @@ export function TokenDetailView({
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
-              {/* Display LATEST Price from state */}
+              {/* Display LATEST Price - TODO: Needs reliable source */}
               <div>
                   <strong className="text-sm text-muted-foreground block">Current Price</strong>
                   <span className="text-xl font-semibold">{formatCurrency(latestPrice)}</span>
@@ -240,7 +162,7 @@ export function TokenDetailView({
                   )}
                 </>
               ) : (
-                 <Skeleton className="h-4 w-3/4 mt-2" /> // Skeleton if details are missing
+                 <Skeleton className="h-4 w-3/4 mt-2" />
               )}
             </CardContent>
           </Card>

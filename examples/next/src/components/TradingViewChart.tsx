@@ -428,7 +428,7 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
   }, [symbol, libraryPath, clientId, userId, fullscreen, autosize, studiesOverrides, isSdkLoading, defaultInterval]);
 
   return (
-    <div style={{ height: '100%', width: '100%' }}>
+    <div style={{ height: '100%', width: '100%', position: 'relative' }}>
       {isSdkLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-background/50 z-10">
            <p>Loading Chart...</p>
