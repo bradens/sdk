@@ -29,6 +29,7 @@ interface TokenTransactionsLoaderProps {
   networkId: number;
   tokenId: string;
   decimals?: number | null;
+  onPriceUpdate: (price: number | null) => void;
 }
 
 const MAX_EVENTS = 50; // Limit initial fetch and display
@@ -75,7 +76,8 @@ function formatRawEvent(rawEvent: RawEventData, decimals: number | null | undefi
 const TokenTransactionsLoader: React.FC<TokenTransactionsLoaderProps> = ({
     networkId,
     tokenId,
-    decimals
+    decimals,
+    onPriceUpdate
 }) => {
     const [events, setEvents] = useState<TokenEvent[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -89,6 +91,8 @@ const TokenTransactionsLoader: React.FC<TokenTransactionsLoaderProps> = ({
     useEffect(() => {
         let isMounted = true;
         setIsLoading(true);
+        onPriceUpdate(null);
+
         if (!sdk || !networkId || !tokenId) {
             setIsLoading(false);
             return;
@@ -98,26 +102,35 @@ const TokenTransactionsLoader: React.FC<TokenTransactionsLoaderProps> = ({
             .then(result => {
                 if (!isMounted) return;
                 const rawItems = result.getTokenEvents?.items;
+                let latestFetchedPrice: number | null = null;
                 if (rawItems) {
                     const formatted = rawItems
                         .filter((item): item is RawEventData => !!item)
                         .map(raw => formatRawEvent(raw, decimals, tokenId))
                         .filter((item): item is TokenEvent => !!item);
                     setEvents(formatted);
+                    latestFetchedPrice = formatted.length > 0 ? formatted[0].price : null;
                 } else {
                     setEvents([]);
                 }
+                onPriceUpdate(latestFetchedPrice);
             })
             .catch(error => {
                 console.error("[TokenTransactionsLoader] Error fetching initial events:", error);
-                if (isMounted) setEvents([]);
+                if (isMounted) {
+                   setEvents([]);
+                   onPriceUpdate(null);
+                }
             })
             .finally(() => {
                 if (isMounted) setIsLoading(false);
             });
 
-        return () => { isMounted = false; };
-    }, [sdk, networkId, tokenId, decimals]);
+        return () => {
+            isMounted = false;
+            onPriceUpdate(null);
+        };
+    }, [sdk, networkId, tokenId, decimals, onPriceUpdate]);
 
     // Effect for Live Subscription
     useEffect(() => {
@@ -136,6 +149,7 @@ const TokenTransactionsLoader: React.FC<TokenTransactionsLoaderProps> = ({
                          const formattedEvent = formatRawEvent(rawEvent as RawEventData, decimals, tokenId);
                          if (formattedEvent && formattedEvent.uniqueId) {
                              setNewestEventTimestamp(formattedEvent.timestamp);
+                             onPriceUpdate(formattedEvent.price);
                              setEvents((prevEvents) => {
                                  const exists = prevEvents.some(ev => ev.uniqueId === formattedEvent.uniqueId);
                                  if (exists) return prevEvents;
@@ -163,8 +177,9 @@ const TokenTransactionsLoader: React.FC<TokenTransactionsLoaderProps> = ({
                     .catch(error => console.error("[TokenTransactionsLoader Events] Error during cleanup promise:", error));
              eventsCleanupPromiseRef.current = null;
            }
+           onPriceUpdate(null);
          };
-     }, [sdk, isAuthenticated, networkId, tokenId, decimals]);
+     }, [sdk, isAuthenticated, networkId, tokenId, decimals, onPriceUpdate]);
 
     // Effect for Transaction Animation Timeout
     useEffect(() => {

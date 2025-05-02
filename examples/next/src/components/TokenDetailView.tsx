@@ -1,27 +1,13 @@
 'use client';
 
-import React, { useState, useMemo, Suspense } from 'react';
+import React, { useState, Suspense, useCallback } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import Image from "next/image";
 import { Skeleton } from "@/components/ui/skeleton";
-import TokenChartLoader from './TokenChartLoader';
 import TokenTransactionsLoader from './TokenTransactionsLoader';
-import { GetTokenEventsQuery } from '@codex-data/sdk/dist/sdk/generated/graphql';
+import TokenChartLoader from './TokenChartLoader';
 
-// --- Types (Copied/adapted from page.tsx and child components) ---
-// Event type for display
-type TokenEvent = {
-  id: string;
-  timestamp: number;
-  price: number | null;
-  transactionHash: string;
-  eventDisplayType?: string | null;
-  amountUsd?: number | null;
-  uniqueId?: string;
-};
-// Type for raw event data from subscription/query
-type RawEventData = NonNullable<NonNullable<GetTokenEventsQuery['getTokenEvents']>['items']>[number];
 // Token details type
 type TokenDetails = {
   id: string;
@@ -84,16 +70,15 @@ export function TokenDetailView({
 
   // --- State Management ---
   const [details] = useState<TokenDetails | null>(initialDetails); // Keep details state
+  const [latestPrice, setLatestPrice] = useState<number | null>(null);
 
   const tokenName = details?.name || tokenId;
   const tokenSymbol = details?.symbol ? `(${details.symbol})` : '';
 
-  // Derive latestPrice from initialDetails if possible, or fetch separately
-  // For now, remove dependence on live events state
-  const latestPrice = useMemo(() => {
-      // TODO: How to get latest price? Fetch separately? Use details? Placeholder:
-      return null; // Or fetch/derive differently
-  }, [details]);
+  // Callback function to receive price updates from the loader
+  const handlePriceUpdate = useCallback((price: number | null) => {
+      setLatestPrice(price);
+  }, []); // Empty dependency array as setLatestPrice is stable
 
   // --- Render Logic ---
   return (
@@ -121,7 +106,12 @@ export function TokenDetailView({
           {/* Transactions with Suspense */}
           <Suspense fallback={<TransactionsSkeleton />}>
               {/* Assuming TokenTransactionsLoader handles its own data fetching and state */}
-              <TokenTransactionsLoader networkId={networkId} tokenId={tokenId} decimals={details?.decimals} />
+              <TokenTransactionsLoader
+                 networkId={networkId}
+                 tokenId={tokenId}
+                 decimals={details?.decimals}
+                 onPriceUpdate={handlePriceUpdate}
+              />
           </Suspense>
         </div>
 
