@@ -16,6 +16,10 @@ import 'react-resizable/css/styles.css';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
+// LocalStorage keys
+const LOCALSTORAGE_PANELS_KEY = 'proPagePanels';
+const LOCALSTORAGE_LAYOUTS_KEY = 'proPageLayouts';
+
 // Define the panel interface correctly
 interface SelectedPanel {
   id: string;
@@ -47,6 +51,77 @@ export default function ProPage() {
   const [layouts, setLayouts] = useState<{ [key: string]: Layout[] }>({});
   // State to control which popover is open
   const [openPopoverId, setOpenPopoverId] = useState<string | null>(null);
+
+  // Load state from localStorage on initial render
+  useEffect(() => {
+    try {
+      const savedPanels = localStorage.getItem(LOCALSTORAGE_PANELS_KEY);
+      const savedLayouts = localStorage.getItem(LOCALSTORAGE_LAYOUTS_KEY);
+
+      if (savedPanels) {
+        const parsedPanels = JSON.parse(savedPanels) as SelectedPanel[];
+        // Basic validation (can be more robust)
+        if (Array.isArray(parsedPanels)) {
+            setSelectedPanels(parsedPanels);
+        } else {
+            console.error("Invalid panels data found in localStorage:", parsedPanels);
+            localStorage.removeItem(LOCALSTORAGE_PANELS_KEY); // Clear invalid data
+        }
+      }
+
+      if (savedLayouts) {
+        const parsedLayouts = JSON.parse(savedLayouts) as { [key: string]: Layout[] };
+        // Basic validation (can be more robust)
+        if (typeof parsedLayouts === 'object' && parsedLayouts !== null && savedPanels) {
+            // Use the panels loaded from storage IN THIS EFFECT for validation
+             const loadedPanels = JSON.parse(savedPanels) as SelectedPanel[];
+             const panelIds = new Set(loadedPanels.map(p => p.id));
+             const validatedLayouts: { [key: string]: Layout[] } = {};
+             for (const breakpoint in parsedLayouts) {
+                 // Ensure the breakpoint data is an array before filtering
+                 if (Array.isArray(parsedLayouts[breakpoint])) {
+                     validatedLayouts[breakpoint] = parsedLayouts[breakpoint].filter(item => panelIds.has(item.i));
+                 } else {
+                     console.warn(`Invalid layout data for breakpoint ${breakpoint}:`, parsedLayouts[breakpoint]);
+                 }
+             }
+            setLayouts(validatedLayouts);
+        } else {
+            console.error("Invalid layouts data found in localStorage or panels missing:", parsedLayouts);
+            localStorage.removeItem(LOCALSTORAGE_LAYOUTS_KEY); // Clear invalid data
+        }
+      }
+    } catch (error) {
+      console.error("Failed to load state from localStorage:", error);
+      // Optionally clear storage if parsing fails
+      localStorage.removeItem(LOCALSTORAGE_PANELS_KEY);
+      localStorage.removeItem(LOCALSTORAGE_LAYOUTS_KEY);
+    }
+  }, []); // Empty dependency array ensures this runs only once on mount
+
+  // Save state to localStorage whenever panels or layouts change
+  useEffect(() => {
+    try {
+      // Only save if there are panels to prevent saving empty arrays unnecessarily on first load
+      if (selectedPanels.length > 0) {
+          localStorage.setItem(LOCALSTORAGE_PANELS_KEY, JSON.stringify(selectedPanels));
+      } else {
+          // Clear storage if panels are empty
+          localStorage.removeItem(LOCALSTORAGE_PANELS_KEY);
+      }
+
+      // Only save layouts if there are layouts to save
+       const breakpointsWithLayouts = Object.keys(layouts).filter(key => layouts[key]?.length > 0);
+       if (breakpointsWithLayouts.length > 0) {
+           localStorage.setItem(LOCALSTORAGE_LAYOUTS_KEY, JSON.stringify(layouts));
+       } else {
+           // Clear storage if layouts are empty
+           localStorage.removeItem(LOCALSTORAGE_LAYOUTS_KEY);
+       }
+    } catch (error) {
+      console.error("Failed to save state to localStorage:", error);
+    }
+  }, [selectedPanels, layouts]); // Dependencies: run when panels or layouts change
 
   const handleAddClick = () => {
     setIsSearchOpen(true);
@@ -92,6 +167,18 @@ export default function ProPage() {
       if (!prevLayouts[breakpoint]) {
         updatedLayouts['lg'] = [newLayoutItem];
       }
+
+      // Compact layout after adding a new item
+      // RGL might handle this, but explicitly calling compact might be needed
+      // if using preventCollision or other specific RGL configs.
+      // This part might need adjustment based on RGL behavior.
+       const currentBreakpoint = Object.keys(updatedLayouts)[0] || 'lg'; // Assuming 'lg' or first available
+       if (updatedLayouts[currentBreakpoint]) {
+           // RGL doesn't expose compact directly, layout change usually triggers it
+           // Ensure the new item doesn't cause unnecessary layout shifts if possible
+           // Often, setting y: Infinity helps RGL place it at the bottom initially
+       }
+
       return updatedLayouts;
     });
 
@@ -133,6 +220,7 @@ export default function ProPage() {
       for (const breakpoint in newLayouts) {
         if (newLayouts[breakpoint]?.length === 0) {
           // delete newLayouts[breakpoint]; // Or keep empty array? Keeping it might be safer for RGL
+          // Keep empty array to avoid issues with RGL expecting the breakpoint key
         }
       }
       return newLayouts;
