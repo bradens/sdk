@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { TokenChart } from '@/components/TokenChart';
 import { TokenSearchDialog } from '@/components/TokenSearchDialog';
 import TokenTransactionsLoader from '@/components/TokenTransactionsLoader';
 import { X } from 'lucide-react';
+import { TokenSearchInput, SelectedTokenBasics } from '@/components/TokenSearchInput';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 // Imports for react-grid-layout
 import { Responsive, WidthProvider, Layout } from 'react-grid-layout';
@@ -36,89 +38,101 @@ interface AddPanelData {
   type: 'chart' | 'transactions';
 }
 
+// Type for editing a panel (payload from TokenSearchInput)
+type EditPanelData = SelectedTokenBasics;
+
 export default function ProPage() {
   const [selectedPanels, setSelectedPanels] = useState<SelectedPanel[]>([]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [layouts, setLayouts] = useState<{ [key: string]: Layout[] }>({});
 
-  const handleAddClick = useCallback(() => {
+  const handleAddClick = () => {
     setIsSearchOpen(true);
-  }, []);
+  };
+
+  // Updated handler for when a token is selected via Popover
+  const handlePanelTokenChange = (panelId: string, newTokenData: EditPanelData) => {
+    setSelectedPanels(prevPanels =>
+      prevPanels.map(panel =>
+        panel.id === panelId
+          ? { ...panel, ...newTokenData } // Update token data, keep type and id
+          : panel
+      )
+    );
+  };
 
   // Updated addPanel function - takes the full data object
   const addPanel = (panelData: AddPanelData) => {
-      // No need to check pendingToken
+    const newItemId = `${panelData.networkId}-${panelData.tokenId}-${panelData.type}-${Date.now()}`;
+    const newPanel: SelectedPanel = {
+      ...panelData, // Spread data received from dialog
+      id: newItemId,
+      // type is already included in panelData
+    };
 
-      const newItemId = `${panelData.networkId}-${panelData.tokenId}-${panelData.type}-${Date.now()}`;
-      const newPanel: SelectedPanel = {
-          ...panelData, // Spread data received from dialog
-          id: newItemId,
-          // type is already included in panelData
-      };
+    setSelectedPanels((prev) => [...prev, newPanel]);
 
-      setSelectedPanels((prev) => [...prev, newPanel]);
+    // Add layout item
+    const newLayoutItem: Layout = {
+      i: newItemId,
+      x: (selectedPanels.length * 4) % 12,
+      y: Infinity,
+      w: panelData.type === 'chart' ? 6 : 8,
+      h: panelData.type === 'chart' ? 4 : 5,
+    };
 
-      // Add layout item
-      const newLayoutItem: Layout = {
-          i: newItemId,
-          x: (selectedPanels.length * 4) % 12,
-          y: Infinity,
-          w: panelData.type === 'chart' ? 6 : 8,
-          h: panelData.type === 'chart' ? 4 : 5,
-      };
+    setLayouts((prevLayouts) => {
+      const updatedLayouts = { ...prevLayouts };
+      const breakpoint = Object.keys(updatedLayouts)[0] || 'lg';
+      updatedLayouts[breakpoint] = [...(updatedLayouts[breakpoint] || []), newLayoutItem];
+      if (!prevLayouts[breakpoint]) {
+        updatedLayouts['lg'] = [newLayoutItem];
+      }
+      return updatedLayouts;
+    });
 
-      setLayouts((prevLayouts) => {
-          const updatedLayouts = { ...prevLayouts };
-          const breakpoint = Object.keys(updatedLayouts)[0] || 'lg';
-          updatedLayouts[breakpoint] = [...(updatedLayouts[breakpoint] || []), newLayoutItem];
-          if (!prevLayouts[breakpoint]) {
-              updatedLayouts['lg'] = [newLayoutItem];
-          }
-          return updatedLayouts;
-      });
-
-      // No pendingToken or search dialog state to clear here,
-      // dialog closes itself after calling onAddPanel
+    // No pendingToken or search dialog state to clear here,
+    // dialog closes itself after calling onAddPanel
   };
 
   // Handler for layout changes
   const onLayoutChange = (layout: Layout[], allLayouts: { [key: string]: Layout[] }) => {
-      const currentLgLayout = layouts['lg'] || [];
-      // Avoid unnecessary updates if only keys changed due to filtering
-      if (layout.length === currentLgLayout.length && JSON.stringify(layout) === JSON.stringify(currentLgLayout)) {
-         return;
-      }
-      // Filter out layout items that don't correspond to a selectedPanel
-      // This prevents issues if removePanel updates state faster than layout syncs
-      const currentPanelIds = new Set(selectedPanels.map(p => p.id));
-      const filteredLayouts = { ...allLayouts };
-      for (const breakpoint in filteredLayouts) {
-           filteredLayouts[breakpoint] = filteredLayouts[breakpoint].filter(item => currentPanelIds.has(item.i));
-      }
-      setLayouts(filteredLayouts);
+    const currentLgLayout = layouts['lg'] || [];
+    // Avoid unnecessary updates if only keys changed due to filtering
+    if (layout.length === currentLgLayout.length && JSON.stringify(layout) === JSON.stringify(currentLgLayout)) {
+      return;
+    }
+    // Filter out layout items that don't correspond to a selectedPanel
+    // This prevents issues if removePanel updates state faster than layout syncs
+    const currentPanelIds = new Set(selectedPanels.map(p => p.id));
+    const filteredLayouts = { ...allLayouts };
+    for (const breakpoint in filteredLayouts) {
+      filteredLayouts[breakpoint] = filteredLayouts[breakpoint].filter(item => currentPanelIds.has(item.i));
+    }
+    setLayouts(filteredLayouts);
   };
 
   // Updated removePanel function
   const removePanel = (idToRemove: string) => {
-      // Stop propagation if called directly from button event
-      // event?.stopPropagation();
+    // Stop propagation if called directly from button event
+    // event?.stopPropagation();
 
-      setSelectedPanels(prev => prev.filter(panel => panel.id !== idToRemove));
+    setSelectedPanels(prev => prev.filter(panel => panel.id !== idToRemove));
 
-      // Explicitly remove layout item from state for immediate visual update
-       setLayouts(prevLayouts => {
-            const newLayouts = { ...prevLayouts };
-            for (const breakpoint in newLayouts) {
-                newLayouts[breakpoint] = newLayouts[breakpoint]?.filter(item => item.i !== idToRemove);
-            }
-            // Remove breakpoint if it becomes empty
-            for (const breakpoint in newLayouts) {
-                if (newLayouts[breakpoint]?.length === 0) {
-                   // delete newLayouts[breakpoint]; // Or keep empty array? Keeping it might be safer for RGL
-                }
-            }
-            return newLayouts;
-       });
+    // Explicitly remove layout item from state for immediate visual update
+    setLayouts(prevLayouts => {
+      const newLayouts = { ...prevLayouts };
+      for (const breakpoint in newLayouts) {
+        newLayouts[breakpoint] = newLayouts[breakpoint]?.filter(item => item.i !== idToRemove);
+      }
+      // Remove breakpoint if it becomes empty
+      for (const breakpoint in newLayouts) {
+        if (newLayouts[breakpoint]?.length === 0) {
+          // delete newLayouts[breakpoint]; // Or keep empty array? Keeping it might be safer for RGL
+        }
+      }
+      return newLayouts;
+    });
   };
 
   // Effect to handle keyboard shortcut
@@ -175,26 +189,43 @@ export default function ProPage() {
           >
             {selectedPanels.map((panel) => (
               <div key={panel.id} className="bg-card rounded-lg overflow-hidden shadow-md flex flex-col group">
-                <div className="drag-handle bg-muted p-1 cursor-move flex justify-between items-center">
-                    <span className="font-semibold text-sm truncate pr-2" title={`${panel.name ?? panel.symbol ?? panel.tokenId}`}>
-                       {panel.symbol ?? panel.tokenId.substring(0, 6)}... - {panel.type === 'chart' ? 'Chart' : 'Txns'}
-                    </span>
+                <div className="drag-handle bg-muted p-2 cursor-move flex justify-between items-center">
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <span
+                                className="font-semibold text-sm truncate pr-2 cursor-pointer hover:text-primary transition-colors"
+                                title={`Click to change token (${panel.name ?? panel.symbol ?? panel.tokenId})`}
+                                onMouseDown={(e) => {
+                                    e.stopPropagation(); // Prevent drag start
+                                }}
+                            >
+                                {panel.symbol ?? panel.tokenId.substring(0, 6)}... - {panel.type === 'chart' ? 'Chart' : 'Txns'}
+                            </span>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-80 p-0">
+                            <TokenSearchInput
+                                onSelectToken={(tokenData) => {
+                                    handlePanelTokenChange(panel.id, tokenData);
+                                }}
+                                autoFocus={true}
+                            />
+                        </PopoverContent>
+                    </Popover>
                     <button
                         onClick={(e) => {
-                            e.stopPropagation(); // Prevent drag interference
+                            e.stopPropagation();
                             removePanel(panel.id);
                         }}
                         onMouseDown={(e) => {
-                            // this lets us close the modal without initiating a drag
-                            e.stopPropagation()
+                            e.stopPropagation(); // Prevent drag start
                         }}
-                        className="p-0.5 rounded-full text-muted-foreground hover:text-primary hover:bg-secondary opacity-0 group-hover:opacity-100 transition-opacity" // Adjusted styling
+                        className="p-0.5 rounded-full text-muted-foreground hover:text-primary hover:bg-secondary opacity-0 group-hover:opacity-100 transition-opacity"
                         aria-label={`Remove ${panel.type}`}
                     >
-                        <X size={16} /> {/* Use icon */}
+                        <X size={16} />
                     </button>
                 </div>
-                <div className="flex-grow h-full relative"> {/* Added relative positioning if needed */}
+                <div className="flex-grow h-full relative">
                   {panel.type === 'chart' ? (
                     <TokenChart
                         networkId={panel.networkId}
@@ -206,7 +237,7 @@ export default function ProPage() {
                         networkId={panel.networkId}
                         tokenId={panel.tokenId}
                         decimals={panel.decimals ?? 18}
-                        onPriceUpdate={() => {}} // Provide dummy prop
+                        onPriceUpdate={() => {}}
                     />
                   )}
                 </div>
@@ -222,11 +253,11 @@ export default function ProPage() {
          </div>
        )}
 
-      {/* Search Dialog - Pass addPanel directly */}
+      {/* Search Dialog (Only for Adding) */}
       <TokenSearchDialog
-        isOpen={isSearchOpen} // Dialog is open whenever search is initiated
-        onOpenChange={setIsSearchOpen} // Let dialog control its own closing via state update
-        onAddPanel={addPanel} // Pass the addPanel function
+        isOpen={isSearchOpen}
+        onOpenChange={setIsSearchOpen}
+        onAddPanel={addPanel}
       />
     </div>
   );
