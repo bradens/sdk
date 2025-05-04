@@ -97,10 +97,12 @@ export function TokenDetailView({
       <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left/Center Area (Chart and Transactions) */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Chart with Suspense */}
+          {/* Chart with Suspense and fixed height wrapper */}
           <Suspense fallback={<ChartSkeleton />}>
-             {/* Assuming TokenChartLoader handles its own loading state */}
-             <TokenChartLoader networkId={networkId} tokenId={tokenId} title={`${tokenSymbol || 'Token'} Price Chart`} />
+             {/* Add a wrapper div with fixed height */}
+             <div className="h-[400px]">
+                 <TokenChartLoader networkId={networkId} tokenId={tokenId} />
+             </div>
           </Suspense>
 
           {/* Transactions with Suspense */}
