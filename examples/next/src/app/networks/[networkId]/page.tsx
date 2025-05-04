@@ -1,11 +1,11 @@
 import { Codex } from "@codex-data/sdk";
-import { TokenRankingAttribute, RankingDirection, FilterTokensQuery } from "@codex-data/sdk/dist/sdk/generated/graphql";
 import Link from "next/link";
 import React from "react";
 import Image from "next/image";
 
+import { TokensPageDocument, TokensPageQuery, TokensPageQueryVariables, Network, TokenPageItemFragment, RankingDirection, TokenRankingAttribute } from "@/gql/graphql"; // Import directly from graphql.ts
+
 interface NetworkPageProps {
-  // Revert params type if it was changed
   params: Promise<{
     networkId: string;
   }>;
@@ -51,7 +51,7 @@ export default async function NetworkPage({ params }: NetworkPageProps) {
   }
   const codexClient = new Codex(apiKey || '');
 
-  let tokenListItems: NonNullable<FilterTokensQuery['filterTokens']>['results'] = [];
+  let tokenListItems: TokenPageItemFragment[] = [];
   let networkName: string | null = null;
   let fetchError: string | null = null;
 
@@ -62,21 +62,22 @@ export default async function NetworkPage({ params }: NetworkPageProps) {
           console.error(`Error fetching all networks:`, err);
           return null;
         }),
-      codexClient.queries.filterTokens({
+
+      codexClient.query<TokensPageQuery, TokensPageQueryVariables>(TokensPageDocument, {
         filters: { network: [networkIdNum] },
-        rankings: [{
-          attribute: TokenRankingAttribute.TrendingScore,
-          direction: RankingDirection.Desc
-        }],
-        limit: 50,
+        limit: 15,
+        rankings: {
+          direction: RankingDirection.Desc,
+          attribute: TokenRankingAttribute.TrendingScore24,
+        },
       }).catch((err: Error) => {
-          console.error(`Error fetching tokens for network ${networkIdNum}:`, err);
-          throw new Error(`Failed to load tokens for network ${networkIdNum}.`);
-        })
+        console.error(`Error fetching tokens for network ${networkIdNum}:`, err);
+        throw new Error(`Failed to load tokens for network ${networkIdNum}.`);
+      })
     ]);
 
     if (networksResult?.getNetworks) {
-      const currentNetwork = networksResult.getNetworks.find(net => net.id === networkIdNum);
+      const currentNetwork = networksResult.getNetworks.find((net: Pick<Network, 'id' | 'name'>) => net.id === networkIdNum);
       networkName = currentNetwork?.name || null;
     }
     if (!networkName) {
@@ -84,16 +85,9 @@ export default async function NetworkPage({ params }: NetworkPageProps) {
         networkName = `Network ${networkId}`;
     }
 
-    const resultsArray = tokensResponse.filterTokens?.results;
-    if (resultsArray) {
-      const filteredItems = resultsArray
-        .filter(item => item != null)       // Now Array<{ token?: EnhancedToken | null, ... }>
-        .filter(item => item.token != null); // Now Array<{ token: EnhancedToken, ... }>
-
-      // Assign the filtered result to any[] type
-      tokenListItems = filteredItems;
-    } else {
-      tokenListItems = [];
+    if (tokensResponse && tokensResponse.filterTokens && Array.isArray(tokensResponse.filterTokens.results)) {
+      type TokenResultItem = TokenPageItemFragment;
+      tokenListItems = tokensResponse.filterTokens.results.filter((item: TokenResultItem | null): item is TokenResultItem => item !== null);
     }
 
   } catch (err: unknown) {
@@ -106,7 +100,7 @@ export default async function NetworkPage({ params }: NetworkPageProps) {
     if (!networkName) networkName = `Network ${networkId}`;
   }
 
-  const pageTitle = fetchError && !tokenListItems.length ? `Error loading tokens for ${networkName}` : networkName || `Tokens on Network ${networkId}`;
+  const pageTitle = fetchError && !tokenListItems?.length ? `Error loading tokens for ${networkName}` : networkName || `Tokens on Network ${networkId}`;
 
   return (
     <main className="flex min-h-screen flex-col items-center p-12 md:p-24">
@@ -120,7 +114,7 @@ export default async function NetworkPage({ params }: NetworkPageProps) {
 
         {!fetchError || tokenListItems.length > 0 ? (
           <>
-            {tokenListItems.length === 0 && !fetchError && <p>Loading tokens or no tokens found...</p>}
+            {tokenListItems.length === 0 && !fetchError && <p>Loading tokens or no tokens found for {networkName}...</p>}
             {tokenListItems.length > 0 && (
               <table className="w-full table-fixed border-collapse border border-border text-sm">
                 <thead>
@@ -136,8 +130,8 @@ export default async function NetworkPage({ params }: NetworkPageProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {tokenListItems.map((item) => {
-                    const token = item?.token;
+                  {tokenListItems.map((item: TokenPageItemFragment) => {
+                    const token = item.token;
                     const tokenAddress = token?.address;
                     if (!token || !tokenAddress) return null;
 
@@ -209,7 +203,7 @@ export default async function NetworkPage({ params }: NetworkPageProps) {
                   })}
                   {(tokenListItems.length === 0 && !fetchError) && (
                     <tr>
-                      <td colSpan={8} className="p-4 text-center text-muted-foreground">No tokens found matching criteria.</td>
+                      <td colSpan={8} className="p-4 text-center text-muted-foreground">No tokens found for {networkName}.</td>
                     </tr>
                   )}
                 </tbody>

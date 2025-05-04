@@ -1,0 +1,24 @@
+fragment TokenPageItem on TokenFilterResult {
+  priceUSD
+  change24
+  volume24
+  txnCount24
+  lastTransaction
+  token {
+    id
+    address
+    name
+    symbol
+    info {
+      imageThumbUrl
+    }
+  }
+}
+
+query TokensPage($filters: TokenFilters!, $rankings: [TokenRanking!], $limit: Int) {
+  filterTokens(filters: $filters, rankings: $rankings, limit: $limit) {
+    results {
+      ...TokenPageItem
+    }
+  }
+}

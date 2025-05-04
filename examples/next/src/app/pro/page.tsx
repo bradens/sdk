@@ -255,16 +255,18 @@ export default function ProPage() {
 
   return (
     <div className="py-4 h-screen flex flex-col">
-      <h1 className="text-2xl font-bold mb-4 px-4">Pro Mode</h1>
+      {/* Header Section */}
+      <div className="flex justify-between items-center mb-4 px-4">
+        <h1 className="text-2xl font-bold">Pro Mode</h1>
+        <Button onClick={handleAddClick} size="sm">
+           {/* Change button text based on whether panels exist? Optional. */}
+           {/* {selectedPanels.length > 0 ? "Add Another Panel" : "Add Panel"} */}
+           Add Panel
+        </Button>
+      </div>
 
-      {selectedPanels.length === 0 && !isSearchOpen && (
-        <div className="flex-grow flex justify-center items-center">
-           <Button onClick={handleAddClick}>Add Panel</Button>
-        </div>
-      )}
-
-      {/* Grid Layout Area - make it grow */}
-      <div className="flex-grow px-4 overflow-auto"> {/* Added padding and overflow */}
+      {/* Grid Layout Area - Always render the container and RGL */}
+      <div className="flex-grow px-4 overflow-auto">
           <ResponsiveGridLayout
               className="layout"
               layouts={layouts}
@@ -275,81 +277,73 @@ export default function ProPage() {
               draggableHandle=".drag-handle"
               isDraggable
               isResizable
-              // Prevent collision to allow denser layouts if needed
-              // compactType={null}
-              // preventCollision={true}
+              // compactType={null} // Optional: Adjust compaction as needed
+              // preventCollision={true} // Optional
           >
-            {selectedPanels.map((panel) => (
-              <div key={panel.id} className="bg-card rounded-lg overflow-hidden shadow-md flex flex-col group">
-                <div className="drag-handle bg-muted p-2 cursor-move flex justify-between items-center">
-                    <Popover
-                        open={openPopoverId === panel.id}
-                        onOpenChange={(isOpen) => {
-                            setOpenPopoverId(isOpen ? panel.id : null);
-                            if (isOpen) setIsSearchOpen(false); // Close dialog if opening popover
-                        }}
-                    >
-                        <PopoverTrigger asChild>
-                            <span
-                                className="font-semibold text-sm truncate pr-2 cursor-pointer hover:text-primary transition-colors"
-                                title={`Click to change token (${panel.name ?? panel.symbol ?? panel.tokenId})`}
-                                onMouseDown={(e) => {
-                                    e.stopPropagation();
-                                }}
-                            >
-                                {panel.symbol ?? panel.tokenId.substring(0, 6)}... - {panel.type === 'chart' ? 'Chart' : 'Txns'}
-                            </span>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-80 p-0">
-                            <TokenSearchInput
-                                onSelectToken={(tokenData) => {
-                                    handlePanelTokenChange(panel.id, tokenData);
-                                }}
-                                autoFocus={true}
-                            />
-                        </PopoverContent>
-                    </Popover>
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            removePanel(panel.id);
-                        }}
-                        onMouseDown={(e) => {
-                            e.stopPropagation(); // Prevent drag start
-                        }}
-                        className="p-0.5 rounded-full text-muted-foreground hover:text-primary hover:bg-secondary opacity-0 group-hover:opacity-100 transition-opacity"
-                        aria-label={`Remove ${panel.type}`}
-                    >
-                        <X size={16} />
-                    </button>
+              {selectedPanels.map((panel) => (
+                <div key={panel.id} style={{ transitionProperty: 'all' }} className="transition-all duration-500 border-4 border-transparent hover:ring-2 hover:ring-primary/50 bg-card overflow-hidden shadow-md flex flex-col group">
+                  <div className="drag-handle bg-muted p-2 cursor-move flex justify-between items-center">
+                      <Popover
+                          open={openPopoverId === panel.id}
+                          onOpenChange={(isOpen) => {
+                              setOpenPopoverId(isOpen ? panel.id : null);
+                              if (isOpen) setIsSearchOpen(false); // Close dialog if opening popover
+                          }}
+                      >
+                          <PopoverTrigger asChild>
+                              <span
+                                  className="font-semibold text-sm truncate pr-2 cursor-pointer hover:text-primary transition-colors"
+                                  title={`Click to change token (${panel.name ?? panel.symbol ?? panel.tokenId})`}
+                                  onMouseDown={(e) => {
+                                      e.stopPropagation();
+                                  }}
+                              >
+                                  {panel.symbol ?? panel.tokenId.substring(0, 6)}... - {panel.type === 'chart' ? 'Chart' : 'Txns'}
+                              </span>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-80 p-0">
+                              <TokenSearchInput
+                                  onSelectToken={(tokenData) => {
+                                      handlePanelTokenChange(panel.id, tokenData);
+                                  }}
+                                  autoFocus={true}
+                              />
+                          </PopoverContent>
+                      </Popover>
+                      <button
+                          onClick={(e) => {
+                              e.stopPropagation();
+                              removePanel(panel.id);
+                          }}
+                          onMouseDown={(e) => {
+                              e.stopPropagation(); // Prevent drag start
+                          }}
+                          className="p-0.5 rounded-full text-muted-foreground hover:text-primary hover:bg-secondary opacity-0 group-hover:opacity-100 transition-opacity"
+                          aria-label={`Remove ${panel.type}`}
+                      >
+                          <X size={16} />
+                      </button>
+                  </div>
+                  <div className="flex-grow h-full relative pb-2 bg-muted">
+                    {panel.type === 'chart' ? (
+                      <TokenChart
+                          networkId={panel.networkId}
+                          tokenId={panel.tokenId}
+                          isLoading={false}
+                      />
+                    ) : (
+                      <TokenTransactionsLoader
+                          networkId={panel.networkId}
+                          tokenId={panel.tokenId}
+                          decimals={panel.decimals ?? 18}
+                          onPriceUpdate={() => {}}
+                      />
+                    )}
+                  </div>
                 </div>
-                <div className="flex-grow h-full relative">
-                  {panel.type === 'chart' ? (
-                    <TokenChart
-                        networkId={panel.networkId}
-                        tokenId={panel.tokenId}
-                        isLoading={false}
-                    />
-                  ) : (
-                    <TokenTransactionsLoader
-                        networkId={panel.networkId}
-                        tokenId={panel.tokenId}
-                        decimals={panel.decimals ?? 18}
-                        onPriceUpdate={() => {}}
-                    />
-                  )}
-                </div>
-              </div>
-            ))}
+              ))}
           </ResponsiveGridLayout>
-        </div>
-
-      {/* "Add Another Panel" button - Conditionally render */}
-      {selectedPanels.length > 0 && (
-         <div className="flex justify-center py-4">
-           <Button onClick={handleAddClick}>Add Another Panel</Button>
-         </div>
-       )}
+      </div>
 
       {/* Search Dialog (Only for Adding) */}
       <TokenSearchDialog
