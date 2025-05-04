@@ -8,14 +8,12 @@ import { ResolutionString } from './charting_library/charting_library';
 
 interface TokenChartProps {
   isLoading: boolean;
-  title?: string;
   networkId: number;
   tokenId: string;
 }
 
 export const TokenChart: React.FC<TokenChartProps> = ({
     isLoading,
-    title = "Price Chart",
     networkId,
     tokenId,
 }) => {
@@ -23,7 +21,7 @@ export const TokenChart: React.FC<TokenChartProps> = ({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>{title}</CardTitle>
+          <CardTitle>Token Chart</CardTitle>
         </CardHeader>
         <CardContent>
           <Skeleton className="w-full h-[300px] md:h-[400px]" />
@@ -36,8 +34,8 @@ export const TokenChart: React.FC<TokenChartProps> = ({
   const tvInterval = '30' as ResolutionString;
 
   return (
-    <Card className="p-0">
-      <CardContent className="my-0 h-[300px] md:h-[400px] p-0">
+    <Card className="p-0 h-full border-0 shadow-none rounded-none flex flex-col">
+      <CardContent className="my-0 p-0 flex-grow h-full">
         <TradingViewChart
             interval={tvInterval}
             symbol={tvSymbol}

@@ -67,7 +67,7 @@ export function TokenTransactions({
               ) : events.length > 0 ? (
                 events.map((event) => (
                   <TableRow
-                    key={event.uniqueId}
+                    key={event.uniqueId ?? Date.now()}
                     className={cn(
                       'transition-colors duration-1000 ease-out',
                       newestEventTimestamp === event.timestamp ? 'animate-row-pulse' : ''
@@ -75,7 +75,11 @@ export function TokenTransactions({
                   >
                     <TableCell className="capitalize">{event.eventDisplayType || 'Unknown'}</TableCell>
                     <TableCell>{new Date(event.timestamp * 1000).toLocaleString()}</TableCell>
-                    <TableCell>{event.amountUsd?.toFixed(2) ?? '-'}</TableCell>
+                    <TableCell>
+                      {event.eventDisplayType === 'mint' || event.eventDisplayType === 'burn'
+                        ? '-'
+                        : event.amountUsd?.toFixed(2) ?? '-'}
+                    </TableCell>
                     <TableCell className="font-mono truncate max-w-[100px] md:max-w-[150px]">
                       <a
                         href={`https://etherscan.io/tx/${event.transactionHash}`}

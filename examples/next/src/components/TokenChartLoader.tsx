@@ -16,13 +16,11 @@ interface TokenChartLoaderProps {
 const TokenChartLoader: React.FC<TokenChartLoaderProps> = ({
   networkId,
   tokenId,
-  title,
 }) => {
   // The isLoading prop is removed as this component itself is the result of loading
   // TokenChart might need internal loading state management if TradingViewChart doesn't suffice
   return (
     <TokenChart
-        title={title}
         networkId={networkId}
         tokenId={tokenId}
         // Pass false or remove isLoading prop if TokenChart is updated

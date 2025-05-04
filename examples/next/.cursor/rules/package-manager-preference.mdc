@@ -1,0 +1,13 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Package Manager Preference: Use Bun
+
+This project uses Bun as the preferred package manager and task runner.
+
+-   Instead of `npm install`, use `bun install`.
+-   Instead of `npm install <package>` or `npm i <package>`, use `bun add <package>`.
+-   Instead of `npm uninstall <package>`, use `bun remove <package>`.
+-   Instead of `npx <command>`, use `bunx <command>`.

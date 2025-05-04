@@ -442,6 +442,7 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
       <div
           ref={chartContainerRef}
           id={containerId}
+          className="tv-chart-container h-full"
           style={{ height: '100%', width: '100%' }}
       />
     </div>
