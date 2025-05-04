@@ -127,10 +127,51 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
         },
         resolveSymbol: async (symbolName: string, onSymbolResolvedCallback: ResolveCallback) => {
             console.log('[TradingViewChart Datafeed] resolveSymbol called for:', symbolName);
+
+            // Default/fallback symbol info
+            let tokenDisplay = symbolName;
+            let tokenDescription = symbolName;
+
+            // Parse networkId and tokenId from ticker
+            const networkBoundaryIndex = symbolName?.lastIndexOf(':');
+            if (!networkBoundaryIndex) {
+                console.error(`[TradingViewChart resolveSymbol] Invalid ticker format: ${symbolName}. Expected "<tokenId>:<networkId>".`);
+                 // Proceed with default display name
+            } else {
+                const tokenId = symbolName.slice(0, networkBoundaryIndex);
+                const networkIdStr = symbolName.slice(networkBoundaryIndex + 1);
+                const networkId = parseInt(networkIdStr, 10);
+
+                if (tokenId && !isNaN(networkId)) {
+                    const currentSdk = sdkRef.current;
+                    if (currentSdk) {
+                        try {
+                            console.log(`[TradingViewChart resolveSymbol] Fetching token details for ${tokenId} on network ${networkId}`);
+                            const detailsResult = await currentSdk.queries.token({ input: { networkId: networkId, address: tokenId } });
+                            const details = detailsResult.token;
+                            if (details) {
+                                tokenDisplay = details.symbol || details.name || tokenId; // Prioritize symbol, then name, then ID
+                                tokenDescription = details.name || details.symbol || symbolName; // Prioritize name, then symbol, then composite ID
+                                console.log(`[TradingViewChart resolveSymbol] Using display: ${tokenDisplay}, description: ${tokenDescription}`);
+                            } else {
+                                console.warn(`[TradingViewChart resolveSymbol] No details found for ${tokenId}:${networkId}.`);
+                            }
+                        } catch (error) {
+                            console.error(`[TradingViewChart resolveSymbol] Error fetching token details for ${tokenId}:${networkId}:`, error);
+                            // Fallback to defaults if fetch fails
+                        }
+                    } else {
+                         console.warn("[TradingViewChart resolveSymbol] SDK not available when resolving symbol.");
+                    }
+                } else {
+                    console.error(`[TradingViewChart resolveSymbol] Could not parse valid tokenId/networkId from ${symbolName}`);
+                }
+            }
+
             const symbolInfo: LibrarySymbolInfo = {
-                ticker: symbolName,
-                name: symbolName,
-                description: symbolName,
+                ticker: symbolName, // Keep original ticker
+                name: tokenDisplay, // Use fetched symbol/name
+                description: tokenDescription, // Use fetched name/symbol
                 type: 'crypto',
                 session: '24x7',
                 timezone: 'Etc/UTC',
@@ -147,6 +188,7 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
                 supported_resolutions: ["1S", "5S", "15S", "30S", "1", "5", "15", "30", "60", "1D"] as ResolutionString[],
                 format: 'price',
             };
+             // Use setTimeout to ensure it runs after the current execution context
             setTimeout(() => onSymbolResolvedCallback(symbolInfo), 0);
         },
         getBars: async (symbolInfo: LibrarySymbolInfo, resolution: ResolutionString, periodParams: { from: number; to: number; firstDataRequest: boolean; countBack?: number }, onHistoryCallback: HistoryCallback, _onErrorCallback: (reason: string) => void) => {
