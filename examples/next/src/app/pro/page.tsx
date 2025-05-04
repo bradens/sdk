@@ -45,20 +45,24 @@ export default function ProPage() {
   const [selectedPanels, setSelectedPanels] = useState<SelectedPanel[]>([]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [layouts, setLayouts] = useState<{ [key: string]: Layout[] }>({});
+  // State to control which popover is open
+  const [openPopoverId, setOpenPopoverId] = useState<string | null>(null);
 
   const handleAddClick = () => {
     setIsSearchOpen(true);
+    setOpenPopoverId(null); // Ensure no popover is open
   };
 
-  // Updated handler for when a token is selected via Popover
+  // Handler for when a token is selected via Popover
   const handlePanelTokenChange = (panelId: string, newTokenData: EditPanelData) => {
     setSelectedPanels(prevPanels =>
       prevPanels.map(panel =>
         panel.id === panelId
-          ? { ...panel, ...newTokenData } // Update token data, keep type and id
+          ? { ...panel, ...newTokenData }
           : panel
       )
     );
+    setOpenPopoverId(null); // Close the popover after selection
   };
 
   // Updated addPanel function - takes the full data object
@@ -190,13 +194,19 @@ export default function ProPage() {
             {selectedPanels.map((panel) => (
               <div key={panel.id} className="bg-card rounded-lg overflow-hidden shadow-md flex flex-col group">
                 <div className="drag-handle bg-muted p-2 cursor-move flex justify-between items-center">
-                    <Popover>
+                    <Popover
+                        open={openPopoverId === panel.id}
+                        onOpenChange={(isOpen) => {
+                            setOpenPopoverId(isOpen ? panel.id : null);
+                            if (isOpen) setIsSearchOpen(false); // Close dialog if opening popover
+                        }}
+                    >
                         <PopoverTrigger asChild>
                             <span
                                 className="font-semibold text-sm truncate pr-2 cursor-pointer hover:text-primary transition-colors"
                                 title={`Click to change token (${panel.name ?? panel.symbol ?? panel.tokenId})`}
                                 onMouseDown={(e) => {
-                                    e.stopPropagation(); // Prevent drag start
+                                    e.stopPropagation();
                                 }}
                             >
                                 {panel.symbol ?? panel.tokenId.substring(0, 6)}... - {panel.type === 'chart' ? 'Chart' : 'Txns'}
@@ -256,7 +266,10 @@ export default function ProPage() {
       {/* Search Dialog (Only for Adding) */}
       <TokenSearchDialog
         isOpen={isSearchOpen}
-        onOpenChange={setIsSearchOpen}
+        onOpenChange={(isOpen) => {
+           setIsSearchOpen(isOpen);
+           if (isOpen) setOpenPopoverId(null); // Close popover if opening dialog
+        }}
         onAddPanel={addPanel}
       />
     </div>
