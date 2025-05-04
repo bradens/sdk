@@ -137,6 +137,7 @@ export const TokenSearchInput: React.FC<TokenSearchInputProps> = ({
                 >
                   <div className="flex items-center space-x-2">
                     {result.token.info?.imageThumbUrl && (
+                      // eslint-disable-next-line @next/next/no-img-element
                       <img src={result.token.info.imageThumbUrl} alt={result.token.symbol ?? 'Token'} className="w-6 h-6 rounded-full" />
                     )}
                     <span>

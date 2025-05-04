@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { TokenChart } from '@/components/TokenChart';
 import { TokenSearchDialog } from '@/components/TokenSearchDialog';
@@ -123,10 +123,10 @@ export default function ProPage() {
     }
   }, [selectedPanels, layouts]); // Dependencies: run when panels or layouts change
 
-  const handleAddClick = () => {
+  const handleAddClick = useCallback(() => {
     setIsSearchOpen(true);
     setOpenPopoverId(null); // Ensure no popover is open
-  };
+  }, []);
 
   // Handler for when a token is selected via Popover
   const handlePanelTokenChange = (panelId: string, newTokenData: EditPanelData) => {
