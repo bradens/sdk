@@ -32,7 +32,7 @@ export const LaunchpadColumn: React.FC<LaunchpadColumnProps> = ({
     const popoverTitle = `Filter ${title}`;
 
     return (
-        <div className="bg-card p-1 rounded-lg shadow flex flex-col overflow-hidden">
+        <div className="p-1 flex flex-col overflow-hidden">
             <h2 className="text-xl font-semibold mb-2 pb-1 flex-shrink-0 flex items-center justify-between">
                 {title}
                 <ColumnFilterPopover
