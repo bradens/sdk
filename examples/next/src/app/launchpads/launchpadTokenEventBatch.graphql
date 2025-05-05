@@ -1,0 +1,65 @@
+fragment LaunchpadTokenEvent on LaunchpadTokenEventOutput {
+  address
+  buyCount1
+  devBurnt
+  devSold
+  devSoldAll
+  eventType
+  holders
+  marketCap
+  networkId
+  price
+  protocol
+  sellCount1
+  transactions1
+  volume1
+  token {
+    address
+    decimals
+    id
+    name
+    networkId
+    symbol
+    createdAt
+    imageSmallUrl
+    exchanges {
+      id
+      address
+      networkId
+      name
+      iconUrl
+    }
+    info {
+      address
+      id
+      networkId
+      symbol
+      imageThumbUrl
+      imageSmallUrl
+      imageLargeUrl
+    }
+    socialLinks {
+      twitter
+      telegram
+      website
+      discord
+    }
+    launchpad {
+      graduationPercent
+      poolAddress
+      completedAt
+      completed
+      completedSlot
+      migratedSlot
+      migratedAt
+      migrated
+      migratedPoolAddress
+    }
+  }
+}
+
+subscription OnLaunchpadTokenEventBatch($input: OnLaunchpadTokenEventBatchInput) {
+  onLaunchpadTokenEventBatch(input: $input) {
+    ...LaunchpadTokenEvent
+  }
+}

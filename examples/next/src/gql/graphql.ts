@@ -20,6 +20,35 @@ export type Scalars = {
   link__Import: { input: any; output: any; }
 };
 
+/** docs: hide */
+export enum AchievementId {
+  DailyLeaderboardRank_1Badge = 'DAILY_LEADERBOARD_RANK_1_BADGE',
+  DailyLeaderboardTop_1PercentBadge = 'DAILY_LEADERBOARD_TOP_1_PERCENT_BADGE',
+  DailyLeaderboardTop_20PercentBadge = 'DAILY_LEADERBOARD_TOP_20_PERCENT_BADGE',
+  DailyLeaderboardTop_50PercentBadge = 'DAILY_LEADERBOARD_TOP_50_PERCENT_BADGE',
+  DefinedEmployeeBadge = 'DEFINED_EMPLOYEE_BADGE',
+  DungHolderBadgeT1 = 'DUNG_HOLDER_BADGE_T1',
+  DungHolderBadgeT2 = 'DUNG_HOLDER_BADGE_T2',
+  DungHolderBadgeT3 = 'DUNG_HOLDER_BADGE_T3',
+  Pnl_10Achievement = 'PNL_10_ACHIEVEMENT',
+  Pnl_100Achievement = 'PNL_100_ACHIEVEMENT',
+  Pnl_1000Achievement = 'PNL_1000_ACHIEVEMENT',
+  Pnl_10000Achievement = 'PNL_10000_ACHIEVEMENT',
+  Pnl_100000Achievement = 'PNL_100000_ACHIEVEMENT',
+  PnlRepeatable_100AchievementV2 = 'PNL_REPEATABLE_100_ACHIEVEMENT_V2',
+  RevenueShareT1Badge = 'REVENUE_SHARE_T1_BADGE',
+  RevenueShareT2Badge = 'REVENUE_SHARE_T2_BADGE',
+  RevenueShareT3Badge = 'REVENUE_SHARE_T3_BADGE',
+  TradeVolume_10Achievement = 'TRADE_VOLUME_10_ACHIEVEMENT',
+  TradeVolume_100Achievement = 'TRADE_VOLUME_100_ACHIEVEMENT',
+  TradeVolume_1000Achievement = 'TRADE_VOLUME_1000_ACHIEVEMENT',
+  TradeVolume_10000Achievement = 'TRADE_VOLUME_10000_ACHIEVEMENT',
+  TradeVolume_100000Achievement = 'TRADE_VOLUME_100000_ACHIEVEMENT',
+  UniqueNetworks_1Achievement = 'UNIQUE_NETWORKS_1_ACHIEVEMENT',
+  UniqueNetworks_3Achievement = 'UNIQUE_NETWORKS_3_ACHIEVEMENT',
+  UniqueNetworks_5Achievement = 'UNIQUE_NETWORKS_5_ACHIEVEMENT'
+}
+
 /** Response returned by `onEventsCreated`. */
 export type AddEventsOutput = {
   __typename?: 'AddEventsOutput';
@@ -77,6 +106,7 @@ export type AddTokenLifecycleEventsOutput = {
 
 export type AddTrackedWalletEventsOutput = {
   __typename?: 'AddTrackedWalletEventsOutput';
+  events: Array<TrackedWalletEvent>;
   userId: Scalars['String']['output'];
 };
 
@@ -96,6 +126,8 @@ export type AddUnconfirmedEventsOutput = {
 };
 
 export type AddUserAchievementInput = {
+  achievementId: AchievementId;
+  pointsSeason: PointsSeason;
   quantity: Scalars['Int']['input'];
   userId: Scalars['String']['input'];
 };
@@ -126,7 +158,7 @@ export type ApiToken = {
   token: Scalars['String']['output'];
 };
 
-export type AptosNetworkConfig = {
+export type AptosNetworkConfig = NetworkConfigBase & {
   __typename?: 'AptosNetworkConfig';
   baseTokenAddress: Scalars['String']['output'];
   baseTokenSymbol: Scalars['String']['output'];
@@ -134,6 +166,7 @@ export type AptosNetworkConfig = {
   defaultPairAddress: Scalars['String']['output'];
   defaultPairQuoteToken: QuoteToken;
   enabled: Scalars['Boolean']['output'];
+  explorer: ExplorerConfig;
   id: Scalars['ID']['output'];
   mainnet: Scalars['Boolean']['output'];
   name: Scalars['String']['output'];
@@ -141,9 +174,69 @@ export type AptosNetworkConfig = {
   networkId: Scalars['Int']['output'];
   networkName: Scalars['String']['output'];
   networkShortName: Scalars['String']['output'];
+  networkType: NetworkConfigType;
   newTokensEnabled?: Maybe<Scalars['Boolean']['output']>;
+  pricing: Array<NetworkPriceConfig>;
+  rpcs: Array<AptosRpcConfig>;
   stableCoinAddresses?: Maybe<Array<Scalars['String']['output']>>;
   wrappedBaseTokenSymbol: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type AptosRpcConfig = {
+  __typename?: 'AptosRpcConfig';
+  apiKey?: Maybe<Scalars['String']['output']>;
+  url: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type AptosRpcConfigInput = {
+  apiKey?: InputMaybe<Scalars['String']['input']>;
+  url: Scalars['String']['input'];
+};
+
+/** docs: hide */
+export type AuthenticationResponse = {
+  __typename?: 'AuthenticationResponse';
+  AccessToken?: Maybe<Scalars['String']['output']>;
+  ExpiresIn?: Maybe<Scalars['Int']['output']>;
+  IdToken?: Maybe<Scalars['String']['output']>;
+  NewDeviceMetadata?: Maybe<NewDeviceMetadataType>;
+  RefreshToken?: Maybe<Scalars['String']['output']>;
+  TokenType?: Maybe<Scalars['String']['output']>;
+};
+
+/** docs: hide */
+export type BackfillHoldersInput = {
+  networkId: Scalars['Int']['input'];
+  tokenAddress: Scalars['String']['input'];
+};
+
+/** docs: hide */
+export type BackfillHoldersResponse = {
+  __typename?: 'BackfillHoldersResponse';
+  message: Scalars['String']['output'];
+  status: BackfillHoldersStatus;
+  timestamp?: Maybe<Scalars['Int']['output']>;
+};
+
+/** docs: hide */
+export enum BackfillHoldersStatus {
+  Completed = 'COMPLETED',
+  Error = 'ERROR',
+  Running = 'RUNNING'
+}
+
+/** docs: hide */
+export type BackfillWalletInput = {
+  networkId: Scalars['Int']['input'];
+  walletAddress: Scalars['String']['input'];
+};
+
+/** docs: hide */
+export type BackfillWalletResponse = {
+  __typename?: 'BackfillWalletResponse';
+  balances: Array<Balance>;
 };
 
 /** Wallet balance of a token. */
@@ -167,18 +260,38 @@ export type Balance = {
   walletId: Scalars['String']['output'];
 };
 
+/** docs: hide */
+export type BalanceInput = {
+  /** The wallet's token balance. */
+  balance: Scalars['String']['input'];
+  /** The ID of the token (`tokenAddress:networkId`). */
+  tokenId: Scalars['String']['input'];
+  /** The ID of the wallet (`walletAddress:networkId`) */
+  walletId: Scalars['String']['input'];
+};
+
 export type BalancesInput = {
   /** A cursor for use in pagination. */
   cursor?: InputMaybe<Scalars['String']['input']>;
-  /** Optional token specifically request the balance for */
+  /**
+   * Optional token specifically request the balance for.
+   * @deprecated Use tokens list instead
+   */
   filterToken?: InputMaybe<Scalars['String']['input']>;
   /** If set to true, native tokens in the response, they will have the id: native:<networkId> */
   includeNative?: InputMaybe<Scalars['Boolean']['input']>;
   /** The maximum number of holdings to return. */
   limit?: InputMaybe<Scalars['Int']['input']>;
+  /** The network IDs to filter by. */
+  networks?: InputMaybe<Array<Scalars['Int']['input']>>;
+  /** The token IDs (`address:networkId`) or addresses to request the balance for. Only applied when using `walletAddress` and `networks` (not `walletId`). */
+  tokens?: InputMaybe<Array<Scalars['String']['input']>>;
   /** The wallet address to filter by. */
   walletAddress?: InputMaybe<Scalars['String']['input']>;
-  /** The ID of the wallet (`walletAddress:networkId`). */
+  /**
+   * The ID of the wallet (`walletAddress:networkId`).
+   * @deprecated Use walletAddress and networkId instead
+   */
   walletId?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -188,6 +301,20 @@ export type BalancesResponse = {
   cursor?: Maybe<Scalars['String']['output']>;
   /** The list of token balances that a wallet has. */
   items: Array<Balance>;
+};
+
+/** docs: hide */
+export type BanDetails = {
+  __typename?: 'BanDetails';
+  bannedAt: Scalars['Int']['output'];
+  bannedBy: Scalars['String']['output'];
+  bannedReason?: Maybe<Scalars['String']['output']>;
+};
+
+/** docs: hide */
+export type BanUserInput = {
+  bannedReason?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['String']['input'];
 };
 
 /** Bar chart data to track price changes over time. */
@@ -225,12 +352,30 @@ export type BarsResponse = {
   traders: Array<Maybe<Scalars['Int']['output']>>;
   /** The number of transactions */
   transactions: Array<Maybe<Scalars['Int']['output']>>;
-  /** The volume. */
+  /**
+   * The volume.
+   * @deprecated Use volume field instead
+   */
   v: Array<Maybe<Scalars['Int']['output']>>;
   /** The volume with higher precision. */
   volume?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   /** The volume in the native token for the network */
   volumeNativeToken?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
+};
+
+/** docs: hide */
+export type BetaUser = {
+  __typename?: 'BetaUser';
+  id: Scalars['String']['output'];
+  roles?: Maybe<Array<Scalars['String']['output']>>;
+  walletAddress?: Maybe<Scalars['String']['output']>;
+};
+
+/** docs: hide */
+export type BetaUsersResponse = {
+  __typename?: 'BetaUsersResponse';
+  cursor?: Maybe<Scalars['String']['output']>;
+  items: Array<BetaUser>;
 };
 
 /** The mathematical formula that defines how the prices of NFTs change after each buy or sell within a pool. */
@@ -240,6 +385,35 @@ export enum BondingCurveType {
   Linear = 'LINEAR',
   Xyk = 'XYK'
 }
+
+/** docs: hide */
+export type BridgeQuote = {
+  __typename?: 'BridgeQuote';
+  requestId?: Maybe<Scalars['String']['output']>;
+  route: Route;
+  totalFees?: Maybe<Scalars['String']['output']>;
+};
+
+/** docs: hide */
+export type BridgeQuoteParams = {
+  __typename?: 'BridgeQuoteParams';
+  amount: Scalars['String']['output'];
+  fromAddress: Scalars['String']['output'];
+  fromNetwork: Scalars['Int']['output'];
+  fromToken: Scalars['String']['output'];
+  slippage?: Maybe<Scalars['Float']['output']>;
+  toAddress?: Maybe<Scalars['String']['output']>;
+  toNetwork: Scalars['Int']['output'];
+  toToken: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type BridgeRequestStatus = {
+  __typename?: 'BridgeRequestStatus';
+  axelarTransactionUrl?: Maybe<Scalars['String']['output']>;
+  squidTransactionStatus?: Maybe<Scalars['String']['output']>;
+  status?: Maybe<Scalars['String']['output']>;
+};
 
 /** Event data for a token burn event. */
 export type BurnEventData = {
@@ -260,6 +434,16 @@ export type BurnEventData = {
   type: EventType;
 };
 
+/** docs: hide */
+export type ChartDrawingsRecord = {
+  __typename?: 'ChartDrawingsRecord';
+  chartId: Scalars['String']['output'];
+  layoutId: Scalars['String']['output'];
+  state: Scalars['String']['output'];
+  timestamp?: Maybe<Scalars['Int']['output']>;
+  userId: Scalars['String']['output'];
+};
+
 /** Input options for the chart image. */
 export type ChartImageOptions = {
   /** The expiry time of the image in seconds. Max: 172800 (2 days). Default: 900 (15 minutes). */
@@ -274,6 +458,25 @@ export type ChartImageOptions = {
 export type ChartInput = {
   /** The input required to fetch a pair chart. */
   pair?: InputMaybe<PairChartInput>;
+};
+
+/** docs: hide */
+export type ChartLayout = {
+  __typename?: 'ChartLayout';
+  content: Scalars['String']['output'];
+  id: Scalars['Int']['output'];
+  name: Scalars['String']['output'];
+  resolution: Scalars['String']['output'];
+  symbol: Scalars['String']['output'];
+  timestamp: Scalars['Int']['output'];
+};
+
+/** docs: hide */
+export type ChartLayoutInput = {
+  content: Scalars['String']['input'];
+  name: Scalars['String']['input'];
+  resolution: Scalars['String']['input'];
+  symbol: Scalars['String']['input'];
 };
 
 /** The color theme of the chart. */
@@ -294,6 +497,22 @@ export type ChartUrlsResponse = {
   __typename?: 'ChartUrlsResponse';
   /** The pair chart url. */
   pair: ChartUrl;
+};
+
+/** docs: hide */
+export type CheckTradeableInput = {
+  exchangeAddress: Scalars['String']['input'];
+  inputTokenAddress: Scalars['String']['input'];
+  networkId: Scalars['Int']['input'];
+  outputTokenAddress: Scalars['String']['input'];
+  poolAddress?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** docs: hide */
+export type CheckTradeableResponse = {
+  __typename?: 'CheckTradeableResponse';
+  reason?: Maybe<Scalars['String']['output']>;
+  tradeable: Scalars['Boolean']['output'];
 };
 
 /** Community gathered proposals for an asset. */
@@ -322,6 +541,8 @@ export type CommunityNote = {
   /** The unix timestamp of when the community note was created. */
   proposedAt: Scalars['Int']['output'];
   sortKey: Scalars['String']['output'];
+  /** The status of the community note. */
+  status: ContractProposalStatus;
 };
 
 /** Type of the community gathered note. */
@@ -395,6 +616,14 @@ export type ComparisonOperatorInput = {
   lte?: InputMaybe<Scalars['String']['input']>;
 };
 
+/** docs: hide */
+export type ConstantPriceConfig = {
+  __typename?: 'ConstantPriceConfig';
+  tokenAddress: Scalars['String']['output'];
+  type: NetworkPriceType;
+  value: Scalars['String']['output'];
+};
+
 /** Metadata for a contract label. */
 export type ContractLabel = {
   __typename?: 'ContractLabel';
@@ -420,6 +649,41 @@ export enum ContractLabelType {
   Verified = 'Verified'
 }
 
+/** docs: hide */
+export type ContractProposalStats = {
+  __typename?: 'ContractProposalStats';
+  acceptanceRate?: Maybe<Scalars['Float']['output']>;
+  id: Scalars['String']['output'];
+  numAccepted?: Maybe<Scalars['Int']['output']>;
+  numRejected?: Maybe<Scalars['Int']['output']>;
+  rejectionRate?: Maybe<Scalars['Float']['output']>;
+  score?: Maybe<Scalars['Float']['output']>;
+  totalProposals?: Maybe<Scalars['Int']['output']>;
+  updatedAt?: Maybe<Scalars['Int']['output']>;
+};
+
+/** docs: hide */
+export enum ContractProposalStatsSortColumn {
+  NumAccepted = 'numAccepted',
+  NumRejected = 'numRejected',
+  Score = 'score'
+}
+
+/** docs: hide */
+export enum ContractProposalStatus {
+  Accepted = 'ACCEPTED',
+  Pending = 'PENDING',
+  Rejected = 'REJECTED',
+  Reverted = 'REVERTED'
+}
+
+/** docs: hide */
+export enum ContractProposalType {
+  Field = 'FIELD',
+  Label = 'LABEL',
+  Logo = 'LOGO'
+}
+
 export enum ContractType {
   Nft = 'NFT',
   Token = 'TOKEN'
@@ -436,6 +700,129 @@ export type CreateApiTokensInput = {
   expiresIn?: InputMaybe<Scalars['Int']['input']>;
   /** Number of requests allowed per token, represented as a string, default is 5000 */
   requestLimit?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** docs: hide */
+export type CreateAptosNetworkConfigInput = {
+  rpcs: Array<AptosRpcConfigInput>;
+};
+
+/** docs: hide */
+export type CreateConstantPriceConfigInput = {
+  tokenAddress: Scalars['String']['input'];
+  value: Scalars['String']['input'];
+};
+
+/** docs: hide */
+export type CreateDecodingInput = {
+  abi: Scalars['JSON']['input'];
+  contractAddress: Scalars['String']['input'];
+  contractName: Scalars['String']['input'];
+  endBlock?: InputMaybe<Scalars['Int']['input']>;
+  networkId: Scalars['Int']['input'];
+  projectName: Scalars['String']['input'];
+  startBlock?: InputMaybe<Scalars['Int']['input']>;
+};
+
+/** docs: hide */
+export type CreateEvmNetworkConfigInput = {
+  evmConfig: EvmConfigInput;
+  evmConstants: EvmConstantsInput;
+  rpcs: Array<EvmRpcConfigInput>;
+};
+
+/** docs: hide */
+export type CreateExternalPriceConfigInput = {
+  referenceToken: ExternalPrices;
+  tokenAddress: Scalars['String']['input'];
+};
+
+/** docs: hide */
+export type CreateLimitOrderInput = {
+  creationContext?: InputMaybe<CreationContext>;
+  deadline?: InputMaybe<Scalars['Int']['input']>;
+  direction: OrderDirection;
+  exchangeAddress?: InputMaybe<Scalars['String']['input']>;
+  exitStrategyId?: InputMaybe<Scalars['Int']['input']>;
+  gasPrice?: InputMaybe<GasPrice>;
+  inputTokenAddress: Scalars['String']['input'];
+  inputTokenAmount: Scalars['String']['input'];
+  limitMaximumTokenLiquidityGuard?: InputMaybe<Scalars['String']['input']>;
+  limitMaximumTokenMarketCapGuard?: InputMaybe<Scalars['String']['input']>;
+  limitMaximumTokenPriceGuard?: InputMaybe<Scalars['String']['input']>;
+  limitMinimumTokenLiquidityGuard?: InputMaybe<Scalars['String']['input']>;
+  limitMinimumTokenMarketCapGuard?: InputMaybe<Scalars['String']['input']>;
+  limitMinimumTokenPriceGuard?: InputMaybe<Scalars['String']['input']>;
+  limitTriggerDirection: LimitTriggerDirection;
+  limitTriggerType: LimitTriggerType;
+  limitTriggerValue: Scalars['String']['input'];
+  networkId: Scalars['Int']['input'];
+  outputAmountMax?: InputMaybe<Scalars['String']['input']>;
+  outputAmountMin: Scalars['String']['input'];
+  outputTokenAddress: Scalars['String']['input'];
+  poolAddress?: InputMaybe<Scalars['String']['input']>;
+  sendWithPrivateRpc?: InputMaybe<Scalars['Boolean']['input']>;
+  simulate?: InputMaybe<Scalars['Boolean']['input']>;
+  slippage?: InputMaybe<Scalars['Float']['input']>;
+  userId: Scalars['Int']['input'];
+  walletIds: Array<Scalars['Int']['input']>;
+};
+
+/** docs: hide */
+export type CreateMappedPriceConfigInput = {
+  referenceNetworkId: Scalars['Int']['input'];
+  referenceTokenAddress: Scalars['String']['input'];
+  tokenAddress: Scalars['String']['input'];
+};
+
+/** docs: hide */
+export type CreateMarketOrderInput = {
+  creationContext?: InputMaybe<CreationContext>;
+  customGas?: InputMaybe<Scalars['String']['input']>;
+  direction: OrderDirection;
+  exchangeAddress?: InputMaybe<Scalars['String']['input']>;
+  exitStrategyId?: InputMaybe<Scalars['Int']['input']>;
+  gasPrice?: InputMaybe<GasPrice>;
+  inputTokenAddress: Scalars['String']['input'];
+  inputTokenAmount: Scalars['String']['input'];
+  networkId: Scalars['Int']['input'];
+  outputAmountMax?: InputMaybe<Scalars['String']['input']>;
+  outputAmountMin: Scalars['String']['input'];
+  outputTokenAddress: Scalars['String']['input'];
+  poolAddress?: InputMaybe<Scalars['String']['input']>;
+  sendWithPrivateRpc?: InputMaybe<Scalars['Boolean']['input']>;
+  simulate?: InputMaybe<Scalars['Boolean']['input']>;
+  slippage?: InputMaybe<Scalars['Float']['input']>;
+  userId: Scalars['Int']['input'];
+  walletIds: Array<Scalars['Int']['input']>;
+};
+
+/** docs: hide */
+export type CreateNetworkConfigInput = {
+  aptosInput?: InputMaybe<CreateAptosNetworkConfigInput>;
+  baseTokenAddress: Scalars['String']['input'];
+  baseTokenSymbol: Scalars['String']['input'];
+  color: Scalars['String']['input'];
+  defaultPairAddress: Scalars['String']['input'];
+  defaultPairQuoteToken: QuoteToken;
+  enabled: Scalars['Boolean']['input'];
+  evmInput?: InputMaybe<CreateEvmNetworkConfigInput>;
+  explorer: ExplorerConfigInput;
+  mainnet: Scalars['Boolean']['input'];
+  name: Scalars['String']['input'];
+  networkIconUrl: Scalars['String']['input'];
+  networkId: Scalars['Int']['input'];
+  networkName: Scalars['String']['input'];
+  networkShortName: Scalars['String']['input'];
+  networkType: NetworkConfigType;
+  newTokensEnabled?: InputMaybe<Scalars['Boolean']['input']>;
+  pricing?: InputMaybe<Array<InputMaybe<CreatePriceConfigInput>>>;
+  solanaInput?: InputMaybe<CreateSolanaNetworkConfigInput>;
+  stableCoinAddresses?: InputMaybe<Array<Scalars['String']['input']>>;
+  stablecoinAddresses?: InputMaybe<Array<Scalars['String']['input']>>;
+  starknetInput?: InputMaybe<CreateStarknetNetworkConfigInput>;
+  suiInput?: InputMaybe<CreateSuiNetworkConfigInput>;
+  wrappedBaseTokenSymbol: Scalars['String']['input'];
 };
 
 /** Input for creating an NFT event webhook. */
@@ -470,6 +857,20 @@ export type CreateNftEventWebhooksInput = {
   webhooks: Array<CreateNftEventWebhookArgs>;
 };
 
+/** docs: hide */
+export type CreateNotableWalletInput = {
+  label?: InputMaybe<Scalars['String']['input']>;
+  notes?: InputMaybe<Scalars['String']['input']>;
+  walletAddress: Scalars['String']['input'];
+};
+
+/** docs: hide */
+export type CreatePriceConfigInput = {
+  constantPriceInput?: InputMaybe<CreateConstantPriceConfigInput>;
+  externalPriceInput?: InputMaybe<CreateExternalPriceConfigInput>;
+  mappedPriceInput?: InputMaybe<CreateMappedPriceConfigInput>;
+};
+
 /** Input for creating a price webhook. */
 export type CreatePriceWebhookArgs = {
   /** The recurrence of the webhook. Can be `INDEFINITE` or `ONCE`. */
@@ -500,6 +901,21 @@ export type CreatePriceWebhookArgs = {
 export type CreatePriceWebhooksInput = {
   /** A list of price webhooks to create. */
   webhooks: Array<CreatePriceWebhookArgs>;
+};
+
+/** docs: hide */
+export type CreateProposalResponse = {
+  __typename?: 'CreateProposalResponse';
+  status?: Maybe<ContractProposalStatus>;
+};
+
+/** docs: hide */
+export type CreateProposalsInput = {
+  address: Scalars['String']['input'];
+  contractType: ContractType;
+  networkId: Scalars['Int']['input'];
+  proposalData: Scalars['JSON']['input'];
+  proposalType: ContractProposalType;
 };
 
 /** Input for creating a Raw Transaction webhook. */
@@ -534,6 +950,35 @@ export type CreateRawTransactionWebhooksInput = {
   webhooks: Array<CreateRawTransactionWebhookArgs>;
 };
 
+/** docs: hide */
+export type CreateSolanaNetworkConfigInput = {
+  rpcs: Array<SolanaRpcConfigInput>;
+};
+
+/** docs: hide */
+export type CreateStarknetNetworkConfigInput = {
+  rpcs: Array<StarknetRpcConfigInput>;
+};
+
+/** docs: hide */
+export type CreateStrategyInput = {
+  name: Scalars['String']['input'];
+  orderParams: Array<CreateStrategyOrderParamInput>;
+  userId: Scalars['Int']['input'];
+};
+
+/** docs: hide */
+export type CreateStrategyOrderParamInput = {
+  amountRatio: Scalars['Float']['input'];
+  triggerDirection: LimitTriggerDirection;
+  triggerPercentChange: Scalars['Float']['input'];
+};
+
+/** docs: hide */
+export type CreateSuiNetworkConfigInput = {
+  rpcs: Array<SuiRpcConfigInput>;
+};
+
 /** Input for creating a token pair event webhook. */
 export type CreateTokenPairEventWebhookArgs = {
   /** The recurrence of the webhook. Can be `INDEFINITE` or `ONCE`. */
@@ -564,6 +1009,50 @@ export type CreateTokenPairEventWebhookArgs = {
 export type CreateTokenPairEventWebhooksInput = {
   /** A list of token pair event webhooks to create. */
   webhooks: Array<CreateTokenPairEventWebhookArgs>;
+};
+
+/** docs: hide */
+export type CreateTrackedWalletsInput = {
+  userId: Scalars['String']['input'];
+  wallets: Array<TrackedWalletInput>;
+};
+
+/** docs: hide */
+export type CreateUserContractListInput = {
+  icon: Scalars['String']['input'];
+  public?: InputMaybe<Scalars['Boolean']['input']>;
+  title: Scalars['String']['input'];
+};
+
+/** docs: hide */
+export type CreateUserContractListItemInput = {
+  address: Scalars['String']['input'];
+  contractType: ContractType;
+  listId: Scalars['String']['input'];
+  networkId: Scalars['Int']['input'];
+  symbol: Scalars['String']['input'];
+  tokenId?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** docs: hide */
+export type CreateWalletInput = {
+  label?: InputMaybe<Scalars['String']['input']>;
+  networkType: NetworkType;
+  signedRequest: SignedRequest;
+};
+
+/** docs: hide */
+export type CreateWalletSuborgInput = {
+  email?: InputMaybe<Scalars['String']['input']>;
+  label: Scalars['String']['input'];
+  passkey: WalletPasskey;
+};
+
+/** docs: hide */
+export type CreateWalletSuborgResponse = {
+  __typename?: 'CreateWalletSuborgResponse';
+  wallet: ScarabWallet;
+  wallets: Array<ScarabWallet>;
 };
 
 /** Input for creating webhooks. */
@@ -606,6 +1095,121 @@ export type CurrencyBarData = {
   token: IndividualBarData;
   /** Bar chart data in USD. */
   usd: IndividualBarData;
+};
+
+/** docs: hide */
+export type CustomNotification = {
+  __typename?: 'CustomNotification';
+  message?: Maybe<Scalars['String']['output']>;
+};
+
+/** docs: hide */
+export type DailyPointBoostRecord = {
+  __typename?: 'DailyPointBoostRecord';
+  boostMultiplier: Scalars['Float']['output'];
+  boostType: Scalars['String']['output'];
+  endTimestamp?: Maybe<Scalars['Int']['output']>;
+  heldTokenAddress?: Maybe<Scalars['String']['output']>;
+  minimumHolding?: Maybe<Scalars['Float']['output']>;
+  networkId?: Maybe<Scalars['Int']['output']>;
+  startTimestamp: Scalars['Int']['output'];
+  streakAmount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** docs: hide */
+export type Decoding = {
+  __typename?: 'Decoding';
+  abi: Scalars['JSON']['output'];
+  /** Contract address to scope the decoding to */
+  contractAddress?: Maybe<Scalars['String']['output']>;
+  /** User defined contract name for the decoding (ex: pair) */
+  contractName: Scalars['String']['output'];
+  eventNames: Array<Scalars['String']['output']>;
+  /** Unique identifier for the decoding */
+  id: Scalars['ID']['output'];
+  methodNames: Array<Scalars['String']['output']>;
+  methods: Array<Scalars['String']['output']>;
+  /** Network ID that this decoding is on */
+  networkId: Scalars['Int']['output'];
+  /** User defined project name of the decoding (ex: uniswap) */
+  projectName: Scalars['String']['output'];
+  startBlockNumber?: Maybe<Scalars['Int']['output']>;
+  status?: Maybe<DecodingStatus>;
+  topics: Array<Scalars['String']['output']>;
+};
+
+/** docs: hide */
+export type DecodingStatus = {
+  __typename?: 'DecodingStatus';
+  complete: Scalars['Int']['output'];
+  decoding?: Maybe<Decoding>;
+  decodingId: Scalars['ID']['output'];
+  statusMessage: Scalars['String']['output'];
+  step: Scalars['String']['output'];
+  total: Scalars['Int']['output'];
+  updatedAt: Scalars['Int']['output'];
+};
+
+/** docs: hide */
+export type DefinedUser = {
+  __typename?: 'DefinedUser';
+  admin?: Maybe<Scalars['Boolean']['output']>;
+  ban?: Maybe<BanDetails>;
+  contractProposalStats?: Maybe<ContractProposalStats>;
+  createdAt: Scalars['Int']['output'];
+  email?: Maybe<DefinedUserEmail>;
+  id: Scalars['String']['output'];
+  name?: Maybe<Scalars['String']['output']>;
+  roles: Array<Scalars['String']['output']>;
+  telegramId?: Maybe<Scalars['String']['output']>;
+  updatedAt: Scalars['Int']['output'];
+  walletAddress?: Maybe<Scalars['String']['output']>;
+};
+
+/** docs: hide */
+export type DefinedUserEmail = {
+  __typename?: 'DefinedUserEmail';
+  address: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type DeleteChartLayoutInput = {
+  id: Scalars['Int']['input'];
+};
+
+/** docs: hide */
+export type DeleteTrackedWalletsInput = {
+  userId: Scalars['String']['input'];
+  walletAddresses: Array<Scalars['String']['input']>;
+};
+
+/** docs: hide */
+export type DeleteTurnkeySignerKeyInput = {
+  request: SignedRequest;
+};
+
+/** docs: hide */
+export type DeleteUserContractListInput = {
+  id: Scalars['String']['input'];
+};
+
+/** docs: hide */
+export type DeleteUserContractListItemInput = {
+  listId: Scalars['String']['input'];
+  sortKey: Scalars['String']['input'];
+};
+
+/** docs: hide */
+export type DeleteUserContractListItemResponse = {
+  __typename?: 'DeleteUserContractListItemResponse';
+  listId: Scalars['String']['output'];
+  sortKey: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type DeleteUserContractListResponse = {
+  __typename?: 'DeleteUserContractListResponse';
+  id: Scalars['String']['output'];
 };
 
 /** Input for deleting webhooks. */
@@ -841,6 +1445,29 @@ export enum DetailedStatsWindowSize {
   Min5 = 'min5'
 }
 
+/** docs: hide */
+export type DetailedWalletStats = {
+  __typename?: 'DetailedWalletStats';
+  labels: Array<Scalars['String']['output']>;
+  lastTransactionAt: Scalars['Int']['output'];
+  networkBreakdown?: Maybe<Array<NetworkBreakdown>>;
+  networkSpecificStats?: Maybe<Array<NetworkWalletStats>>;
+  scammerScore?: Maybe<Scalars['Int']['output']>;
+  statsDay1?: Maybe<WindowedWalletStats>;
+  statsDay30?: Maybe<WindowedWalletStats>;
+  statsWeek1?: Maybe<WindowedWalletStats>;
+  statsYear1?: Maybe<WindowedWalletStats>;
+  walletAddress: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type DetailedWalletStatsInput = {
+  includeNetworkBreakdown?: InputMaybe<Scalars['Boolean']['input']>;
+  networkId?: InputMaybe<Scalars['Int']['input']>;
+  timestamp?: InputMaybe<Scalars['Int']['input']>;
+  walletAddress: Scalars['String']['input'];
+};
+
 /** Metadata for a contract. */
 export type EnhancedContract = EnhancedNftContract | EnhancedToken;
 
@@ -891,6 +1518,8 @@ export type EnhancedToken = {
   createdAt?: Maybe<Scalars['Int']['output']>;
   /** The token creator's wallet address. */
   creatorAddress?: Maybe<Scalars['String']['output']>;
+  /** docs: hide */
+  creatorBalanceNBT?: Maybe<Scalars['String']['output']>;
   /** The precision to which the token can be divided. For example, the smallest unit for USDC is 0.000001 (6 decimals). */
   decimals: Scalars['Int']['output'];
   /** A list of exchanges where the token has been traded. */
@@ -954,8 +1583,32 @@ export enum Entitlement {
   WalletStats = 'WalletStats'
 }
 
+/** docs: hide */
+export type EthBalance = {
+  __typename?: 'EthBalance';
+  combinedBalance: Scalars['String']['output'];
+  combinedBalanceShifted: Scalars['String']['output'];
+  ethBalance: Scalars['String']['output'];
+  ethBalanceShifted: Scalars['String']['output'];
+  walletAddress: Scalars['String']['output'];
+  wethBalance: Scalars['String']['output'];
+  wethBalanceShifted: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type EthBalancesInput = {
+  networkId?: InputMaybe<Scalars['Int']['input']>;
+  walletAddresses: Array<Scalars['String']['input']>;
+};
+
+/** docs: hide */
+export type EthBalancesResponse = {
+  __typename?: 'EthBalancesResponse';
+  items: Array<EthBalance>;
+};
+
 /** A token transaction. */
-export type Event = {
+export type Event = Trackable & {
   __typename?: 'Event';
   /** The contract address of the token's top pair. */
   address: Scalars['String']['output'];
@@ -1120,6 +1773,86 @@ export type EventsQueryInput = {
   timestamp?: InputMaybe<EventQueryTimestampInput>;
 };
 
+/** docs: hide */
+export type EvmConfig = {
+  __typename?: 'EvmConfig';
+  finalityDelay: Scalars['Int']['output'];
+  reorgsEnabled: Scalars['Boolean']['output'];
+  tracesEnabled: Scalars['Boolean']['output'];
+};
+
+/** docs: hide */
+export type EvmConfigInput = {
+  finalityDelay: Scalars['Int']['input'];
+  reorgsEnabled: Scalars['Boolean']['input'];
+  tracesEnabled: Scalars['Boolean']['input'];
+};
+
+/** docs: hide */
+export type EvmConstants = {
+  __typename?: 'EvmConstants';
+  cangetTxWithBlock: Scalars['Boolean']['output'];
+  multicallAddress: Scalars['String']['output'];
+  validBlockHashInLogs: Scalars['Boolean']['output'];
+  validLogBlooms: Scalars['Boolean']['output'];
+  validPastLogs: Scalars['Boolean']['output'];
+};
+
+/** docs: hide */
+export type EvmConstantsInput = {
+  cangetTxWithBlock: Scalars['Boolean']['input'];
+  multicallAddress: Scalars['String']['input'];
+  validBlockHashInLogs: Scalars['Boolean']['input'];
+  validLogBlooms: Scalars['Boolean']['input'];
+  validPastLogs: Scalars['Boolean']['input'];
+};
+
+/** docs: hide */
+export type EvmNetworkConfig = NetworkConfigBase & {
+  __typename?: 'EvmNetworkConfig';
+  baseTokenAddress: Scalars['String']['output'];
+  baseTokenSymbol: Scalars['String']['output'];
+  color?: Maybe<Scalars['String']['output']>;
+  defaultPairAddress: Scalars['String']['output'];
+  defaultPairQuoteToken: QuoteToken;
+  enabled: Scalars['Boolean']['output'];
+  evmConfig: EvmConfig;
+  evmConstants: EvmConstants;
+  explorer: ExplorerConfig;
+  id: Scalars['ID']['output'];
+  mainnet: Scalars['Boolean']['output'];
+  name: Scalars['String']['output'];
+  networkIconUrl: Scalars['String']['output'];
+  networkId: Scalars['Int']['output'];
+  networkName: Scalars['String']['output'];
+  networkShortName: Scalars['String']['output'];
+  networkType: NetworkConfigType;
+  newTokensEnabled?: Maybe<Scalars['Boolean']['output']>;
+  pricing: Array<NetworkPriceConfig>;
+  rpcs: Array<EvmRpcConfig>;
+  stableCoinAddresses?: Maybe<Array<Scalars['String']['output']>>;
+  wrappedBaseTokenSymbol: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type EvmRpcConfig = {
+  __typename?: 'EvmRpcConfig';
+  archiveNode: Scalars['Boolean']['output'];
+  jwt?: Maybe<Scalars['String']['output']>;
+  public: Scalars['Boolean']['output'];
+  tracesEnabled: Scalars['Boolean']['output'];
+  url: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type EvmRpcConfigInput = {
+  archiveNode: Scalars['Boolean']['input'];
+  jwt?: InputMaybe<Scalars['String']['input']>;
+  public: Scalars['Boolean']['input'];
+  tracesEnabled: Scalars['Boolean']['input'];
+  url: Scalars['String']['input'];
+};
+
 /** Metadata for a decentralized exchange. */
 export type Exchange = {
   __typename?: 'Exchange';
@@ -1127,6 +1860,8 @@ export type Exchange = {
   address: Scalars['String']['output'];
   /** The hex string for the exchange color. */
   color?: Maybe<Scalars['String']['output']>;
+  /** docs: hide */
+  enabled?: Maybe<Scalars['Boolean']['output']>;
   /** The version of the exchange, if applicable. */
   exchangeVersion?: Maybe<Scalars['String']['output']>;
   /** The exchange logo URL. */
@@ -1223,6 +1958,13 @@ export type ExchangeFilters = {
   volumeUSD24?: InputMaybe<StringFilter>;
 };
 
+/** docs: hide */
+export type ExchangeIconUpdateUrlResponse = {
+  __typename?: 'ExchangeIconUpdateUrlResponse';
+  url?: Maybe<Scalars['String']['output']>;
+  viewUrl?: Maybe<Scalars['String']['output']>;
+};
+
 /** Input type of `ExchangeRanking`. */
 export type ExchangeRanking = {
   /** The attribute to rank exchanges by. */
@@ -1249,6 +1991,23 @@ export enum ExchangeRankingAttribute {
   VolumeUsd24 = 'volumeUSD24'
 }
 
+/** docs: hide */
+export type ExplorerConfig = {
+  __typename?: 'ExplorerConfig';
+  checksummed: Scalars['Boolean']['output'];
+  icon: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  url: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type ExplorerConfigInput = {
+  checksummed: Scalars['Boolean']['input'];
+  icon: Scalars['String']['input'];
+  name: Scalars['String']['input'];
+  url: Scalars['String']['input'];
+};
+
 /** Third party token data sourced from off chain. */
 export type ExplorerTokenData = {
   __typename?: 'ExplorerTokenData';
@@ -1265,6 +2024,27 @@ export type ExplorerTokenData = {
   /** The token type. */
   tokenType?: Maybe<Scalars['String']['output']>;
 };
+
+/** docs: hide */
+export type ExternalPriceConfig = {
+  __typename?: 'ExternalPriceConfig';
+  referenceToken: ExternalPrices;
+  tokenAddress: Scalars['String']['output'];
+  type: NetworkPriceType;
+};
+
+/** docs: hide */
+export enum ExternalPrices {
+  Busd = 'BUSD',
+  Dai = 'DAI',
+  Doge = 'DOGE',
+  Eth = 'ETH',
+  Frax = 'FRAX',
+  One = 'ONE',
+  Tusd = 'TUSD',
+  Usdc = 'USDC',
+  Usdt = 'USDT'
+}
 
 export type Feature = {
   __typename?: 'Feature';
@@ -1301,6 +2081,73 @@ export type FilterExchange = {
   networkId: Scalars['Int']['output'];
   /** The URL for the exchange's trading platform. */
   tradeUrl?: Maybe<Scalars['String']['output']>;
+};
+
+/** docs: hide */
+export type FilterNetworkWalletsInput = {
+  /** Exclude wallets with these labels. */
+  excludeLabels?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  /** A set of filters to apply. */
+  filters?: InputMaybe<WalletNetworkFilters>;
+  /** Include wallets with these labels. */
+  includeLabels?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  /** The maximum number of wallets to return. */
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  /** The network ID to filter wallets for */
+  networkId: Scalars['Int']['input'];
+  /** Where in the list the server should start when returning items. Use `count`+`offset` from the previous query to request the next page of results. */
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  /** A list of ranking attributes to apply. */
+  rankings?: InputMaybe<Array<InputMaybe<WalletNetworkRanking>>>;
+  /** A list of wallet addresses to filter by. */
+  wallets?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+};
+
+/** docs: hide */
+export type FilterTokenWalletsInput = {
+  /** Exclude wallets with these labels. */
+  excludeLabels?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  /**
+   * A set of filters to apply
+   * @deprecated Use filtersV2 instead
+   */
+  filters?: InputMaybe<WalletTokenFilters>;
+  /** A set of filters to apply */
+  filtersV2?: InputMaybe<WalletTokenFiltersV2>;
+  /** Include wallets with these labels. */
+  includeLabels?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  /** The maximum number of wallets to return */
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  /** The network ID to filter wallets for */
+  networkId?: InputMaybe<Scalars['Int']['input']>;
+  /** Where in the list the server should start when returning items */
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  /** A phrase to search for in token symbol and name */
+  phrase?: InputMaybe<Scalars['String']['input']>;
+  /** A list of ranking attributes to apply */
+  rankings?: InputMaybe<Array<InputMaybe<WalletTokenRanking>>>;
+  /** The ID of the token to filter wallets for */
+  tokenId?: InputMaybe<Scalars['String']['input']>;
+  /** The wallet address to filter wallets for */
+  walletAddress?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** docs: hide */
+export type FilterWalletsInput = {
+  /** Exclude wallets with these labels. */
+  excludeLabels?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  /** A set of filters to apply. */
+  filters?: InputMaybe<WalletFilters>;
+  /** Include wallets with these labels. */
+  includeLabels?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  /** The maximum number of wallets to return. */
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  /** Where in the list the server should start when returning items. Use `count`+`offset` from the previous query to request the next page of results. */
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  /** A list of ranking attributes to apply. */
+  rankings?: InputMaybe<Array<InputMaybe<WalletRanking>>>;
+  /** A list of wallet addresses to filter by. */
+  wallets?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
 };
 
 /** Metadata for a front-run label. */
@@ -1342,6 +2189,32 @@ export enum GasPrice {
   Medium = 'MEDIUM'
 }
 
+/** docs: hide */
+export type GenericWindowedWalletStats = {
+  __typename?: 'GenericWindowedWalletStats';
+  end: Scalars['Int']['output'];
+  lastTransactionAt: Scalars['Int']['output'];
+  start: Scalars['Int']['output'];
+  statsNonCurrency: WindowedDetailedNonCurrencyWalletStats;
+  statsUsd: WindowedDetailedCurrencyWalletStats;
+  walletAddress: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type GetBridgeQuoteInput = {
+  amount: Scalars['String']['input'];
+  fromAddress: Scalars['String']['input'];
+  fromNetwork: Scalars['Int']['input'];
+  toAddress: Scalars['String']['input'];
+  toNetwork: Scalars['Int']['input'];
+};
+
+/** docs: hide */
+export type GetBridgeRequestStatusInput = {
+  requestId?: InputMaybe<Scalars['String']['input']>;
+  transactionId: Scalars['String']['input'];
+};
+
 /** Input type of `getDetailedPairsStats`. */
 export type GetDetailedPairsStatsInput = {
   /** The number of aggregated values to receive. Note: Each duration has predetermined bucket sizes.<br>  The first n-1 buckets are historical. The last bucket is a snapshot of current data.<br> duration `day1`: 6 buckets (4 hours each) plus 1 partial bucket<br> duration `hour12`: 12 buckets (1 hour each) plus 1 partial bucket<br> duration `hour4`: 8 buckets (30 min each) plus 1 partial bucket<br> duration `hour1`: 12 buckets (5 min each) plus 1 partial bucket<br> duration `min5`: 5 buckets (1 min each) plus 1 partial bucket<br> For example, requesting 11 buckets for a `min5` duration will return the last 10 minutes worth of data plus a snapshot for the current minute. */
@@ -1362,6 +2235,7 @@ export type GetDetailedPairsStatsInput = {
 
 export type GetGasEstimateInput = {
   customGas?: InputMaybe<Scalars['String']['input']>;
+  direction: OrderDirection;
   exchangeAddress?: InputMaybe<Scalars['String']['input']>;
   gasPrice?: InputMaybe<GasPrice>;
   inputTokenAddress: Scalars['String']['input'];
@@ -1430,6 +2304,29 @@ export type GetNftPoolsResponse = {
   items: Array<Maybe<NftPoolResponse>>;
 };
 
+/** docs: hide */
+export type GetNftRankingsOutput = {
+  __typename?: 'GetNftRankingsOutput';
+  items: Array<Maybe<NftRankingsOutputItem>>;
+  limit: Scalars['Int']['output'];
+  offset: Scalars['Int']['output'];
+};
+
+/** docs: hide */
+export type GetOrdersInput = {
+  cursor?: InputMaybe<Scalars['String']['input']>;
+  filters?: InputMaybe<OrdersFilter>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+};
+
+/** docs: hide */
+export type GetPointsLeaderboardResponse = {
+  __typename?: 'GetPointsLeaderboardResponse';
+  items: Array<UserPointsLeaderboard>;
+  leaderboardType: PointsLeaderboardType;
+  pointsSeason: PointsSeason;
+};
+
 /** Input type of `getTokenPrices`. */
 export type GetPriceInput = {
   /** The contract address of the token. */
@@ -1449,6 +2346,7 @@ export type GetPriceInput = {
 
 export type GetQuoteInput = {
   customGas?: InputMaybe<Scalars['String']['input']>;
+  direction: OrderDirection;
   exchangeAddress?: InputMaybe<Scalars['String']['input']>;
   inputTokenAddress: Scalars['String']['input'];
   inputTokenAmount: Scalars['String']['input'];
@@ -1471,6 +2369,101 @@ export type GetTokensInfoInput = {
   address: Scalars['String']['input'];
   /** The network ID the token is deployed on. */
   networkId: Scalars['Int']['input'];
+};
+
+/** docs: hide */
+export type GetUserAchievementsResponse = {
+  __typename?: 'GetUserAchievementsResponse';
+  badges: Array<UserAchievement>;
+  pointsSeason: PointsSeason;
+  quests: Array<UserQuest>;
+  userId: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type GetUserContractListItemInput = {
+  listId?: InputMaybe<Scalars['String']['input']>;
+  sortKey: Scalars['String']['input'];
+};
+
+/** docs: hide */
+export type GetUserContractListItemsInput = {
+  cursor?: InputMaybe<Scalars['String']['input']>;
+  /** @deprecated hardcoded to 30 */
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  listId: Scalars['String']['input'];
+};
+
+/** docs: hide */
+export type GetUserContractListsInput = {
+  cursor?: InputMaybe<Scalars['String']['input']>;
+  /** @deprecated hardcoded to 30 */
+  limit?: InputMaybe<Scalars['Int']['input']>;
+};
+
+/** docs: hide */
+export type GetUserPointEventsResponse = {
+  __typename?: 'GetUserPointEventsResponse';
+  /** The cursor for use in pagination. */
+  cursor?: Maybe<Scalars['String']['output']>;
+  /** The list of point events. */
+  items: Array<PointEvent>;
+};
+
+/** docs: hide */
+export type GetUserPointsResponse = {
+  __typename?: 'GetUserPointsResponse';
+  level: Scalars['Int']['output'];
+  levelTier: LevelTier;
+  points: Scalars['Int']['output'];
+  pointsSeason: PointsSeason;
+  pointsTotal: Scalars['Int']['output'];
+  rank?: Maybe<Scalars['Int']['output']>;
+  tradeStats: UserPointsLeaderboardStats;
+  userId: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type GetUserPointsResponsePointsData = {
+  __typename?: 'GetUserPointsResponsePointsData';
+  ALL?: Maybe<Scalars['Float']['output']>;
+  DAILY?: Maybe<Scalars['Float']['output']>;
+  PNL_PERCENT?: Maybe<Scalars['Float']['output']>;
+  PNL_USD?: Maybe<Scalars['String']['output']>;
+  QUEST?: Maybe<Scalars['Float']['output']>;
+  VOLUME_USD?: Maybe<Scalars['String']['output']>;
+};
+
+/** docs: hide */
+export type GetUserPointsResponseRankData = {
+  __typename?: 'GetUserPointsResponseRankData';
+  ALL?: Maybe<Scalars['Float']['output']>;
+  DAILY?: Maybe<Scalars['Float']['output']>;
+  PNL_PERCENT?: Maybe<Scalars['Float']['output']>;
+  PNL_USD?: Maybe<Scalars['Float']['output']>;
+  QUEST?: Maybe<Scalars['Float']['output']>;
+  VOLUME_USD?: Maybe<Scalars['Float']['output']>;
+};
+
+/** docs: hide */
+export type GetUserPointsResponseV2 = {
+  __typename?: 'GetUserPointsResponseV2';
+  level: Scalars['Int']['output'];
+  levelTier: LevelTier;
+  points: Scalars['Int']['output'];
+  pointsSeason: PointsSeason;
+  pointsTotal: Scalars['Int']['output'];
+  rank?: Maybe<Scalars['Int']['output']>;
+  tradeStats: UserPointsLeaderboardStats;
+  userId: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type GetUserReferralEventsResponse = {
+  __typename?: 'GetUserReferralEventsResponse';
+  cursor?: Maybe<Scalars['String']['output']>;
+  events?: Maybe<Array<Maybe<ReferralsEventModel>>>;
+  referrerUserId: Scalars['String']['output'];
 };
 
 /** Response returned by `getWebhooks`. */
@@ -1542,6 +2535,30 @@ export type HoldersUpdate = {
   tokenAddress: Scalars['String']['output'];
   /** The ID of the token (`tokenAddress:networkId`). */
   tokenId: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type HydrationResponse = {
+  __typename?: 'HydrationResponse';
+  hydrationId: Scalars['String']['output'];
+  queryExecutionId?: Maybe<Scalars['String']['output']>;
+  queryExecutionState?: Maybe<Scalars['String']['output']>;
+  status: HydrationStatus;
+};
+
+/** docs: hide */
+export enum HydrationStatus {
+  Failed = 'Failed',
+  Finished = 'Finished',
+  Queued = 'Queued',
+  Running = 'Running'
+}
+
+/** docs: hide */
+export type ImportUserContractListInput = {
+  icon?: InputMaybe<Scalars['String']['input']>;
+  title?: InputMaybe<Scalars['String']['input']>;
+  url: Scalars['String']['input'];
 };
 
 /** Bar chart data. */
@@ -1756,6 +2773,8 @@ export type LaunchpadData = {
   completedSlot?: Maybe<Scalars['Int']['output']>;
   /** The percentage of the pool that was sold to the public. */
   graduationPercent?: Maybe<Scalars['Float']['output']>;
+  /** The launchpad protocol */
+  launchpadProtocol?: Maybe<Scalars['String']['output']>;
   /** Indicates if the launchpad was migrated. */
   migrated?: Maybe<Scalars['Boolean']['output']>;
   /** The unix timestamp when the launchpad was migrated. */
@@ -1764,6 +2783,8 @@ export type LaunchpadData = {
   migratedPoolAddress?: Maybe<Scalars['String']['output']>;
   /** The slot number when the launchpad was migrated. */
   migratedSlot?: Maybe<Scalars['Int']['output']>;
+  /** The name of the launchpad. */
+  name?: Maybe<Scalars['String']['output']>;
   /** The address of the pool. */
   poolAddress?: Maybe<Scalars['String']['output']>;
 };
@@ -1775,6 +2796,12 @@ export type LaunchpadTokenEventOutput = {
   address: Scalars['String']['output'];
   /** The number of buys in the last 24 hours. */
   buyCount1?: Maybe<Scalars['Int']['output']>;
+  /** docs: hide */
+  devBurnt?: Maybe<Scalars['Boolean']['output']>;
+  /** docs: hide */
+  devSold?: Maybe<Scalars['Boolean']['output']>;
+  /** docs: hide */
+  devSoldAll?: Maybe<Scalars['Boolean']['output']>;
   /** The type of event. */
   eventType: LaunchpadTokenEventType;
   /** The number of holders. */
@@ -1799,16 +2826,49 @@ export type LaunchpadTokenEventOutput = {
 
 /** The type of event. Note that associated statistics such as `buyCount1`, `price`, etc. are only available for `Updated` events. */
 export enum LaunchpadTokenEventType {
+  /** The token has been completed */
   Completed = 'Completed',
+  /** The token has been created with metadata */
   Created = 'Created',
+  /** The token has been discovered */
+  Deployed = 'Deployed',
+  /** The token has been migrated */
   Migrated = 'Migrated',
+  /** The token's statistics have been updated */
   Updated = 'Updated'
 }
 
 /** The protocol of the token. */
 export enum LaunchpadTokenProtocol {
   FourMeme = 'FourMeme',
-  Pump = 'Pump'
+  Pump = 'Pump',
+  RaydiumLaunchpad = 'RaydiumLaunchpad'
+}
+
+/** docs: hide */
+export enum LevelTier {
+  Bronze = 'BRONZE',
+  Diamond = 'DIAMOND',
+  Emerald = 'EMERALD',
+  Gold = 'GOLD',
+  Iron = 'IRON',
+  Platinum = 'PLATINUM',
+  Ruby = 'RUBY',
+  Silver = 'SILVER'
+}
+
+/** docs: hide */
+export enum LimitTriggerDirection {
+  Gt = 'GT',
+  Gte = 'GTE',
+  Lt = 'LT',
+  Lte = 'LTE'
+}
+
+/** docs: hide */
+export enum LimitTriggerType {
+  Marketcap = 'MARKETCAP',
+  Price = 'PRICE'
 }
 
 export type LiquidityData = {
@@ -1897,6 +2957,12 @@ export enum LiquidityProtocol {
   UseLiquidityProtocolV2 = 'USE_LIQUIDITY_PROTOCOL_V2'
 }
 
+/** docs: hide */
+export type ListChartLayoutResponse = {
+  __typename?: 'ListChartLayoutResponse';
+  items?: Maybe<Array<Maybe<ChartLayout>>>;
+};
+
 /** Response returned by `listPairsWithMetadataForToken`. */
 export type ListPairsForTokenResponse = {
   __typename?: 'ListPairsForTokenResponse';
@@ -1921,6 +2987,13 @@ export type ListPairsForTokenValue = {
   token: EnhancedToken;
   /** The volume for the pair in USD. */
   volume: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type ListTopProposalStatsInput = {
+  includeAdmin?: InputMaybe<Scalars['Boolean']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  sortColumn?: InputMaybe<ContractProposalStatsSortColumn>;
 };
 
 /** Breakdown of how much and where liquidity is locked. */
@@ -1974,6 +3047,15 @@ export type MakerEventsQueryInput = {
   tokenAddress?: InputMaybe<Scalars['String']['input']>;
 };
 
+/** docs: hide */
+export type MappedPriceConfig = {
+  __typename?: 'MappedPriceConfig';
+  referenceNetworkId: Scalars['Int']['output'];
+  referenceTokenAddress: Scalars['String']['output'];
+  tokenAddress: Scalars['String']['output'];
+  type: NetworkPriceType;
+};
+
 /** The status for a network supported on Defined. */
 export type MetadataResponse = {
   __typename?: 'MetadataResponse';
@@ -2018,16 +3100,227 @@ export type MintEventData = {
   type: EventType;
 };
 
+/** docs: hide */
+export type ModerateProposalInput = {
+  address: Scalars['String']['input'];
+  networkId: Scalars['Int']['input'];
+  proposalNum: Scalars['Int']['input'];
+  proposedAt: Scalars['Int']['input'];
+  proposedBy: Scalars['String']['input'];
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
+  /** docs: hide */
+  acceptProposal?: Maybe<Proposal>;
+  /** docs: hide */
+  addBetaUser: Scalars['String']['output'];
+  /** docs: hide */
+  addUserAchievement: UserAchievement;
+  /** docs: hide */
+  backfillHolders: BackfillHoldersResponse;
+  /** docs: hide */
+  backfillWallet: BackfillWalletResponse;
+  /** docs: hide */
+  backfillWalletAggregates: WalletAggregateBackfillStateResponse;
+  /** docs: hide */
+  banUser?: Maybe<User>;
+  /** docs: hide */
+  botUserLogin?: Maybe<ScarabUser>;
+  /** docs: hide */
+  cancelOrder: Scalars['Int']['output'];
   /** Create a new set of short-lived api access tokens */
   createApiTokens: Array<ApiToken>;
+  /**
+   * docs: hide
+   * @deprecated use SaveChartLayout instead
+   */
+  createChartLayout?: Maybe<ChartLayout>;
+  /** docs: hide */
+  createDecoding: DecodingStatus;
+  /** docs: hide */
+  createLimitOrder: Order;
+  /** docs: hide */
+  createMarketOrder: Order;
+  /** docs: hide */
+  createNetworkConfig: NetworkConfig;
+  /** docs: hide */
+  createNotableWallet: NotableWallet;
+  /** docs: hide */
+  createProposals?: Maybe<Array<Maybe<CreateProposalResponse>>>;
+  /** docs: hide */
+  createScarabStrategy: Strategy;
+  /** docs: hide */
+  createTrackedWallets: Array<Maybe<TrackedWallet>>;
+  /** docs: hide */
+  createTurnkeySession: SessionKey;
+  /** docs: hide */
+  createTurnkeySignerKey: SignerKey;
+  /** docs: hide */
+  createUserContractList?: Maybe<UserContractList>;
+  /** docs: hide */
+  createUserContractListItem?: Maybe<UserContractListItem>;
+  /** docs: hide */
+  createWallet: ScarabWallet;
+  /** docs: hide */
+  createWalletSuborg: CreateWalletSuborgResponse;
   /** Create price, raw transaction, token/pair event, and NFT event webhooks. */
   createWebhooks: CreateWebhooksOutput;
+  /** docs: hide */
+  definedUserLinkWallet?: Maybe<DefinedUser>;
+  /** docs: hide */
+  definedUserLogin?: Maybe<DefinedUser>;
   /** Delete a single short-lived api access token by id */
   deleteApiToken: Scalars['String']['output'];
+  /**
+   * docs: hide
+   * @deprecated unused (users cannot delete layouts)
+   */
+  deleteChartLayout?: Maybe<ChartLayout>;
+  /** docs: hide */
+  deleteDefinedUser: Scalars['Boolean']['output'];
+  /** docs: hide */
+  deleteNotableWallet: Scalars['Boolean']['output'];
+  /** docs: hide */
+  deleteScarabStrategy: Scalars['Boolean']['output'];
+  /** docs: hide */
+  deleteTrackedWallets: Array<Maybe<Scalars['String']['output']>>;
+  /** docs: hide */
+  deleteTurnkeySignerKey: Scalars['Int']['output'];
+  /** docs: hide */
+  deleteUserContractList?: Maybe<DeleteUserContractListResponse>;
+  /** docs: hide */
+  deleteUserContractListItem?: Maybe<DeleteUserContractListItemResponse>;
   /** Delete multiple webhooks. */
   deleteWebhooks?: Maybe<DeleteWebhooksOutput>;
+  /** docs: hide */
+  exportWallet: Scalars['String']['output'];
+  /** docs: hide */
+  getExchangeIconUpdateUrl?: Maybe<ExchangeIconUpdateUrlResponse>;
+  /** docs: hide */
+  getTokenIconUpdateUrl?: Maybe<TokenIconUpdateUrlResponse>;
+  /** docs: hide */
+  hidePortfolioToken: Scalars['String']['output'];
+  /** docs: hide */
+  importPrivateKey: ScarabWallet;
+  /** docs: hide */
+  importUserContractList?: Maybe<Scalars['Void']['output']>;
+  /** docs: hide */
+  initPrivateKeyImport: Scalars['String']['output'];
+  /** docs: hide */
+  linkReferralUserToReferrer?: Maybe<UserModel>;
+  /** docs: hide */
+  migrateTrackedWallets: MigrateTrackedWalletsOutput;
+  /** docs: hide */
+  payoutUserReferralRewards?: Maybe<PayoutUserReferralRewardsResponse>;
+  /** docs: hide */
+  refreshBalances: Array<Balance>;
+  /** docs: hide */
+  refreshHolderCount: Scalars['Int']['output'];
+  /** docs: hide */
+  refreshNftMetadata?: Maybe<RefreshNftMetadataResponse>;
+  /** docs: hide */
+  refreshToken?: Maybe<AuthenticationResponse>;
+  /** docs: hide */
+  rejectProposal?: Maybe<Proposal>;
+  /** docs: hide */
+  removeBetaUser: Scalars['String']['output'];
+  /** docs: hide */
+  removeUserAchievement: Scalars['Boolean']['output'];
+  /** docs: hide */
+  resetTurnkeySignerKey: Scalars['Int']['output'];
+  /** docs: hide */
+  revokeToken?: Maybe<RevokeTokenResponse>;
+  /** docs: hide */
+  saveChartDrawings?: Maybe<ChartDrawingsRecord>;
+  /** docs: hide */
+  saveChartLayout?: Maybe<ChartLayout>;
+  /** docs: hide */
+  setTurnkeySignerKey: Scalars['Int']['output'];
+  /** docs: hide */
+  setTurnkeyUserEmail?: Maybe<Scalars['Void']['output']>;
+  /** docs: hide */
+  setUserTrackedWalletSettings: UserTrackedWalletSettings;
+  /** docs: hide */
+  simulateTokenContract?: Maybe<SimulateTokenContractResponse>;
+  /** docs: hide */
+  startTurnkeyEmailRecovery?: Maybe<Scalars['Void']['output']>;
+  /** docs: hide */
+  unbanUser?: Maybe<User>;
+  /** docs: hide */
+  unhidePortfolioToken: Scalars['String']['output'];
+  /**
+   * docs: hide
+   * @deprecated use SaveChartLayout instead (which creates if not found)
+   */
+  updateChartLayout?: Maybe<ChartLayout>;
+  /** docs: hide */
+  updateExchange?: Maybe<Exchange>;
+  /** docs: hide */
+  updateFeature?: Maybe<Feature>;
+  /** docs: hide */
+  updateNetworkConfig: NetworkConfig;
+  /** docs: hide */
+  updateScarabStrategy: Strategy;
+  /** docs: hide */
+  updateTrackedWallets: Array<Maybe<TrackedWallet>>;
+  /** docs: hide */
+  updateUserContractList?: Maybe<UserContractList>;
+  /** docs: hide */
+  updateUserNonce?: Maybe<UserModel>;
+  /** docs: hide */
+  updateUserReferralCode?: Maybe<UpdateUserReferralCodeResponse>;
+  /** docs: hide */
+  updateWalletLabel?: Maybe<ScarabWallet>;
+  /** docs: hide */
+  userConnectScarab?: Maybe<ScarabUser>;
+  /** docs: hide */
+  userLogin?: Maybe<AuthenticationResponse>;
+};
+
+
+export type MutationAcceptProposalArgs = {
+  input?: InputMaybe<ModerateProposalInput>;
+};
+
+
+export type MutationAddBetaUserArgs = {
+  address: Scalars['String']['input'];
+};
+
+
+export type MutationAddUserAchievementArgs = {
+  payload: AddUserAchievementInput;
+};
+
+
+export type MutationBackfillHoldersArgs = {
+  input: BackfillHoldersInput;
+};
+
+
+export type MutationBackfillWalletArgs = {
+  input: BackfillWalletInput;
+};
+
+
+export type MutationBackfillWalletAggregatesArgs = {
+  input: WalletAggregateBackfillInput;
+};
+
+
+export type MutationBanUserArgs = {
+  input?: InputMaybe<BanUserInput>;
+};
+
+
+export type MutationBotUserLoginArgs = {
+  verificationToken: Scalars['String']['input'];
+};
+
+
+export type MutationCancelOrderArgs = {
+  orderId: Scalars['Int']['input'];
 };
 
 
@@ -2036,8 +3329,78 @@ export type MutationCreateApiTokensArgs = {
 };
 
 
+export type MutationCreateChartLayoutArgs = {
+  input?: InputMaybe<NewChartLayoutInput>;
+};
+
+
+export type MutationCreateDecodingArgs = {
+  input: CreateDecodingInput;
+};
+
+
+export type MutationCreateLimitOrderArgs = {
+  input: CreateLimitOrderInput;
+};
+
+
+export type MutationCreateMarketOrderArgs = {
+  input: CreateMarketOrderInput;
+};
+
+
+export type MutationCreateNetworkConfigArgs = {
+  input: CreateNetworkConfigInput;
+};
+
+
+export type MutationCreateNotableWalletArgs = {
+  input: CreateNotableWalletInput;
+};
+
+
+export type MutationCreateProposalsArgs = {
+  input: CreateProposalsInput;
+};
+
+
+export type MutationCreateScarabStrategyArgs = {
+  input: CreateStrategyInput;
+};
+
+
+export type MutationCreateTrackedWalletsArgs = {
+  input: CreateTrackedWalletsInput;
+};
+
+
+export type MutationCreateUserContractListArgs = {
+  input?: InputMaybe<CreateUserContractListInput>;
+};
+
+
+export type MutationCreateUserContractListItemArgs = {
+  input?: InputMaybe<CreateUserContractListItemInput>;
+};
+
+
+export type MutationCreateWalletArgs = {
+  payload: CreateWalletInput;
+};
+
+
+export type MutationCreateWalletSuborgArgs = {
+  payload: CreateWalletSuborgInput;
+};
+
+
 export type MutationCreateWebhooksArgs = {
   input: CreateWebhooksInput;
+};
+
+
+export type MutationDefinedUserLinkWalletArgs = {
+  walletAddress: Scalars['String']['input'];
 };
 
 
@@ -2046,8 +3409,250 @@ export type MutationDeleteApiTokenArgs = {
 };
 
 
+export type MutationDeleteChartLayoutArgs = {
+  input?: InputMaybe<DeleteChartLayoutInput>;
+};
+
+
+export type MutationDeleteNotableWalletArgs = {
+  walletAddress: Scalars['String']['input'];
+};
+
+
+export type MutationDeleteScarabStrategyArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
+export type MutationDeleteTrackedWalletsArgs = {
+  input: DeleteTrackedWalletsInput;
+};
+
+
+export type MutationDeleteUserContractListArgs = {
+  input?: InputMaybe<DeleteUserContractListInput>;
+};
+
+
+export type MutationDeleteUserContractListItemArgs = {
+  input?: InputMaybe<DeleteUserContractListItemInput>;
+};
+
+
 export type MutationDeleteWebhooksArgs = {
   input: DeleteWebhooksInput;
+};
+
+
+export type MutationExportWalletArgs = {
+  payload: SignedRequest;
+};
+
+
+export type MutationGetExchangeIconUpdateUrlArgs = {
+  id: Scalars['String']['input'];
+};
+
+
+export type MutationGetTokenIconUpdateUrlArgs = {
+  id: Scalars['String']['input'];
+};
+
+
+export type MutationHidePortfolioTokenArgs = {
+  tokenId: Scalars['String']['input'];
+};
+
+
+export type MutationImportPrivateKeyArgs = {
+  payload: PrivateKeyInput;
+};
+
+
+export type MutationImportUserContractListArgs = {
+  input: ImportUserContractListInput;
+};
+
+
+export type MutationInitPrivateKeyImportArgs = {
+  payload: SignedRequest;
+};
+
+
+export type MutationLinkReferralUserToReferrerArgs = {
+  referralCode: Scalars['String']['input'];
+  referralUserId: Scalars['String']['input'];
+};
+
+
+export type MutationMigrateTrackedWalletsArgs = {
+  input: MigrateTrackedWalletsInput;
+};
+
+
+export type MutationPayoutUserReferralRewardsArgs = {
+  userIds: Array<Scalars['String']['input']>;
+};
+
+
+export type MutationRefreshBalancesArgs = {
+  input: Array<RefreshBalancesInput>;
+};
+
+
+export type MutationRefreshHolderCountArgs = {
+  input: RefreshHolderCountInput;
+};
+
+
+export type MutationRefreshNftMetadataArgs = {
+  input?: InputMaybe<RefreshNftMetadataInput>;
+};
+
+
+export type MutationRefreshTokenArgs = {
+  refreshToken: Scalars['String']['input'];
+};
+
+
+export type MutationRejectProposalArgs = {
+  input?: InputMaybe<ModerateProposalInput>;
+};
+
+
+export type MutationRemoveBetaUserArgs = {
+  address: Scalars['String']['input'];
+};
+
+
+export type MutationRemoveUserAchievementArgs = {
+  payload: RemoveUserAchievementInput;
+};
+
+
+export type MutationResetTurnkeySignerKeyArgs = {
+  payload: ResetSignerKeyInput;
+  sessionMetadata?: InputMaybe<SessionMetadata>;
+};
+
+
+export type MutationRevokeTokenArgs = {
+  refreshToken: Scalars['String']['input'];
+};
+
+
+export type MutationSaveChartDrawingsArgs = {
+  input: SaveChartDrawingsInput;
+};
+
+
+export type MutationSaveChartLayoutArgs = {
+  input: ChartLayoutInput;
+};
+
+
+export type MutationSetTurnkeySignerKeyArgs = {
+  payload: SignerKeyInput;
+  sessionMetadata?: InputMaybe<SessionMetadata>;
+};
+
+
+export type MutationSetTurnkeyUserEmailArgs = {
+  id: Scalars['String']['input'];
+  payload: TurnkeyUserEmailInput;
+};
+
+
+export type MutationSetUserTrackedWalletSettingsArgs = {
+  input: UserTrackedWalletSettingsInput;
+};
+
+
+export type MutationSimulateTokenContractArgs = {
+  input: SimulateTokenContractInput;
+};
+
+
+export type MutationStartTurnkeyEmailRecoveryArgs = {
+  payload: TurnkeyEmailRecoveryInput;
+};
+
+
+export type MutationUnbanUserArgs = {
+  id: Scalars['String']['input'];
+};
+
+
+export type MutationUnhidePortfolioTokenArgs = {
+  tokenId: Scalars['String']['input'];
+};
+
+
+export type MutationUpdateChartLayoutArgs = {
+  input?: InputMaybe<UpdateChartLayoutInput>;
+};
+
+
+export type MutationUpdateExchangeArgs = {
+  id: Scalars['String']['input'];
+  input: UpdateExchangeInput;
+};
+
+
+export type MutationUpdateFeatureArgs = {
+  input: UpdateFeatureInput;
+};
+
+
+export type MutationUpdateNetworkConfigArgs = {
+  id: Scalars['ID']['input'];
+  input: UpdateNetworkConfigInput;
+};
+
+
+export type MutationUpdateScarabStrategyArgs = {
+  id: Scalars['Int']['input'];
+  input: UpdateStrategyInput;
+};
+
+
+export type MutationUpdateTrackedWalletsArgs = {
+  input: UpdateTrackedWalletsInput;
+};
+
+
+export type MutationUpdateUserContractListArgs = {
+  input?: InputMaybe<UpdateUserContractListInput>;
+};
+
+
+export type MutationUpdateUserNonceArgs = {
+  publicWalletAddress?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationUpdateUserReferralCodeArgs = {
+  newReferralCode: Scalars['String']['input'];
+  userId: Scalars['String']['input'];
+};
+
+
+export type MutationUpdateWalletLabelArgs = {
+  label: Scalars['String']['input'];
+  walletId: Scalars['Int']['input'];
+};
+
+
+export type MutationUserConnectScarabArgs = {
+  message: Scalars['String']['input'];
+  signature: Scalars['String']['input'];
+};
+
+
+export type MutationUserLoginArgs = {
+  message: Scalars['String']['input'];
+  referralCode?: InputMaybe<Scalars['String']['input']>;
+  signature: Scalars['String']['input'];
 };
 
 /** A network supported on Defined. */
@@ -2058,6 +3663,219 @@ export type Network = {
   /** The name of the network. For example, `arbitrum`. */
   name: Scalars['String']['output'];
   networkShortName?: Maybe<Scalars['String']['output']>;
+};
+
+/** docs: hide */
+export type NetworkBreakdown = {
+  __typename?: 'NetworkBreakdown';
+  nativeTokenBalance: Scalars['String']['output'];
+  networkId: Scalars['Int']['output'];
+  statsDay1?: Maybe<WindowedWalletStats>;
+  statsDay30?: Maybe<WindowedWalletStats>;
+  statsWeek1?: Maybe<WindowedWalletStats>;
+  statsYear1?: Maybe<WindowedWalletStats>;
+};
+
+/** docs: hide */
+export type NetworkConfig = AptosNetworkConfig | EvmNetworkConfig | SolanaNetworkConfig | StarknetNetworkConfig | SuiNetworkConfig;
+
+/** docs: hide */
+export type NetworkConfigBase = {
+  baseTokenAddress: Scalars['String']['output'];
+  baseTokenSymbol: Scalars['String']['output'];
+  color?: Maybe<Scalars['String']['output']>;
+  defaultPairAddress: Scalars['String']['output'];
+  defaultPairQuoteToken: QuoteToken;
+  enabled: Scalars['Boolean']['output'];
+  explorer: ExplorerConfig;
+  id: Scalars['ID']['output'];
+  mainnet: Scalars['Boolean']['output'];
+  name: Scalars['String']['output'];
+  networkIconUrl: Scalars['String']['output'];
+  networkId: Scalars['Int']['output'];
+  networkName: Scalars['String']['output'];
+  networkShortName: Scalars['String']['output'];
+  networkType: NetworkConfigType;
+  newTokensEnabled?: Maybe<Scalars['Boolean']['output']>;
+  pricing: Array<NetworkPriceConfig>;
+  stableCoinAddresses?: Maybe<Array<Scalars['String']['output']>>;
+  wrappedBaseTokenSymbol: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export enum NetworkConfigType {
+  Aptos = 'APTOS',
+  Evm = 'EVM',
+  Solana = 'SOLANA',
+  Starknet = 'STARKNET',
+  Sui = 'SUI'
+}
+
+/** docs: hide */
+export enum NetworkOrderBy {
+  Liquidity = 'LIQUIDITY',
+  Transactions = 'TRANSACTIONS',
+  Volume = 'VOLUME'
+}
+
+/** docs: hide */
+export type NetworkPriceConfig = ConstantPriceConfig | ExternalPriceConfig | MappedPriceConfig;
+
+/** docs: hide */
+export enum NetworkPriceType {
+  Constant = 'CONSTANT',
+  External = 'EXTERNAL',
+  Mapped = 'MAPPED'
+}
+
+/** docs: hide */
+export enum NetworkType {
+  Ethereum = 'ETHEREUM',
+  Solana = 'SOLANA',
+  Starknet = 'STARKNET',
+  Tron = 'TRON'
+}
+
+/** docs: hide */
+export type NetworkWalletFilterConnection = {
+  __typename?: 'NetworkWalletFilterConnection';
+  /** The number of wallets returned. */
+  count: Scalars['Int']['output'];
+  /** Where in the list the server started when returning items. */
+  offset: Scalars['Int']['output'];
+  /** The list of wallets matching the filter parameters. */
+  results: Array<NetworkWalletFilterResult>;
+};
+
+/** docs: hide */
+export type NetworkWalletFilterResult = {
+  __typename?: 'NetworkWalletFilterResult';
+  /** The wallet address */
+  address: Scalars['String']['output'];
+  /** Average profit in USD per trade in the past day */
+  averageProfitUsdPerTrade1d: Scalars['String']['output'];
+  /** Average profit in USD per trade in the past week */
+  averageProfitUsdPerTrade1w: Scalars['String']['output'];
+  /** Average profit in USD per trade in the past year */
+  averageProfitUsdPerTrade1y: Scalars['String']['output'];
+  /** Average profit in USD per trade in the past 30 days */
+  averageProfitUsdPerTrade30d: Scalars['String']['output'];
+  /** Average swap amount in USD in the past day */
+  averageSwapAmountUsd1d: Scalars['String']['output'];
+  /** Average swap amount in USD in the past week */
+  averageSwapAmountUsd1w: Scalars['String']['output'];
+  /** Average swap amount in USD in the past year */
+  averageSwapAmountUsd1y: Scalars['String']['output'];
+  /** Average swap amount in USD in the past 30 days */
+  averageSwapAmountUsd30d: Scalars['String']['output'];
+  /** The unix timestamp for the first transaction from this wallet */
+  firstTransactionAt?: Maybe<Scalars['Int']['output']>;
+  /** The labels associated with the wallet */
+  labels: Array<Scalars['String']['output']>;
+  /** The unix timestamp for the last transaction from this wallet */
+  lastTransactionAt: Scalars['Int']['output'];
+  /** The native token balance of the wallet */
+  nativeTokenBalance: Scalars['String']['output'];
+  /** The network ID of the wallet */
+  networkId: Scalars['Int']['output'];
+  /** Realized profit percentage in the past day */
+  realizedProfitPercentage1d: Scalars['Float']['output'];
+  /** Realized profit percentage in the past week */
+  realizedProfitPercentage1w: Scalars['Float']['output'];
+  /** Realized profit percentage in the past year */
+  realizedProfitPercentage1y: Scalars['Float']['output'];
+  /** Realized profit percentage in the past 30 days */
+  realizedProfitPercentage30d: Scalars['Float']['output'];
+  /** Realized profit in USD in the past day */
+  realizedProfitUsd1d: Scalars['String']['output'];
+  /** Realized profit in USD in the past week */
+  realizedProfitUsd1w: Scalars['String']['output'];
+  /** Realized profit in USD in the past year */
+  realizedProfitUsd1y: Scalars['String']['output'];
+  /** Realized profit in USD in the past 30 days */
+  realizedProfitUsd30d: Scalars['String']['output'];
+  /** The scammer score for the wallet. */
+  scammerScore?: Maybe<Scalars['Int']['output']>;
+  /** Number of swaps in the past day */
+  swaps1d: Scalars['Int']['output'];
+  /** Number of swaps in the past week */
+  swaps1w: Scalars['Int']['output'];
+  /** Number of swaps in the past year */
+  swaps1y: Scalars['Int']['output'];
+  /** Number of swaps in the past 30 days */
+  swaps30d: Scalars['Int']['output'];
+  /** Total number of swaps in the past day including all tokens */
+  swapsAll1d: Scalars['Int']['output'];
+  /** Total number of swaps in the past week including all tokens */
+  swapsAll1w: Scalars['Int']['output'];
+  /** Total number of swaps in the past year including all tokens */
+  swapsAll1y: Scalars['Int']['output'];
+  /** Total number of swaps in the past 30 days including all tokens */
+  swapsAll30d: Scalars['Int']['output'];
+  /** Number of unique tokens traded in the past day */
+  uniqueTokens1d: Scalars['Int']['output'];
+  /** Number of unique tokens traded in the past week */
+  uniqueTokens1w: Scalars['Int']['output'];
+  /** Number of unique tokens traded in the past year */
+  uniqueTokens1y: Scalars['Int']['output'];
+  /** Number of unique tokens traded in the past 30 days */
+  uniqueTokens30d: Scalars['Int']['output'];
+  /** Volume in USD in the past day */
+  volumeUsd1d: Scalars['String']['output'];
+  /** Volume in USD in the past week */
+  volumeUsd1w: Scalars['String']['output'];
+  /** Volume in USD in the past year */
+  volumeUsd1y: Scalars['String']['output'];
+  /** Volume in USD in the past 30 days */
+  volumeUsd30d: Scalars['String']['output'];
+  /** Total volume in USD in the past day including all tokens */
+  volumeUsdAll1d: Scalars['String']['output'];
+  /** Total volume in USD in the past week including all tokens */
+  volumeUsdAll1w: Scalars['String']['output'];
+  /** Total volume in USD in the past year including all tokens */
+  volumeUsdAll1y: Scalars['String']['output'];
+  /** Total volume in USD in the past 30 days including all tokens */
+  volumeUsdAll30d: Scalars['String']['output'];
+  /** Win rate in the past day */
+  winRate1d: Scalars['Float']['output'];
+  /** Win rate in the past week */
+  winRate1w: Scalars['Float']['output'];
+  /** Win rate in the past year */
+  winRate1y: Scalars['Float']['output'];
+  /** Win rate in the past 30 days */
+  winRate30d: Scalars['Float']['output'];
+};
+
+/** docs: hide */
+export type NetworkWalletStats = {
+  __typename?: 'NetworkWalletStats';
+  nativeTokenBalance: Scalars['String']['output'];
+  networkId: Scalars['Int']['output'];
+};
+
+/** docs: hide */
+export type NewChartLayoutInput = {
+  content: Scalars['String']['input'];
+  name: Scalars['String']['input'];
+  resolution: Scalars['String']['input'];
+  symbol: Scalars['String']['input'];
+};
+
+/** docs: hide */
+export type NewDeviceMetadataType = {
+  __typename?: 'NewDeviceMetadataType';
+  DeviceGroupKey?: Maybe<Scalars['String']['output']>;
+  DeviceKey?: Maybe<Scalars['String']['output']>;
+};
+
+/** docs: hide */
+export type NewPolicy = {
+  __typename?: 'NewPolicy';
+  condition?: Maybe<Scalars['String']['output']>;
+  consensus?: Maybe<Scalars['String']['output']>;
+  effect: Scalars['String']['output'];
+  notes?: Maybe<Scalars['String']['output']>;
+  policyName: Scalars['String']['output'];
 };
 
 /** Event data for creating a new NFT pool. */
@@ -2154,6 +3972,15 @@ export type NewPoolEventDataV2 = {
   type: NftPoolEventType;
   /** The ratio of the transaction token to USD. */
   usdRatio: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type NewProposalInput = {
+  address: Scalars['String']['input'];
+  contractType: ContractType;
+  networkId: Scalars['Int']['input'];
+  proposalData: Scalars['JSON']['input'];
+  proposalType: ContractProposalType;
 };
 
 /** An NFT asset. */
@@ -3055,6 +4882,54 @@ export enum NftCollectionsLeaderboardMetric {
   VolumeUsdGain = 'volumeUsdGain'
 }
 
+/** docs: hide */
+export type NftCollectionsLeaderboardModel = {
+  __typename?: 'NftCollectionsLeaderboardModel';
+  averageBase: Scalars['String']['output'];
+  averageBaseGain: Scalars['Float']['output'];
+  averageBasePrev: Scalars['String']['output'];
+  averageUsd: Scalars['String']['output'];
+  averageUsdGain: Scalars['Float']['output'];
+  averageUsdPrev: Scalars['String']['output'];
+  buyers?: Maybe<Scalars['Int']['output']>;
+  buyersGain?: Maybe<Scalars['Float']['output']>;
+  buyersPrev?: Maybe<Scalars['Int']['output']>;
+  collectionAddress: Scalars['String']['output'];
+  duration: NftCollectionsLeaderboardDuration;
+  exchangeAddress: Scalars['String']['output'];
+  floorBase?: Maybe<Scalars['String']['output']>;
+  floorBaseGain?: Maybe<Scalars['Float']['output']>;
+  floorBasePrev?: Maybe<Scalars['String']['output']>;
+  floorUsd?: Maybe<Scalars['String']['output']>;
+  floorUsdGain?: Maybe<Scalars['Float']['output']>;
+  floorUsdPrev?: Maybe<Scalars['String']['output']>;
+  lastEvent: Scalars['Int']['output'];
+  minters?: Maybe<Scalars['Int']['output']>;
+  mintersGain?: Maybe<Scalars['Float']['output']>;
+  mintersPrev?: Maybe<Scalars['Int']['output']>;
+  mints: Scalars['Int']['output'];
+  mintsGain: Scalars['Float']['output'];
+  mintsPrev: Scalars['Int']['output'];
+  networkId: Scalars['Int']['output'];
+  nftLeaderboardItemId: Scalars['String']['output'];
+  sales: Scalars['Int']['output'];
+  salesGain: Scalars['Float']['output'];
+  salesPrev: Scalars['Int']['output'];
+  sellers?: Maybe<Scalars['Int']['output']>;
+  sellersGain?: Maybe<Scalars['Float']['output']>;
+  sellersPrev?: Maybe<Scalars['Int']['output']>;
+  tokensSold: Scalars['String']['output'];
+  tokensSoldGain: Scalars['Float']['output'];
+  tokensSoldPrev: Scalars['String']['output'];
+  updatedAt: Scalars['Int']['output'];
+  volumeBase: Scalars['String']['output'];
+  volumeBaseGain: Scalars['Float']['output'];
+  volumeBasePrev: Scalars['String']['output'];
+  volumeUsd: Scalars['String']['output'];
+  volumeUsdGain: Scalars['Float']['output'];
+  volumeUsdPrev: Scalars['String']['output'];
+};
+
 /** Metadata for an NFT collection. */
 export type NftContract = {
   __typename?: 'NftContract';
@@ -3097,7 +4972,7 @@ export type NftContractInput = {
 };
 
 /** An NFT collection transaction. */
-export type NftEvent = {
+export type NftEvent = Trackable & {
   __typename?: 'NftEvent';
   /** The contract address of the marketplace aggregator that routed the transaction. */
   aggregatorAddress?: Maybe<Scalars['String']['output']>;
@@ -3109,6 +4984,11 @@ export type NftEvent = {
   blockNumber: Scalars['Int']['output'];
   /** The contract address of the NFT collection. */
   contractAddress: Scalars['String']['output'];
+  /**
+   * docs: hide
+   * @deprecated Field no longer supported
+   */
+  data: NftEventData;
   /** The event type of the transaction. */
   eventType: Scalars['String']['output'];
   /** The NFT marketplace address of the transaction. */
@@ -3175,6 +5055,18 @@ export type NftEvent = {
   transactionHash: Scalars['String']['output'];
   /** The index of the transaction within the block. */
   transactionIndex: Scalars['Int']['output'];
+};
+
+/** docs: hide */
+export type NftEventData = {
+  __typename?: 'NftEventData';
+  buyHash?: Maybe<Scalars['String']['output']>;
+  maker?: Maybe<Scalars['String']['output']>;
+  metadata?: Maybe<Scalars['String']['output']>;
+  price?: Maybe<Scalars['String']['output']>;
+  sellHash?: Maybe<Scalars['String']['output']>;
+  taker?: Maybe<Scalars['String']['output']>;
+  type: Scalars['String']['output'];
 };
 
 /** NFT marketplaces for a webhook to listen on. */
@@ -3401,6 +5293,15 @@ export type NftHoldersResponse = {
   items: Array<NftBalance>;
   /** Status of holder. Disabled if on unsupported network or there is insufficient holder data. */
   status: HoldersStatus;
+};
+
+/** docs: hide */
+export type NftHoldersUpdate = {
+  __typename?: 'NftHoldersUpdate';
+  balances: Array<NftBalance>;
+  collectionAddress: Scalars['String']['output'];
+  holders: Scalars['Int']['output'];
+  networkId: Scalars['Int']['output'];
 };
 
 /** Event data for updating the asset recipient of a pool. */
@@ -4547,6 +6448,30 @@ export enum NftPoolType {
   Sell = 'SELL'
 }
 
+/** docs: hide */
+export type NftRankingsOutputItem = {
+  __typename?: 'NftRankingsOutputItem';
+  contract?: Maybe<NftContract>;
+  model: NftCollectionsLeaderboardModel;
+};
+
+/** docs: hide */
+export type NftScatterplotEvent = {
+  __typename?: 'NftScatterplotEvent';
+  np: Scalars['String']['output'];
+  tid: Scalars['String']['output'];
+  ts: Scalars['Int']['output'];
+  up: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type NftScatterplotEventsConnection = {
+  __typename?: 'NftScatterplotEventsConnection';
+  cursor?: Maybe<Scalars['String']['output']>;
+  items?: Maybe<Array<Maybe<NftScatterplotEvent>>>;
+  mean?: Maybe<Scalars['Float']['output']>;
+};
+
 /** Response returned by `searchNfts`. */
 export type NftSearchResponse = {
   __typename?: 'NftSearchResponse';
@@ -4642,6 +6567,95 @@ export type NftStatsWindowWithChange = {
   usd?: Maybe<NftCollectionCurrencyStats>;
 };
 
+/** docs: hide */
+export enum NotableEventType {
+  Burn = 'Burn',
+  Mint = 'Mint',
+  Swap = 'Swap'
+}
+
+/** docs: hide */
+export type NotableHoldersConnection = {
+  __typename?: 'NotableHoldersConnection';
+  cursor?: Maybe<Scalars['String']['output']>;
+  items: Array<Balance>;
+};
+
+/** docs: hide */
+export type NotableHoldersInput = {
+  cursor?: InputMaybe<Scalars['String']['input']>;
+  networkId: Scalars['Int']['input'];
+  tokenAddress: Scalars['String']['input'];
+};
+
+/** docs: hide */
+export type NotableWallet = {
+  __typename?: 'NotableWallet';
+  addType: NotableWalletAddType;
+  addressType: Scalars['String']['output'];
+  createdAt: Scalars['Int']['output'];
+  label?: Maybe<Scalars['String']['output']>;
+  notes?: Maybe<Scalars['String']['output']>;
+  walletAddress: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export enum NotableWalletAddType {
+  Import = 'Import',
+  Manual = 'Manual',
+  Tracked = 'Tracked'
+}
+
+/** docs: hide */
+export type NotableWalletEvent = {
+  __typename?: 'NotableWalletEvent';
+  notableEvent: Scalars['JSON']['output'];
+  notableEventType: NotableEventType;
+  sortKey: Scalars['String']['output'];
+  swapDirection?: Maybe<NotableWalletEventSwapDirection>;
+  tokenId?: Maybe<Scalars['String']['output']>;
+  walletAddress: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type NotableWalletEventSubscriptionInput = {
+  tokenId?: InputMaybe<Scalars['String']['input']>;
+  walletAddress?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** docs: hide */
+export enum NotableWalletEventSwapDirection {
+  Buy = 'Buy',
+  Sell = 'Sell'
+}
+
+/** docs: hide */
+export type NotableWalletEventsConnection = {
+  __typename?: 'NotableWalletEventsConnection';
+  cursor?: Maybe<Scalars['String']['output']>;
+  items: Array<NotableWalletEvent>;
+};
+
+/** docs: hide */
+export type NotableWalletEventsInput = {
+  cursor?: InputMaybe<Scalars['String']['input']>;
+  tokenId?: InputMaybe<Scalars['String']['input']>;
+  walletAddress?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** docs: hide */
+export type NotableWalletsConnection = {
+  __typename?: 'NotableWalletsConnection';
+  cursor?: Maybe<Scalars['String']['output']>;
+  items: Array<NotableWallet>;
+};
+
+/** docs: hide */
+export type NotableWalletsInput = {
+  address?: InputMaybe<Scalars['String']['input']>;
+  cursor?: InputMaybe<Scalars['String']['input']>;
+};
+
 /** Input type of `NumberFilter`. */
 export type NumberFilter = {
   /** Greater than. */
@@ -4680,16 +6694,29 @@ export type OnBarsUpdatedResponse = {
   timestamp: Scalars['Int']['output'];
 };
 
+/** docs: hide */
+export type OnLaunchpadTokenEventBatchInput = {
+  networkId?: InputMaybe<Scalars['Int']['input']>;
+  protocol?: InputMaybe<LaunchpadTokenProtocol>;
+};
+
 /** Input for `onLaunchpadTokenEvent`. */
 export type OnLaunchpadTokenEventInput = {
-  /** The contract address of the token. */
+  /** The contract address of the token. Required when `networkId` is provided. */
   address?: InputMaybe<Scalars['String']['input']>;
   /** The type of event. */
   eventType?: InputMaybe<LaunchpadTokenEventType>;
-  /** The network ID that the token is deployed on. */
+  /** The network ID that the token is deployed on. Required when `address` is provided. */
   networkId?: InputMaybe<Scalars['Int']['input']>;
   /** The protocol of the token. */
   protocol?: InputMaybe<LaunchpadTokenProtocol>;
+};
+
+/** docs: hide */
+export type OnNotableHolderUpdatedInput = {
+  address?: InputMaybe<Scalars['String']['input']>;
+  networkId?: InputMaybe<Scalars['Int']['input']>;
+  tokenAddress?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type OnPricesUpdatedInput = {
@@ -4768,6 +6795,92 @@ export type OneOfNumberConditionInput = {
   oneOf: Array<Scalars['Int']['input']>;
 };
 
+/** docs: hide */
+export type Order = {
+  __typename?: 'Order';
+  amountEth: Scalars['Float']['output'];
+  amountToken: Scalars['Float']['output'];
+  amountUsd: Scalars['Float']['output'];
+  blockDelay?: Maybe<Scalars['Int']['output']>;
+  createdAt: Scalars['Int']['output'];
+  creationContext: Scalars['String']['output'];
+  deadline?: Maybe<Scalars['Int']['output']>;
+  direction: Scalars['String']['output'];
+  error?: Maybe<Scalars['String']['output']>;
+  exactAmountToken: Scalars['String']['output'];
+  exchangeAddress?: Maybe<Scalars['String']['output']>;
+  executedPriceEth?: Maybe<Scalars['Float']['output']>;
+  executedPriceUsd?: Maybe<Scalars['Float']['output']>;
+  exitStrategyId?: Maybe<Scalars['Int']['output']>;
+  gasPrice?: Maybe<GasPrice>;
+  id: Scalars['Int']['output'];
+  inputTokenAddress: Scalars['String']['output'];
+  inputTokenAmount: Scalars['String']['output'];
+  limitMaximumTokenLiquidityGuard?: Maybe<Scalars['String']['output']>;
+  limitMaximumTokenMarketCapGuard?: Maybe<Scalars['String']['output']>;
+  limitMaximumTokenPriceGuard?: Maybe<Scalars['String']['output']>;
+  limitMinimumTokenLiquidityGuard?: Maybe<Scalars['String']['output']>;
+  limitMinimumTokenMarketCapGuard?: Maybe<Scalars['String']['output']>;
+  limitMinimumTokenPriceGuard?: Maybe<Scalars['String']['output']>;
+  limitTriggerDirection?: Maybe<Scalars['String']['output']>;
+  limitTriggerType?: Maybe<Scalars['String']['output']>;
+  limitTriggerValue?: Maybe<Scalars['String']['output']>;
+  networkId: Scalars['Int']['output'];
+  notes?: Maybe<Scalars['String']['output']>;
+  orderType: Scalars['String']['output'];
+  outputTokenAddress: Scalars['String']['output'];
+  outputTokenMax?: Maybe<Scalars['String']['output']>;
+  outputTokenMin: Scalars['String']['output'];
+  pnl?: Maybe<Scalars['Float']['output']>;
+  poolAddress?: Maybe<Scalars['String']['output']>;
+  privateRpcCustomFee?: Maybe<Scalars['String']['output']>;
+  referralFeeBps: Scalars['Float']['output'];
+  referrerPayoutAddress?: Maybe<Scalars['String']['output']>;
+  sendWithPrivateRpc?: Maybe<Scalars['Boolean']['output']>;
+  simulate?: Maybe<Scalars['Boolean']['output']>;
+  soldAmount?: Maybe<Scalars['String']['output']>;
+  state: Scalars['String']['output'];
+  token: ScarabToken;
+  tradeFeeBps: Scalars['Float']['output'];
+  transactions?: Maybe<Array<ScarabTransaction>>;
+  triggerFunction?: Maybe<Scalars['String']['output']>;
+  triggerOnLiquidity?: Maybe<Scalars['Boolean']['output']>;
+  triggerOrderId?: Maybe<Scalars['Int']['output']>;
+  updatedAt: Scalars['Int']['output'];
+  userId: Scalars['Int']['output'];
+  wallets: Array<ScarabWallet>;
+  webhookId?: Maybe<Scalars['String']['output']>;
+};
+
+/** docs: hide */
+export enum OrderConfirmationStatus {
+  Confirmed = 'CONFIRMED',
+  Rejected = 'REJECTED'
+}
+
+/** docs: hide */
+export type OrderConfirmedMessage = {
+  __typename?: 'OrderConfirmedMessage';
+  hash: Scalars['String']['output'];
+  id: Scalars['Int']['output'];
+  networkId: Scalars['Int']['output'];
+  status: OrderConfirmationStatus;
+  userId: Scalars['Int']['output'];
+};
+
+/** docs: hide */
+export type OrderConnection = {
+  __typename?: 'OrderConnection';
+  cursor?: Maybe<Scalars['String']['output']>;
+  items: Array<Order>;
+};
+
+/** docs: hide */
+export enum OrderDirection {
+  Buy = 'BUY',
+  Sell = 'SELL'
+}
+
 export enum OrderState {
   Completed = 'COMPLETED',
   Created = 'CREATED',
@@ -4776,17 +6889,56 @@ export enum OrderState {
   Pending = 'PENDING'
 }
 
+/** docs: hide */
+export enum OrderTransactionStatus {
+  Completed = 'COMPLETED',
+  Created = 'CREATED',
+  Failed = 'FAILED',
+  Pending = 'PENDING',
+  Submitted = 'SUBMITTED'
+}
+
 export enum OrderType {
   Limit = 'LIMIT',
   LimitStrategy = 'LIMIT_STRATEGY',
   Manual = 'MANUAL'
 }
 
+/** docs: hide */
+export type OrderUpdate = {
+  __typename?: 'OrderUpdate';
+  altHash?: Maybe<Scalars['String']['output']>;
+  createdAt: Scalars['Int']['output'];
+  error?: Maybe<Scalars['String']['output']>;
+  hash: Scalars['String']['output'];
+  id: Scalars['Int']['output'];
+  networkId: Scalars['Int']['output'];
+  status: Scalars['String']['output'];
+  updatedAt: Scalars['Int']['output'];
+  userId: Scalars['Int']['output'];
+  walletId: Scalars['Int']['output'];
+};
+
+/** docs: hide */
+export type OrdersFilter = {
+  direction?: InputMaybe<OrderDirection>;
+  networkId?: InputMaybe<Scalars['Int']['input']>;
+  orderType?: InputMaybe<OrderType>;
+  poolAddress?: InputMaybe<Scalars['String']['input']>;
+  state?: InputMaybe<OrderState>;
+  tokenAddress?: InputMaybe<Scalars['String']['input']>;
+};
+
 /** Metadata for a token pair. */
 export type Pair = {
   __typename?: 'Pair';
   /** The contract address of the pair. */
   address: Scalars['String']['output'];
+  /**
+   * docs: hide
+   * @deprecated Age isn't supported - use createdAt instead
+   */
+  age?: Maybe<Scalars['Int']['output']>;
   /** The unix timestamp for the creation of the pair. */
   createdAt?: Maybe<Scalars['Int']['output']>;
   /** The address for the exchange factory contract. */
@@ -4921,6 +7073,10 @@ export type PairFilterResult = {
   sellCount12?: Maybe<Scalars['Int']['output']>;
   /** The number of sells in the past 24 hours. */
   sellCount24?: Maybe<Scalars['Int']['output']>;
+  /** The percentage of wallets that are less than 1d old that have traded in the last 24h */
+  swapPct1dOldWallet?: Maybe<Scalars['String']['output']>;
+  /** The percentage of wallets that are less than 7d old that have traded in the last 24h */
+  swapPct7dOldWallet?: Maybe<Scalars['String']['output']>;
   /** Metadata for the first token in the pair. */
   token0?: Maybe<EnhancedToken>;
   /** Metadata for the second token in the pair. */
@@ -4973,6 +7129,10 @@ export type PairFilterResult = {
   volumeUSD12?: Maybe<Scalars['String']['output']>;
   /** The trade volume in USD in the past 24 hours. */
   volumeUSD24?: Maybe<Scalars['String']['output']>;
+  /** The average age of the wallets that traded in the last 24h */
+  walletAgeAvg?: Maybe<Scalars['String']['output']>;
+  /** The standard deviation of age of the wallets that traded in the last 24h */
+  walletAgeStd?: Maybe<Scalars['String']['output']>;
 };
 
 /** Input type of `PairFilters`. */
@@ -5035,6 +7195,10 @@ export type PairFilters = {
   sellCount12?: InputMaybe<NumberFilter>;
   /** The number of sells in the past 24 hours. */
   sellCount24?: InputMaybe<NumberFilter>;
+  /** The percentage of wallets that are less than 1d old that have traded in the last 24h */
+  swapPct1dOldWallet?: InputMaybe<NumberFilter>;
+  /** The percentage of wallets that are less than 7d old that have traded in the last 24h */
+  swapPct7dOldWallet?: InputMaybe<NumberFilter>;
   /** The list of token contract addresses to filter by. */
   tokenAddress?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   /** Whether to ignore pairs/tokens not relevant to trending */
@@ -5087,6 +7251,10 @@ export type PairFilters = {
   volumeUSD12?: InputMaybe<NumberFilter>;
   /** The trade volume in USD in the past 24 hours. */
   volumeUSD24?: InputMaybe<NumberFilter>;
+  /** The average age of the wallets that traded in the last 24h */
+  walletAgeAvg?: InputMaybe<NumberFilter>;
+  /** The standard deviation of age of the wallets that traded in the last 24h */
+  walletAgeStd?: InputMaybe<NumberFilter>;
 };
 
 export type PairMetadata = {
@@ -5223,6 +7391,8 @@ export enum PairRankingAttribute {
   SellCount4 = 'sellCount4',
   SellCount12 = 'sellCount12',
   SellCount24 = 'sellCount24',
+  SwapPct1dOldWallet = 'swapPct1dOldWallet',
+  SwapPct7dOldWallet = 'swapPct7dOldWallet',
   TrendingScore = 'trendingScore',
   TrendingScore1 = 'trendingScore1',
   TrendingScore4 = 'trendingScore4',
@@ -5252,8 +7422,39 @@ export enum PairRankingAttribute {
   VolumeUsd1 = 'volumeUSD1',
   VolumeUsd4 = 'volumeUSD4',
   VolumeUsd12 = 'volumeUSD12',
-  VolumeUsd24 = 'volumeUSD24'
+  VolumeUsd24 = 'volumeUSD24',
+  WalletAgeAvg = 'walletAgeAvg',
+  WalletAgeStd = 'walletAgeStd'
 }
+
+/** docs: hide */
+export type ParallelAsset = {
+  __typename?: 'ParallelAsset';
+  /** The contract address of the NFT collection. */
+  address: Scalars['String']['output'];
+  /** The attributes for the NFT asset. */
+  attributes?: Maybe<Array<NftAssetAttribute>>;
+  /** The description of the NFT asset. */
+  description?: Maybe<Scalars['String']['output']>;
+  /** The game data for the NFT asset. */
+  gameData?: Maybe<ParallelAssetGameData>;
+  /** The ID of the NFT asset (`address`:`tokenId`). */
+  id: Scalars['String']['output'];
+  /** The NFT asset media. */
+  media?: Maybe<NftAssetMedia>;
+  /** Metadata for the NFT asset. */
+  metadata?: Maybe<ParallelAssetMetadata>;
+  /** The name of the NFT asset. */
+  name?: Maybe<Scalars['String']['output']>;
+  /** The network ID the NFT collection is deployed on. */
+  networkId: Scalars['Int']['output'];
+  /** The source image URI linked by smart contract metadata. */
+  originalImage?: Maybe<Scalars['String']['output']>;
+  /** The token ID of the NFT asset. */
+  tokenId: Scalars['String']['output'];
+  /** The URI provided by the smart contract. Typically JSON that contains metadata. */
+  uri?: Maybe<Scalars['String']['output']>;
+};
 
 /** Response returned by `filterNftParallelAssets`. */
 export type ParallelAssetFilterConnection = {
@@ -5442,6 +7643,15 @@ export enum ParallelAssetRankingAttribute {
   Supply = 'supply'
 }
 
+/** docs: hide */
+export type ParallelAssetsConnection = {
+  __typename?: 'ParallelAssetsConnection';
+  /** A cursor for use in pagination. */
+  cursor?: Maybe<Scalars['String']['output']>;
+  /** A list of Parallel assets. */
+  items?: Maybe<Array<Maybe<ParallelAsset>>>;
+};
+
 /** Tracked changes made to a Parallel card. */
 export type ParallelCardChange = {
   __typename?: 'ParallelCardChange';
@@ -5516,11 +7726,83 @@ export type ParallelCardChangesConnection = {
   items?: Maybe<Array<Maybe<ParallelCardChange>>>;
 };
 
+/** docs: hide */
+export type PayoutUserReferralRewardsResponse = {
+  __typename?: 'PayoutUserReferralRewardsResponse';
+  payoutEvents: Array<ReferralsEventModel>;
+};
+
 export enum Plan {
   Defined = 'DEFINED',
   Enterprise = 'ENTERPRISE',
   Free = 'FREE',
   Standard = 'STANDARD'
+}
+
+/** docs: hide */
+export type PointEvent = {
+  __typename?: 'PointEvent';
+  amount: Scalars['Float']['output'];
+  appliedBoosts?: Maybe<Array<DailyPointBoostRecord>>;
+  dailyStreak?: Maybe<Scalars['Int']['output']>;
+  eventIdentifier: Scalars['String']['output'];
+  id: Scalars['String']['output'];
+  note?: Maybe<Scalars['String']['output']>;
+  points: PointEventData;
+  pointsSeason: PointsSeason;
+  questId?: Maybe<Scalars['String']['output']>;
+  sortKey: Scalars['String']['output'];
+  source: Scalars['String']['output'];
+  stats: PointEventStats;
+  timestamp: Scalars['Int']['output'];
+  type: Scalars['String']['output'];
+  userDailyRanks?: Maybe<UserDailyRanks>;
+  userId: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type PointEventData = {
+  __typename?: 'PointEventData';
+  PNL_PERCENT?: Maybe<Scalars['Float']['output']>;
+  PNL_USD?: Maybe<Scalars['Float']['output']>;
+  VOLUME_USD?: Maybe<Scalars['Float']['output']>;
+};
+
+/** docs: hide */
+export type PointEventStats = {
+  __typename?: 'PointEventStats';
+  NUM_ORDERS?: Maybe<Scalars['Int']['output']>;
+  PNL_PERCENT?: Maybe<Scalars['Float']['output']>;
+  PNL_USD?: Maybe<Scalars['Float']['output']>;
+  VOLUME_USD?: Maybe<Scalars['Float']['output']>;
+};
+
+/** docs: hide */
+export enum PointsEventSource {
+  Daily = 'DAILY',
+  Historic = 'HISTORIC',
+  Quest = 'QUEST'
+}
+
+/** docs: hide */
+export enum PointsLeaderboardType {
+  All = 'ALL',
+  Daily = 'DAILY',
+  PnlPercent = 'PNL_PERCENT',
+  PnlUsd = 'PNL_USD',
+  Quest = 'QUEST',
+  VolumeUsd = 'VOLUME_USD'
+}
+
+/** docs: hide */
+export enum PointsSeason {
+  BetaSeason_1 = 'BETA_SEASON_1',
+  BetaSeason_2 = 'BETA_SEASON_2',
+  BetaSeason_3 = 'BETA_SEASON_3',
+  BetaSeason_4 = 'BETA_SEASON_4',
+  BetaSeason_5 = 'BETA_SEASON_5',
+  DefinedxpSeason_1 = 'DEFINEDXP_SEASON_1',
+  Season_1 = 'SEASON_1'
 }
 
 /** Event data for a BalancerV2 Pool Balance Changed event. */
@@ -5564,6 +7846,75 @@ export type PooledTokenValues = {
   __typename?: 'PooledTokenValues';
   token0?: Maybe<Scalars['String']['output']>;
   token1?: Maybe<Scalars['String']['output']>;
+};
+
+/** docs: hide */
+export type Portfolio = {
+  __typename?: 'Portfolio';
+  wallets: Array<PortfolioWallet>;
+};
+
+/** docs: hide */
+export type PortfolioToken = {
+  __typename?: 'PortfolioToken';
+  address: Scalars['String']['output'];
+  balance: Scalars['String']['output'];
+  decimals: Scalars['Int']['output'];
+  name?: Maybe<Scalars['String']['output']>;
+  networkId: Scalars['Int']['output'];
+  shiftedBalance: Scalars['Float']['output'];
+  symbol?: Maybe<Scalars['String']['output']>;
+};
+
+/** docs: hide */
+export type PortfolioWallet = {
+  __typename?: 'PortfolioWallet';
+  address: Scalars['String']['output'];
+  label?: Maybe<Scalars['String']['output']>;
+  tokens: Array<PortfolioToken>;
+};
+
+/** docs: hide */
+export type Position = {
+  __typename?: 'Position';
+  amountUnsold?: Maybe<Scalars['String']['output']>;
+  /** @deprecated broken */
+  chart: Array<Maybe<Price>>;
+  end?: Maybe<Scalars['Int']['output']>;
+  /** @deprecated use entryIds instead */
+  entries: Array<Order>;
+  entryIds: Array<Scalars['Int']['output']>;
+  exitIds: Array<Scalars['Int']['output']>;
+  /** @deprecated use exitIds instead */
+  exits: Array<Order>;
+  open: Scalars['Boolean']['output'];
+  pnl: Scalars['Float']['output'];
+  pnlPercent: Scalars['Float']['output'];
+  price?: Maybe<Price>;
+  realizedCostBasis?: Maybe<Scalars['Float']['output']>;
+  start: Scalars['Int']['output'];
+  token: EnhancedToken;
+  totalTokensBought: Scalars['String']['output'];
+  totalTokensSold: Scalars['String']['output'];
+  totalVolumeNative: Scalars['Float']['output'];
+  totalVolumeToken: Scalars['String']['output'];
+  totalVolumeUsd: Scalars['Float']['output'];
+  unrealizedCostBasis?: Maybe<Scalars['Float']['output']>;
+  unrealizedCostBasisPerToken?: Maybe<Scalars['Float']['output']>;
+  /** The last timestamp that an order in this position was updated */
+  updatedAt: Scalars['Int']['output'];
+};
+
+/** docs: hide */
+export enum PositionStatus {
+  Closed = 'Closed',
+  Open = 'Open'
+}
+
+/** docs: hide */
+export type PositionsInput = {
+  status?: InputMaybe<PositionStatus>;
+  tokenId?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** Real-time or historical prices for a token. */
@@ -6101,6 +8452,59 @@ export type PrimePoolWithdrawData = {
   userPrimeRewardDebt: Scalars['String']['output'];
 };
 
+/** docs: hide */
+export type PrivateKeyInput = {
+  label?: InputMaybe<Scalars['String']['input']>;
+  signedRequest: SignedRequest;
+};
+
+/** docs: hide */
+export type Proposal = {
+  __typename?: 'Proposal';
+  address: Scalars['String']['output'];
+  contractType: ContractType;
+  currentContract?: Maybe<EnhancedContract>;
+  currentData?: Maybe<Scalars['JSON']['output']>;
+  id: Scalars['String']['output'];
+  moderatedAt?: Maybe<Scalars['Int']['output']>;
+  moderatedBy?: Maybe<Scalars['String']['output']>;
+  networkId: Scalars['Int']['output'];
+  previousData?: Maybe<Scalars['JSON']['output']>;
+  proposalData: Scalars['JSON']['output'];
+  proposalNum: Scalars['Int']['output'];
+  proposalType: ContractProposalType;
+  proposedAt: Scalars['Int']['output'];
+  proposedBy: Scalars['String']['output'];
+  sortKey: Scalars['String']['output'];
+  status: ContractProposalStatus;
+};
+
+/** docs: hide */
+export type ProposalFilter = {
+  address?: InputMaybe<Scalars['String']['input']>;
+  contractType?: InputMaybe<ContractType>;
+  moderatedBy?: InputMaybe<Scalars['String']['input']>;
+  /** @deprecated Not useful */
+  networkId?: InputMaybe<Array<InputMaybe<Scalars['Int']['input']>>>;
+  proposalType?: InputMaybe<ContractProposalType>;
+  proposedBy?: InputMaybe<Scalars['String']['input']>;
+  status?: InputMaybe<ContractProposalStatus>;
+};
+
+/** docs: hide */
+export type ProposalQueryInput = {
+  cursor?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<ProposalFilter>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+};
+
+/** docs: hide */
+export type ProposalsConnection = {
+  __typename?: 'ProposalsConnection';
+  cursor?: Maybe<Scalars['String']['output']>;
+  items: Array<Proposal>;
+};
+
 export enum PublishingType {
   Batch = 'BATCH',
   Single = 'SINGLE'
@@ -6112,12 +8516,30 @@ export type Query = {
   apiToken: ApiToken;
   /** Get all active short-lived api tokens for this api key */
   apiTokens: Array<ApiToken>;
+  /** docs: hide */
+  backfillHoldersStatus?: Maybe<BackfillHoldersResponse>;
+  /** docs: hide */
+  backfillWalletState: Scalars['Boolean']['output'];
   /** Returns list of token balances that a wallet has */
   balances: BalancesResponse;
+  /** docs: hide */
+  betaUsers?: Maybe<BetaUsersResponse>;
   /** Returns a URL for a pair chart. */
   chartUrls?: Maybe<ChartUrlsResponse>;
+  /** docs: hide */
+  decoding?: Maybe<Decoding>;
+  /** docs: hide */
+  decodingStatus?: Maybe<DecodingStatus>;
+  /** docs: hide */
+  decodings: Array<Decoding>;
+  /** docs: hide */
+  detailedWalletStats?: Maybe<DetailedWalletStats>;
+  /** docs: hide */
+  ethBalances: EthBalancesResponse;
   /** Returns a list of exchanges based on a variety of filters. */
   filterExchanges?: Maybe<ExchangeFilterConnection>;
+  /** docs: hide */
+  filterNetworkWallets: NetworkWalletFilterConnection;
   /** Returns a list of NFT collection based on a variety of filters. */
   filterNftCollections?: Maybe<NftCollectionFilterConnection>;
   /** Returns a list of Parallel assets based on a variety of filters. */
@@ -6128,12 +8550,30 @@ export type Query = {
   filterNftPools?: Maybe<NftPoolFilterConnection>;
   /** Returns a list of pairs based on a variety of filters. */
   filterPairs?: Maybe<PairFilterConnection>;
+  /** docs: hide */
+  filterTokenWallets: TokenWalletFilterConnection;
   /** Returns a list of tokens based on a variety of filters. */
   filterTokens?: Maybe<TokenFilterConnection>;
+  /** docs: hide */
+  filterWallets: WalletFilterConnection;
   /** Returns bar chart data to track price changes over time. */
   getBars?: Maybe<BarsResponse>;
+  /** docs: hide */
+  getBridgeQuote: BridgeQuote;
+  /** docs: hide */
+  getBridgeRequestStatus: BridgeRequestStatus;
+  /** docs: hide */
+  getBridgeSupportedNetworks?: Maybe<Array<Scalars['Int']['output']>>;
+  /** docs: hide */
+  getChartDrawings?: Maybe<ChartDrawingsRecord>;
+  /** docs: hide */
+  getChartLayout?: Maybe<ChartLayout>;
   /** Returns community gathered notes. */
   getCommunityNotes: CommunityNotesResponse;
+  /** docs: hide */
+  getCurrentUser?: Maybe<DefinedUser>;
+  /** docs: hide */
+  getCustomNotification?: Maybe<CustomNotification>;
   /** Returns bucketed stats for a given NFT collection. */
   getDetailedNftStats?: Maybe<DetailedNftStats>;
   /** Returns bucketed stats for a given token within a pair. */
@@ -6149,6 +8589,8 @@ export type Query = {
   getEventLabels?: Maybe<EventLabelConnection>;
   /** Returns a list of decentralized exchange metadata. */
   getExchanges: Array<Exchange>;
+  /** docs: hide */
+  getFeatures: Array<Feature>;
   /**
    * Returns new tokens listed over the last three days.
    * @deprecated This query is longer supported. Instead use filterPairs with sort order on createdAt DESC
@@ -6156,6 +8598,8 @@ export type Query = {
   getLatestPairs?: Maybe<LatestPairConnection>;
   /** @deprecated This query is no longer supported. Use `filterTokens` with a createdAt: DESC filter instead. */
   getLatestTokens?: Maybe<LatestTokenConnection>;
+  /** docs: hide */
+  getNetworkConfigs: Array<NetworkConfig>;
   /** Returns metadata for a given network supported on Codex. */
   getNetworkStats?: Maybe<GetNetworkStatsResponse>;
   /** Returns the status of a list of networks supported on Codex. */
@@ -6184,43 +8628,159 @@ export type Query = {
   getNftPoolsByCollectionAndExchange?: Maybe<GetNftPoolsResponse>;
   /** Returns a list of NFT pools for a given owner. */
   getNftPoolsByOwner?: Maybe<GetNftPoolsResponse>;
+  /** docs: hide */
+  getNftRankings?: Maybe<GetNftRankingsOutput>;
+  /** docs: hide */
+  getNftScatterplotEvents?: Maybe<NftScatterplotEventsConnection>;
+  /** docs: hide */
+  getOrderedNetworks: Array<Scalars['Int']['output']>;
+  /** docs: hide */
+  getParallelAssets?: Maybe<ParallelAssetsConnection>;
   /** Returns changes made to Parallel card metadata over time. */
   getParallelCardChanges?: Maybe<ParallelCardChangesConnection>;
+  /** docs: hide */
+  getPointsLeaderboard: GetPointsLeaderboardResponse;
+  /**
+   * docs: hide
+   * @deprecated use positions instead
+   */
+  getPositions: Array<Position>;
   /** Returns a list of Prime pool cached assets. */
   getPrimePoolAssets?: Maybe<PrimePoolAssetConnection>;
   /** Returns a list of Prime pool events. */
   getPrimePoolEvents?: Maybe<PrimePoolEventConnection>;
   /** Returns a list of Prime pools. */
   getPrimePools?: Maybe<PrimePoolConnection>;
+  /** docs: hide */
+  getProposals?: Maybe<ProposalsConnection>;
+  /** docs: hide */
+  getReleaseVersion?: Maybe<ReleaseVersion>;
   getSimulateTokenContractResults: GetSimulateTokenContractResultsConnection;
+  /** docs: hide */
+  getSolanaLatestBlock: SolanaLatestBlockResponse;
+  /** docs: hide */
+  getSolanaRawTransaction: RawTransactionResponse;
+  /** docs: hide */
+  getSolanaTransactionConfirmation?: Maybe<SolanaTransactionConfirmationResponse>;
   /** Returns charting metadata for a given pair. Used for implementing a Trading View datafeed. */
   getSymbol?: Maybe<SymbolResponse>;
+  /** docs: hide */
+  getTokenCount: Scalars['String']['output'];
   /** Returns transactions for a pair. */
   getTokenEvents?: Maybe<EventConnection>;
   /** Returns a list of token events for a given maker. */
   getTokenEventsForMaker?: Maybe<MakerEventConnection>;
+  /**
+   * docs: hide
+   * @deprecated Use `token` instead
+   */
+  getTokenInfo?: Maybe<TokenInfo>;
   /** Returns real-time or historical prices for a list of tokens, fetched in batches. */
   getTokenPrices?: Maybe<Array<Maybe<Price>>>;
+  /**
+   * docs: hide
+   * @deprecated Use `tokens` instead
+   */
+  getTokensInfo?: Maybe<Array<Maybe<TokenInfo>>>;
+  /** docs: hide */
+  getTurnkeyUser?: Maybe<TurnkeyPasskeyUser>;
+  /** docs: hide */
+  getUniV3Ticks?: Maybe<UniV3TickConnection>;
+  /** docs: hide */
+  getUser?: Maybe<DefinedUser>;
+  /** docs: hide */
+  getUserAchievements: GetUserAchievementsResponse;
+  /** docs: hide */
+  getUserContractListBySlug?: Maybe<UserContractListAndItems>;
+  /** docs: hide */
+  getUserContractListItem?: Maybe<UserContractListItem>;
+  /** docs: hide */
+  getUserContractListItems?: Maybe<UserContractListItemConnection>;
+  /** docs: hide */
+  getUserContractLists?: Maybe<UserContractListConnection>;
+  /** docs: hide */
+  getUserNonce?: Maybe<UserModel>;
+  /** docs: hide */
+  getUserPointEvents: GetUserPointEventsResponse;
+  /** docs: hide */
+  getUserPoints: GetUserPointsResponse;
+  /** docs: hide */
+  getUserReferralCode?: Maybe<UserModel>;
+  /** docs: hide */
+  getUserReferralEvents?: Maybe<GetUserReferralEventsResponse>;
   /** Returns a user's list of webhooks. */
   getWebhooks?: Maybe<GetWebhooksResponse>;
   /** Returns list of wallets that hold a given token, ordered by holdings descending. Also has the unique count of holders for that token */
   holders: HoldersResponse;
+  /** docs: hide */
+  isBetaUser: Scalars['Boolean']['output'];
   /** Returns liquidity locks for a given pair. */
   liquidityLocks?: Maybe<LiquidityLockConnection>;
   /** Returns liquidity metadata for a given pair. Includes liquidity lock data. */
   liquidityMetadata?: Maybe<LiquidityMetadata>;
+  /**
+   * docs: hide
+   * @deprecated use getChartLayout instead (only 1 layout per user)
+   */
+  listChartLayouts?: Maybe<ListChartLayoutResponse>;
+  /** docs: hide */
+  listFavoriteTokens?: Maybe<Array<TokenWithMetadata>>;
   /** Returns a list of pairs containing a given token. */
   listPairsForToken: Array<Maybe<Pair>>;
   /** Returns a list of pair metadata for a token. */
   listPairsWithMetadataForToken: ListPairsForTokenResponse;
+  /** docs: hide */
+  listTopProposalStats?: Maybe<Array<ContractProposalStats>>;
   /** Returns a list of trending tokens across any given network(s). */
   listTopTokens?: Maybe<Array<TokenWithMetadata>>;
   /** Returns list of wallets that hold a given collection, ordered by holdings descending. Also has the unique count of holders for that collection */
   nftHolders: NftHoldersResponse;
+  /** docs: hide */
+  notableHolders: NotableHoldersConnection;
+  /** docs: hide */
+  notableWalletEvents: NotableWalletEventsConnection;
+  /** docs: hide */
+  notableWallets: NotableWalletsConnection;
   /** Returns metadata for a pair of tokens. */
   pairMetadata: PairMetadata;
+  /** docs: hide */
+  portfolio: Portfolio;
+  /** docs: hide */
+  positions: Array<Position>;
+  /** docs: hide */
+  primeBalance: BalancesResponse;
   /** Returns a list of holders of the PRIME token on ethereum. */
   primeHolders: PrimeHolders;
+  /** docs: hide */
+  referralsMeta: ReferralsMeta;
+  /** docs: hide */
+  scarabCheckTradeable: CheckTradeableResponse;
+  /** docs: hide */
+  scarabClient: ScarabClientAttributes;
+  /** docs: hide */
+  scarabDefaultStrategies: Array<Strategy>;
+  /** docs: hide */
+  scarabExchanges: Array<ScarabExchange>;
+  /** docs: hide */
+  scarabGasEstimate: GasEstimate;
+  /** docs: hide */
+  scarabGasFees: GasFees;
+  /** docs: hide */
+  scarabOrder: Order;
+  /** docs: hide */
+  scarabOrders: OrderConnection;
+  /** docs: hide */
+  scarabQuote?: Maybe<Quote>;
+  /** docs: hide */
+  scarabStrategies: Array<Strategy>;
+  /** docs: hide */
+  scarabUser: ScarabUser;
+  /** docs: hide */
+  scarabUserStrategies: Array<Strategy>;
+  /** docs: hide */
+  scarabWallet: ScarabWallet;
+  /** docs: hide */
+  scarabWallets: Array<ScarabWallet>;
   /** Returns a list of NFT collections matching a given query string. */
   searchNfts?: Maybe<NftSearchResponse>;
   /**
@@ -6234,12 +8794,32 @@ export type Query = {
   tokenLifecycleEvents?: Maybe<TokenLifecycleEventConnection>;
   /** Returns a list of token simple chart data (sparklines) for the given tokens. */
   tokenSparklines: Array<TokenSparkline>;
+  /** docs: hide */
+  tokenSummary?: Maybe<TokenSummary>;
   /** Returns a list of top traders for a given token. */
   tokenTopTraders: TokenTopTradersConnection;
   /** Returns a list of tokens by their addresses & network id, with pagination. */
   tokens: Array<Maybe<EnhancedToken>>;
   /** Returns the percentage of a token’s total supply held collectively by its top 10 holders. */
   top10HoldersPercent?: Maybe<Scalars['Float']['output']>;
+  /** docs: hide */
+  trackedWalletEvents?: Maybe<TrackedWalletEventsConnection>;
+  /** docs: hide */
+  trackedWallets: TrackedWalletConnection;
+  /** docs: hide */
+  userRevShare?: Maybe<UserRevShareResponse>;
+  /** docs: hide */
+  userRevShareEvents: UserRevShareEventsResponse;
+  /** docs: hide */
+  userRevShareMeta: UserRevShareMeta;
+  /** docs: hide */
+  userTrackedWalletSettings: UserTrackedWalletSettings;
+  /** docs: hide */
+  userWallets: Array<ScarabWallet>;
+  /** docs: hide */
+  walletAggregateBackfillState: WalletAggregateBackfillStateResponse;
+  /** docs: hide */
+  walletChart?: Maybe<WalletChartResponse>;
   /** Returns list of NFT assets held by a given wallet for a single collection. */
   walletNftCollectionAssets: WalletNftCollectionAssetsResponse;
   /** Returns list of collections and quantity of NFTs held by a given wallet. */
@@ -6249,6 +8829,16 @@ export type Query = {
 
 export type QueryApiTokenArgs = {
   token: Scalars['String']['input'];
+};
+
+
+export type QueryBackfillHoldersStatusArgs = {
+  input: BackfillHoldersInput;
+};
+
+
+export type QueryBackfillWalletStateArgs = {
+  input: BackfillWalletInput;
 };
 
 
@@ -6262,12 +8852,37 @@ export type QueryChartUrlsArgs = {
 };
 
 
+export type QueryDecodingArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryDecodingStatusArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryDetailedWalletStatsArgs = {
+  input: DetailedWalletStatsInput;
+};
+
+
+export type QueryEthBalancesArgs = {
+  input: EthBalancesInput;
+};
+
+
 export type QueryFilterExchangesArgs = {
   filters?: InputMaybe<ExchangeFilters>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   offset?: InputMaybe<Scalars['Int']['input']>;
   phrase?: InputMaybe<Scalars['String']['input']>;
   rankings?: InputMaybe<Array<InputMaybe<ExchangeRanking>>>;
+};
+
+
+export type QueryFilterNetworkWalletsArgs = {
+  input: FilterNetworkWalletsInput;
 };
 
 
@@ -6321,6 +8936,11 @@ export type QueryFilterPairsArgs = {
 };
 
 
+export type QueryFilterTokenWalletsArgs = {
+  input: FilterTokenWalletsInput;
+};
+
+
 export type QueryFilterTokensArgs = {
   excludeTokens?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   filters?: InputMaybe<TokenFilters>;
@@ -6330,6 +8950,11 @@ export type QueryFilterTokensArgs = {
   rankings?: InputMaybe<Array<InputMaybe<TokenRanking>>>;
   statsType?: InputMaybe<TokenPairStatisticsType>;
   tokens?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+};
+
+
+export type QueryFilterWalletsArgs = {
+  input: FilterWalletsInput;
 };
 
 
@@ -6345,6 +8970,27 @@ export type QueryGetBarsArgs = {
   symbol: Scalars['String']['input'];
   symbolType?: InputMaybe<SymbolType>;
   to: Scalars['Int']['input'];
+};
+
+
+export type QueryGetBridgeQuoteArgs = {
+  input: GetBridgeQuoteInput;
+};
+
+
+export type QueryGetBridgeRequestStatusArgs = {
+  input: GetBridgeRequestStatusInput;
+};
+
+
+export type QueryGetChartDrawingsArgs = {
+  chartId: Scalars['String']['input'];
+  layoutId: Scalars['String']['input'];
+};
+
+
+export type QueryGetChartLayoutArgs = {
+  id?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -6415,6 +9061,11 @@ export type QueryGetLatestTokensArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   networkFilter?: InputMaybe<Array<Scalars['Int']['input']>>;
   offset?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryGetNetworkConfigsArgs = {
+  networkIds?: InputMaybe<Array<Scalars['Int']['input']>>;
 };
 
 
@@ -6525,11 +9176,56 @@ export type QueryGetNftPoolsByOwnerArgs = {
 };
 
 
+export type QueryGetNftRankingsArgs = {
+  duration?: InputMaybe<NftCollectionsLeaderboardDuration>;
+  exchange?: InputMaybe<NftExchange>;
+  filterWashTrading?: InputMaybe<Scalars['Boolean']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  metric?: InputMaybe<NftCollectionsLeaderboardMetric>;
+  networkIds?: InputMaybe<Array<InputMaybe<Scalars['Int']['input']>>>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryGetNftScatterplotEventsArgs = {
+  address: Scalars['String']['input'];
+  cursor?: InputMaybe<Scalars['String']['input']>;
+  networkId: Scalars['Int']['input'];
+  timestamp?: InputMaybe<EventQueryTimestampInput>;
+};
+
+
+export type QueryGetOrderedNetworksArgs = {
+  networkIds: Array<Scalars['Int']['input']>;
+  orderBy: NetworkOrderBy;
+};
+
+
+export type QueryGetParallelAssetsArgs = {
+  cursor?: InputMaybe<Scalars['String']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  tokenIds?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+};
+
+
 export type QueryGetParallelCardChangesArgs = {
   cursor?: InputMaybe<Scalars['String']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   timestamp?: InputMaybe<ParallelCardChangeQueryTimestampInput>;
   tokenId?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryGetPointsLeaderboardArgs = {
+  leaderboardType: PointsLeaderboardType;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  pointsSeason: PointsSeason;
+};
+
+
+export type QueryGetPositionsArgs = {
+  input?: InputMaybe<PositionsInput>;
 };
 
 
@@ -6563,12 +9259,32 @@ export type QueryGetPrimePoolsArgs = {
 };
 
 
+export type QueryGetProposalsArgs = {
+  input?: InputMaybe<ProposalQueryInput>;
+};
+
+
+export type QueryGetReleaseVersionArgs = {
+  service?: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type QueryGetSimulateTokenContractResultsArgs = {
   contractAddress: Scalars['String']['input'];
   cursor?: InputMaybe<Scalars['String']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   networkId: Scalars['Int']['input'];
   simulationId?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryGetSolanaRawTransactionArgs = {
+  rawTransaction: Scalars['String']['input'];
+};
+
+
+export type QueryGetSolanaTransactionConfirmationArgs = {
+  txId: Scalars['String']['input'];
 };
 
 
@@ -6594,8 +9310,92 @@ export type QueryGetTokenEventsForMakerArgs = {
 };
 
 
+export type QueryGetTokenInfoArgs = {
+  address: Scalars['String']['input'];
+  networkId: Scalars['Int']['input'];
+};
+
+
 export type QueryGetTokenPricesArgs = {
   inputs?: InputMaybe<Array<InputMaybe<GetPriceInput>>>;
+};
+
+
+export type QueryGetTokensInfoArgs = {
+  input: Array<GetTokensInfoInput>;
+};
+
+
+export type QueryGetUniV3TicksArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  networkId: Scalars['Int']['input'];
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  poolAddress: Scalars['String']['input'];
+};
+
+
+export type QueryGetUserArgs = {
+  id: Scalars['String']['input'];
+};
+
+
+export type QueryGetUserAchievementsArgs = {
+  pointsSeason: PointsSeason;
+  userId: Scalars['String']['input'];
+};
+
+
+export type QueryGetUserContractListBySlugArgs = {
+  slug: Scalars['String']['input'];
+};
+
+
+export type QueryGetUserContractListItemArgs = {
+  input: GetUserContractListItemInput;
+};
+
+
+export type QueryGetUserContractListItemsArgs = {
+  input: GetUserContractListItemsInput;
+};
+
+
+export type QueryGetUserContractListsArgs = {
+  input: GetUserContractListsInput;
+};
+
+
+export type QueryGetUserNonceArgs = {
+  publicWalletAddress?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryGetUserPointEventsArgs = {
+  cursor?: InputMaybe<Scalars['String']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  pointsEventSource?: InputMaybe<PointsEventSource>;
+  pointsSeason: PointsSeason;
+  userId: Scalars['String']['input'];
+};
+
+
+export type QueryGetUserPointsArgs = {
+  leaderboardType?: InputMaybe<Array<PointsLeaderboardType>>;
+  pointsSeason: PointsSeason;
+  userId: Scalars['String']['input'];
+};
+
+
+export type QueryGetUserReferralCodeArgs = {
+  referrerUserId: Scalars['String']['input'];
+};
+
+
+export type QueryGetUserReferralEventsArgs = {
+  cursor?: InputMaybe<Scalars['String']['input']>;
+  eventType: ReferralsEventType;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  referrerUserId: Scalars['String']['input'];
 };
 
 
@@ -6613,6 +9413,11 @@ export type QueryHoldersArgs = {
 };
 
 
+export type QueryIsBetaUserArgs = {
+  address: Scalars['String']['input'];
+};
+
+
 export type QueryLiquidityLocksArgs = {
   cursor?: InputMaybe<Scalars['String']['input']>;
   networkId: Scalars['Int']['input'];
@@ -6623,6 +9428,13 @@ export type QueryLiquidityLocksArgs = {
 export type QueryLiquidityMetadataArgs = {
   networkId: Scalars['Int']['input'];
   pairAddress: Scalars['String']['input'];
+};
+
+
+export type QueryListFavoriteTokensArgs = {
+  keys: Array<Scalars['String']['input']>;
+  networkFilter?: InputMaybe<Array<Scalars['Int']['input']>>;
+  resolution?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -6640,6 +9452,11 @@ export type QueryListPairsWithMetadataForTokenArgs = {
 };
 
 
+export type QueryListTopProposalStatsArgs = {
+  input?: InputMaybe<ListTopProposalStatsInput>;
+};
+
+
 export type QueryListTopTokensArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   networkFilter?: InputMaybe<Array<Scalars['Int']['input']>>;
@@ -6652,6 +9469,21 @@ export type QueryNftHoldersArgs = {
 };
 
 
+export type QueryNotableHoldersArgs = {
+  input: NotableHoldersInput;
+};
+
+
+export type QueryNotableWalletEventsArgs = {
+  input: NotableWalletEventsInput;
+};
+
+
+export type QueryNotableWalletsArgs = {
+  input?: InputMaybe<NotableWalletsInput>;
+};
+
+
 export type QueryPairMetadataArgs = {
   pairId: Scalars['String']['input'];
   quoteToken?: InputMaybe<QuoteToken>;
@@ -6659,8 +9491,60 @@ export type QueryPairMetadataArgs = {
 };
 
 
+export type QueryPortfolioArgs = {
+  hidden?: InputMaybe<Scalars['Boolean']['input']>;
+  networkId?: InputMaybe<Scalars['Int']['input']>;
+  walletId?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryPositionsArgs = {
+  input?: InputMaybe<PositionsInput>;
+};
+
+
+export type QueryPrimeBalanceArgs = {
+  walletAddress: Scalars['String']['input'];
+};
+
+
 export type QueryPrimeHoldersArgs = {
   cursor?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryScarabCheckTradeableArgs = {
+  input: CheckTradeableInput;
+};
+
+
+export type QueryScarabGasEstimateArgs = {
+  input: GetGasEstimateInput;
+};
+
+
+export type QueryScarabGasFeesArgs = {
+  chainId: Scalars['Int']['input'];
+};
+
+
+export type QueryScarabOrderArgs = {
+  orderId: Scalars['Int']['input'];
+};
+
+
+export type QueryScarabOrdersArgs = {
+  input?: InputMaybe<GetOrdersInput>;
+};
+
+
+export type QueryScarabQuoteArgs = {
+  input: GetQuoteInput;
+};
+
+
+export type QueryScarabWalletArgs = {
+  walletId: Scalars['Int']['input'];
 };
 
 
@@ -6700,6 +9584,12 @@ export type QueryTokenSparklinesArgs = {
 };
 
 
+export type QueryTokenSummaryArgs = {
+  refresh?: InputMaybe<Scalars['Boolean']['input']>;
+  tokenId: Scalars['String']['input'];
+};
+
+
 export type QueryTokenTopTradersArgs = {
   input: TokenTopTradersInput;
 };
@@ -6712,6 +9602,56 @@ export type QueryTokensArgs = {
 
 export type QueryTop10HoldersPercentArgs = {
   tokenId: Scalars['String']['input'];
+};
+
+
+export type QueryTrackedWalletEventsArgs = {
+  cursor?: InputMaybe<Scalars['String']['input']>;
+  eventType?: InputMaybe<Array<InputMaybe<TrackedWalletEventType>>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  userId: Scalars['String']['input'];
+};
+
+
+export type QueryTrackedWalletsArgs = {
+  cursor?: InputMaybe<Scalars['String']['input']>;
+  userId: Scalars['String']['input'];
+  walletAddresses?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+};
+
+
+export type QueryUserRevShareArgs = {
+  input: UserRevShareInput;
+};
+
+
+export type QueryUserRevShareEventsArgs = {
+  input: UserRevShareEventsInput;
+};
+
+
+export type QueryUserRevShareMetaArgs = {
+  pointsSeason: PointsSeason;
+};
+
+
+export type QueryUserTrackedWalletSettingsArgs = {
+  userId: Scalars['String']['input'];
+};
+
+
+export type QueryUserWalletsArgs = {
+  userId: Scalars['String']['input'];
+};
+
+
+export type QueryWalletAggregateBackfillStateArgs = {
+  input: WalletAggregateBackfillStateInput;
+};
+
+
+export type QueryWalletChartArgs = {
+  input: WalletChartInput;
 };
 
 
@@ -6764,11 +9704,47 @@ export enum QuoteType {
   Output = 'OUTPUT'
 }
 
+/** docs: hide */
+export type RangeInput = {
+  end: Scalars['Int']['input'];
+  start: Scalars['Int']['input'];
+};
+
 /** The order of ranking. */
 export enum RankingDirection {
   Asc = 'ASC',
   Desc = 'DESC'
 }
+
+/** docs: hide */
+export type RawEvent = {
+  __typename?: 'RawEvent';
+  /** The contract address of the token's top pair. */
+  address: Scalars['String']['output'];
+  /** The hash of the block where the transaction occurred. */
+  blockHash: Scalars['String']['output'];
+  /** The block number for the transaction. */
+  blockNumber: Scalars['Int']['output'];
+  /** The event-specific data for the transaction. Can be `BurnEventData` or `MintEventData` or `SwapEventData`. */
+  data?: Maybe<EventData>;
+  /** The type of transaction event. Can be `Burn`, `Mint`, `Swap`, `Sync`, `Collect`, or `CollectProtocol`. */
+  eventType: EventType;
+  /** The ID of the event (`address:networkId`). For example, `0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2:1`. */
+  id: Scalars['String']['output'];
+  /** The index of the log in the block. */
+  logIndex: Scalars['Int']['output'];
+  /** The wallet address that performed the transaction. */
+  maker?: Maybe<Scalars['String']['output']>;
+  /** The network ID that the token is deployed on. */
+  networkId: Scalars['Int']['output'];
+  sortKey: Scalars['String']['output'];
+  /** The unix timestamp for when the transaction occurred. */
+  timestamp: Scalars['Int']['output'];
+  /** The unique hash for the transaction. */
+  transactionHash: Scalars['String']['output'];
+  /** The index of the transaction within the block. */
+  transactionIndex: Scalars['Int']['output'];
+};
 
 export type RawNftAssetData = {
   __typename?: 'RawNftAssetData';
@@ -6780,6 +9756,36 @@ export type RawNftAssetData = {
   imageData?: Maybe<Scalars['String']['output']>;
   /** An optional image field that may or may not be present on the requested NFT asset smart contract. */
   imageUrl?: Maybe<Scalars['String']['output']>;
+};
+
+/** docs: hide */
+export type RawTransaction = Trackable & {
+  __typename?: 'RawTransaction';
+  accessList: Array<Maybe<Scalars['String']['output']>>;
+  blockHash: Scalars['String']['output'];
+  blockNumber: Scalars['Int']['output'];
+  from: Scalars['String']['output'];
+  gas: Scalars['Int']['output'];
+  gasPrice: Scalars['String']['output'];
+  hash: Scalars['String']['output'];
+  input: Scalars['String']['output'];
+  maxFeePerGas?: Maybe<Scalars['String']['output']>;
+  maxPriorityFeePerGas?: Maybe<Scalars['String']['output']>;
+  networkId: Scalars['Int']['output'];
+  nonce: Scalars['Int']['output'];
+  r?: Maybe<Scalars['String']['output']>;
+  s?: Maybe<Scalars['String']['output']>;
+  to: Scalars['String']['output'];
+  transactionIndex: Scalars['Int']['output'];
+  type?: Maybe<Scalars['String']['output']>;
+  v?: Maybe<Scalars['String']['output']>;
+  value: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type RawTransactionResponse = {
+  __typename?: 'RawTransactionResponse';
+  txId?: Maybe<Scalars['String']['output']>;
 };
 
 /** Webhook conditions for a raw transaction. */
@@ -6821,6 +9827,26 @@ export type RawTransactionWebhookConditionInput = {
 
 export type ReferralEventData = ReferralsEventPayoutData | ReferralsEventRewardData;
 
+/** docs: hide */
+export type ReferralUsersInput = {
+  cursor?: InputMaybe<Scalars['String']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  userId?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** docs: hide */
+export type ReferralsEventModel = {
+  __typename?: 'ReferralsEventModel';
+  data: ReferralEventData;
+  eventType: ReferralsEventType;
+  id: Scalars['String']['output'];
+  note?: Maybe<Scalars['String']['output']>;
+  referralsRewardPeriod?: Maybe<Scalars['String']['output']>;
+  referrerUserId: Scalars['String']['output'];
+  source: Scalars['String']['output'];
+  timestamp: Scalars['Int']['output'];
+};
+
 export type ReferralsEventPayoutData = {
   __typename?: 'ReferralsEventPayoutData';
   payouts: Array<ReferralsPayoutData>;
@@ -6841,14 +9867,85 @@ export type ReferralsEventRewardData = {
   transactionTokenAmount: Scalars['String']['output'];
 };
 
+/** docs: hide */
+export enum ReferralsEventType {
+  AddReward = 'ADD_REWARD',
+  Payout = 'PAYOUT',
+  RemoveReward = 'REMOVE_REWARD'
+}
+
+/** docs: hide */
+export type ReferralsMeta = {
+  __typename?: 'ReferralsMeta';
+  items: Array<UserModel>;
+  referralEarnings: Scalars['JSON']['output'];
+  referralTradeVolume: Scalars['JSON']['output'];
+  userCount: Scalars['Int']['output'];
+};
+
 export type ReferralsPayoutData = {
   __typename?: 'ReferralsPayoutData';
   tokenAddressNetworkIdPaid: Scalars['String']['output'];
   tokenAmountPaid: Scalars['String']['output'];
 };
 
+/** docs: hide */
+export type RefreshBalancesInput = {
+  /** The token to check balance of */
+  tokenId: Scalars['String']['input'];
+  /** The wallet address(es) in question */
+  walletId: Scalars['String']['input'];
+};
+
+/** docs: hide */
+export type RefreshHolderCountInput = {
+  networkId: Scalars['Int']['input'];
+  tokenAddress: Scalars['String']['input'];
+};
+
+/** docs: hide */
+export type RefreshNftMetadataInput = {
+  /** The contract address of the NFT collection. */
+  collectionAddress: Scalars['String']['input'];
+  /** The maximum enumerable token ID to refresh */
+  maxTokenId: Scalars['Int']['input'];
+  /** The minimum enumerable token ID to refresh */
+  minTokenId: Scalars['Int']['input'];
+  /** The network ID the NFT collection is deployed on. */
+  networkId: Scalars['Int']['input'];
+};
+
+/** docs: hide */
+export type RefreshNftMetadataResponse = {
+  __typename?: 'RefreshNftMetadataResponse';
+  /** The contract address of the NFT collection. */
+  collectionAddress: Scalars['String']['output'];
+  /** The network ID the NFT collection is deployed on. */
+  networkId: Scalars['Int']['output'];
+  /** The number of tokens refreshed. */
+  refreshedTokens: Array<Scalars['Int']['output']>;
+};
+
+/** docs: hide */
+export type ReleaseVersion = {
+  __typename?: 'ReleaseVersion';
+  hardRefresh?: Maybe<Scalars['Boolean']['output']>;
+  service: Scalars['String']['output'];
+  sha: Scalars['String']['output'];
+  timestamp: Scalars['Int']['output'];
+};
+
 export type RemoveUserAchievementInput = {
+  achievementId: AchievementId;
+  pointsSeason: PointsSeason;
   userId: Scalars['String']['input'];
+};
+
+/** docs: hide */
+export type ResetSignerKeyInput = {
+  bundlePublicKey: Scalars['String']['input'];
+  createSessionRequest: SignedRequest;
+  expiresInSeconds?: InputMaybe<Scalars['Int']['input']>;
 };
 
 /** Price data for each supported resolution. */
@@ -6885,6 +9982,8 @@ export type ResolutionBarData = {
 /** Config for retrying failed webhook messages */
 export type RetrySettings = {
   __typename?: 'RetrySettings';
+  /** docs: hide */
+  email?: Maybe<Scalars['String']['output']>;
   /** The maximum number of times the webhook will retry sending a message */
   maxRetries?: Maybe<Scalars['Int']['output']>;
   /** The maximum time in seconds that the webhook will wait before retrying a failed message */
@@ -6905,6 +10004,68 @@ export type RetrySettingsInput = {
   maxTimeElapsed?: InputMaybe<Scalars['Int']['input']>;
   /** The minimum time in seconds that the webhook will wait before retrying a failed message */
   minRetryDelay?: InputMaybe<Scalars['Int']['input']>;
+};
+
+/** docs: hide */
+export type RevokeTokenResponse = {
+  __typename?: 'RevokeTokenResponse';
+  success: Scalars['Boolean']['output'];
+};
+
+/** docs: hide */
+export type Route = {
+  __typename?: 'Route';
+  estimate: RouteEstimate;
+  params: BridgeQuoteParams;
+  transactionRequest?: Maybe<RouteTransactionRequest>;
+};
+
+/** docs: hide */
+export type RouteEstimate = {
+  __typename?: 'RouteEstimate';
+  feeCosts: Array<RouteFeeCost>;
+  fromAmount: Scalars['String']['output'];
+  gasCosts: Array<RouteGasCost>;
+  toAmount: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type RouteFeeCost = {
+  __typename?: 'RouteFeeCost';
+  amount: Scalars['String']['output'];
+  amountUsd: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  token: RouteToken;
+};
+
+/** docs: hide */
+export type RouteGasCost = {
+  __typename?: 'RouteGasCost';
+  amount: Scalars['String']['output'];
+  amountUsd: Scalars['String']['output'];
+  token: RouteToken;
+  type: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type RouteToken = {
+  __typename?: 'RouteToken';
+  address: Scalars['String']['output'];
+  chainId: Scalars['Int']['output'];
+  decimals: Scalars['Int']['output'];
+  symbol: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type RouteTransactionRequest = {
+  __typename?: 'RouteTransactionRequest';
+  data: Scalars['String']['output'];
+  gasLimit?: Maybe<Scalars['String']['output']>;
+  gasPrice?: Maybe<Scalars['String']['output']>;
+  maxFeePerGas?: Maybe<Scalars['String']['output']>;
+  maxPriorityFeePerGas?: Maybe<Scalars['String']['output']>;
+  target: Scalars['String']['output'];
+  value: Scalars['String']['output'];
 };
 
 /** Metadata for a sandwich label. */
@@ -6936,8 +10097,144 @@ export type SandwichedLabelData = {
   token1DrainedAmount?: Maybe<Scalars['String']['output']>;
 };
 
+/** docs: hide */
+export type SaveChartDrawingsInput = {
+  chartId: Scalars['String']['input'];
+  layoutId: Scalars['String']['input'];
+  state: Scalars['String']['input'];
+  /** @deprecated generated automatically */
+  timestamp?: InputMaybe<Scalars['Int']['input']>;
+};
+
+/** docs: hide */
+export type ScarabClientAttributes = {
+  __typename?: 'ScarabClientAttributes';
+  host: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type ScarabExchange = {
+  __typename?: 'ScarabExchange';
+  factory: Scalars['String']['output'];
+  id: Scalars['Int']['output'];
+  name: Scalars['String']['output'];
+  networkId: Scalars['Int']['output'];
+  router: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type ScarabToken = {
+  __typename?: 'ScarabToken';
+  address: Scalars['String']['output'];
+  decimals: Scalars['Int']['output'];
+  functions: Array<Maybe<Scalars['String']['output']>>;
+  id: Scalars['Int']['output'];
+  name: Scalars['String']['output'];
+  symbol: Scalars['String']['output'];
+  totalSupply?: Maybe<Scalars['String']['output']>;
+};
+
+/** docs: hide */
+export type ScarabTransaction = {
+  __typename?: 'ScarabTransaction';
+  altHash?: Maybe<Scalars['String']['output']>;
+  createdAt: Scalars['String']['output'];
+  direction: OrderDirection;
+  error?: Maybe<Scalars['String']['output']>;
+  hash: Scalars['String']['output'];
+  id: Scalars['Int']['output'];
+  networkId: Scalars['Int']['output'];
+  orderId?: Maybe<Scalars['Int']['output']>;
+  /** @deprecated No longer tracked */
+  privateRpc?: Maybe<Scalars['Boolean']['output']>;
+  /** @deprecated No longer tracked */
+  rpcId?: Maybe<Scalars['Int']['output']>;
+  status: OrderTransactionStatus;
+  updatedAt: Scalars['String']['output'];
+  /** @deprecated No longer tracked */
+  userInitiated?: Maybe<Scalars['Boolean']['output']>;
+  wallet: ScarabWallet;
+  walletId: Scalars['Int']['output'];
+};
+
+/** docs: hide */
+export type ScarabUser = {
+  __typename?: 'ScarabUser';
+  address?: Maybe<Scalars['String']['output']>;
+  email?: Maybe<Scalars['String']['output']>;
+  emailVerified?: Maybe<Scalars['String']['output']>;
+  id: Scalars['Int']['output'];
+  name?: Maybe<Scalars['String']['output']>;
+  referralCode?: Maybe<Scalars['String']['output']>;
+  referrerCode?: Maybe<Scalars['String']['output']>;
+  telegramId?: Maybe<Scalars['String']['output']>;
+};
+
+/** docs: hide */
+export type ScarabWallet = {
+  __typename?: 'ScarabWallet';
+  address: Scalars['String']['output'];
+  expiration?: Maybe<Scalars['String']['output']>;
+  exported?: Maybe<Scalars['Boolean']['output']>;
+  id: Scalars['Int']['output'];
+  imported?: Maybe<Scalars['Boolean']['output']>;
+  invalidKey?: Maybe<Scalars['Boolean']['output']>;
+  label?: Maybe<Scalars['String']['output']>;
+  networkType: NetworkType;
+  owner?: Maybe<Scalars['String']['output']>;
+  walletType?: Maybe<Scalars['String']['output']>;
+};
+
+/** docs: hide */
+export type SessionKey = {
+  __typename?: 'SessionKey';
+  publicKey: Scalars['String']['output'];
+  publicKeyUncompressed: Scalars['String']['output'];
+  sessionUserId: Scalars['String']['output'];
+  subOrgId: Scalars['String']['output'];
+};
+
 export type SessionMetadata = {
   shouldNotify?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+/** docs: hide */
+export type SignedRequest = {
+  body: Scalars['String']['input'];
+  stamp: SignedRequestStamp;
+  url: Scalars['String']['input'];
+};
+
+/** docs: hide */
+export type SignedRequestStamp = {
+  stampHeaderName: Scalars['String']['input'];
+  stampHeaderValue: Scalars['String']['input'];
+};
+
+/** docs: hide */
+export type SignerKey = {
+  __typename?: 'SignerKey';
+  newPolicies: Array<NewPolicy>;
+  publicKey: Scalars['String']['output'];
+  signingUserId: Scalars['String']['output'];
+  subOrgId: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type SignerKeyInput = {
+  createPoliciesRequest?: InputMaybe<SignedRequest>;
+  expiresInSeconds?: InputMaybe<Scalars['Int']['input']>;
+  publicKey: Scalars['String']['input'];
+  request: SignedRequest;
+};
+
+/** docs: hide */
+export type SignerKeysResponse = {
+  __typename?: 'SignerKeysResponse';
+  keyIds: Array<Scalars['String']['output']>;
+  signingUserId: Scalars['String']['output'];
+  subOrgId: Scalars['String']['output'];
 };
 
 export type SimulateContractBalanceErrorsType = {
@@ -7188,6 +10485,64 @@ export type SocialLinks = {
   youtube?: Maybe<Scalars['String']['output']>;
 };
 
+/** docs: hide */
+export type SolanaLatestBlockResponse = {
+  __typename?: 'SolanaLatestBlockResponse';
+  blockHash: Scalars['String']['output'];
+  blockHeight: Scalars['Int']['output'];
+};
+
+/** docs: hide */
+export type SolanaNetworkConfig = NetworkConfigBase & {
+  __typename?: 'SolanaNetworkConfig';
+  baseTokenAddress: Scalars['String']['output'];
+  baseTokenSymbol: Scalars['String']['output'];
+  color?: Maybe<Scalars['String']['output']>;
+  defaultPairAddress: Scalars['String']['output'];
+  defaultPairQuoteToken: QuoteToken;
+  enabled: Scalars['Boolean']['output'];
+  explorer: ExplorerConfig;
+  id: Scalars['ID']['output'];
+  mainnet: Scalars['Boolean']['output'];
+  name: Scalars['String']['output'];
+  networkIconUrl: Scalars['String']['output'];
+  networkId: Scalars['Int']['output'];
+  networkName: Scalars['String']['output'];
+  networkShortName: Scalars['String']['output'];
+  networkType: NetworkConfigType;
+  newTokensEnabled?: Maybe<Scalars['Boolean']['output']>;
+  pricing: Array<NetworkPriceConfig>;
+  rpcs: Array<SolanaRpcConfig>;
+  stableCoinAddresses?: Maybe<Array<Scalars['String']['output']>>;
+  wrappedBaseTokenSymbol: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type SolanaRpcConfig = {
+  __typename?: 'SolanaRpcConfig';
+  geyserApiKey?: Maybe<Scalars['String']['output']>;
+  geyserUrl?: Maybe<Scalars['String']['output']>;
+  public: Scalars['Boolean']['output'];
+  url: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type SolanaRpcConfigInput = {
+  geyserApiKey?: InputMaybe<Scalars['String']['input']>;
+  geyserUrl?: InputMaybe<Scalars['String']['input']>;
+  public: Scalars['Boolean']['input'];
+  url: Scalars['String']['input'];
+};
+
+/** docs: hide */
+export type SolanaTransactionConfirmationResponse = {
+  __typename?: 'SolanaTransactionConfirmationResponse';
+  confirmationStatus?: Maybe<Scalars['String']['output']>;
+  confirmations?: Maybe<Scalars['Int']['output']>;
+  error?: Maybe<Scalars['String']['output']>;
+  slot: Scalars['Int']['output'];
+};
+
 export enum SparklineAttribute {
   Price = 'PRICE'
 }
@@ -7198,7 +10553,7 @@ export type SparklineValue = {
   value: Scalars['Float']['output'];
 };
 
-export type StarknetNetworkConfig = {
+export type StarknetNetworkConfig = NetworkConfigBase & {
   __typename?: 'StarknetNetworkConfig';
   baseTokenAddress: Scalars['String']['output'];
   baseTokenSymbol: Scalars['String']['output'];
@@ -7206,6 +10561,7 @@ export type StarknetNetworkConfig = {
   defaultPairAddress: Scalars['String']['output'];
   defaultPairQuoteToken: QuoteToken;
   enabled: Scalars['Boolean']['output'];
+  explorer: ExplorerConfig;
   id: Scalars['ID']['output'];
   mainnet: Scalars['Boolean']['output'];
   name: Scalars['String']['output'];
@@ -7213,9 +10569,23 @@ export type StarknetNetworkConfig = {
   networkId: Scalars['Int']['output'];
   networkName: Scalars['String']['output'];
   networkShortName: Scalars['String']['output'];
+  networkType: NetworkConfigType;
   newTokensEnabled?: Maybe<Scalars['Boolean']['output']>;
+  pricing: Array<NetworkPriceConfig>;
+  rpcs: Array<StarknetRpcConfig>;
   stableCoinAddresses?: Maybe<Array<Scalars['String']['output']>>;
   wrappedBaseTokenSymbol: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type StarknetRpcConfig = {
+  __typename?: 'StarknetRpcConfig';
+  url: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type StarknetRpcConfigInput = {
+  url: Scalars['String']['input'];
 };
 
 /** Filter for NFT stats. */
@@ -7226,6 +10596,25 @@ export type StatsFilter = {
   current?: InputMaybe<NumberFilter>;
   /** The total value for the previous window. */
   previous?: InputMaybe<NumberFilter>;
+};
+
+/** docs: hide */
+export type Strategy = {
+  __typename?: 'Strategy';
+  id: Scalars['Int']['output'];
+  name: Scalars['String']['output'];
+  orderParams: Array<StrategyOrderParam>;
+  userId?: Maybe<Scalars['Int']['output']>;
+};
+
+/** docs: hide */
+export type StrategyOrderParam = {
+  __typename?: 'StrategyOrderParam';
+  amountRatio: Scalars['Float']['output'];
+  id: Scalars['Int']['output'];
+  strategyId: Scalars['Int']['output'];
+  triggerDirection: Scalars['String']['output'];
+  triggerPercentChange: Scalars['Float']['output'];
 };
 
 /** String contains condition. */
@@ -7288,18 +10677,31 @@ export type Subscription = {
   onLatestPairUpdated?: Maybe<LatestPair>;
   onLatestTokens?: Maybe<LatestToken>;
   onLaunchpadTokenEvent: LaunchpadTokenEventOutput;
+  onLaunchpadTokenEventBatch: Array<LaunchpadTokenEventOutput>;
   /** Live-streamed transactions for an NFT asset. */
   onNftAssetsCreated?: Maybe<NftAsset>;
   /** Live-streamed transactions for an NFT collection. */
   onNftEventsCreated?: Maybe<AddNftEventsOutput>;
+  /** docs: hide */
+  onNftHoldersUpdated?: Maybe<NftHoldersUpdate>;
   /** Live streamed NFT pool events for a given pool address or collection address. */
   onNftPoolEventsCreated?: Maybe<AddNftPoolEventsOutput>;
+  /** docs: hide */
+  onNotableHolderUpdated?: Maybe<Balance>;
+  /** docs: hide */
+  onNotableWalletEventCreated: NotableWalletEvent;
+  /** docs: hide */
+  onOrderConfirmed: OrderConfirmedMessage;
+  /** docs: hide */
+  onOrderUpdated: Order;
   /** Live-streamed stat updates for a given token within a pair. */
   onPairMetadataUpdated?: Maybe<PairMetadata>;
   /** Live-streamed price updates for a token. */
   onPriceUpdated?: Maybe<Price>;
   /** Live-streamed price updates for multiple tokens. */
   onPricesUpdated: Price;
+  /** docs: hide */
+  onRawEventsCreated: Array<RawEvent>;
   onSimulateTokenContract: SimulateTokenContractResult;
   /** Live-streamed bar chart data to track price changes over time for a token. */
   onTokenBarsUpdated?: Maybe<OnTokenBarsUpdatedResponse>;
@@ -7307,6 +10709,8 @@ export type Subscription = {
   onTokenEventsCreated: AddTokenEventsOutput;
   /** Live-streamed token lifecycle events (mints and burns). */
   onTokenLifecycleEventsCreated: AddTokenLifecycleEventsOutput;
+  /** docs: hide */
+  onTrackedWalletEventsCreated: AddTrackedWalletEventsOutput;
   /** Unconfirmed live-streamed bar chart data to track price changes over time. (Solana only) */
   onUnconfirmedBarsUpdated?: Maybe<OnUnconfirmedBarsUpdated>;
   /** Live-streamed unconfirmed transactions for a token. (Solana only) */
@@ -7369,6 +10773,11 @@ export type SubscriptionOnLaunchpadTokenEventArgs = {
 };
 
 
+export type SubscriptionOnLaunchpadTokenEventBatchArgs = {
+  input?: InputMaybe<OnLaunchpadTokenEventBatchInput>;
+};
+
+
 export type SubscriptionOnNftAssetsCreatedArgs = {
   address?: InputMaybe<Scalars['String']['input']>;
   networkId?: InputMaybe<Scalars['Int']['input']>;
@@ -7382,11 +10791,27 @@ export type SubscriptionOnNftEventsCreatedArgs = {
 };
 
 
+export type SubscriptionOnNftHoldersUpdatedArgs = {
+  collectionAddress: Scalars['String']['input'];
+  networkId: Scalars['Int']['input'];
+};
+
+
 export type SubscriptionOnNftPoolEventsCreatedArgs = {
   collectionAddress?: InputMaybe<Scalars['String']['input']>;
   exchangeAddress?: InputMaybe<Scalars['String']['input']>;
   networkId?: InputMaybe<Scalars['Int']['input']>;
   poolAddress?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type SubscriptionOnNotableHolderUpdatedArgs = {
+  input?: InputMaybe<OnNotableHolderUpdatedInput>;
+};
+
+
+export type SubscriptionOnNotableWalletEventCreatedArgs = {
+  input?: InputMaybe<NotableWalletEventSubscriptionInput>;
 };
 
 
@@ -7406,6 +10831,12 @@ export type SubscriptionOnPriceUpdatedArgs = {
 
 export type SubscriptionOnPricesUpdatedArgs = {
   input: Array<OnPricesUpdatedInput>;
+};
+
+
+export type SubscriptionOnRawEventsCreatedArgs = {
+  address?: InputMaybe<Scalars['String']['input']>;
+  id?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -7434,6 +10865,12 @@ export type SubscriptionOnTokenLifecycleEventsCreatedArgs = {
 };
 
 
+export type SubscriptionOnTrackedWalletEventsCreatedArgs = {
+  eventType?: InputMaybe<Array<TrackedWalletEventType>>;
+  userId: Scalars['String']['input'];
+};
+
+
 export type SubscriptionOnUnconfirmedBarsUpdatedArgs = {
   pairId?: InputMaybe<Scalars['String']['input']>;
   quoteToken?: InputMaybe<QuoteToken>;
@@ -7446,7 +10883,7 @@ export type SubscriptionOnUnconfirmedEventsCreatedArgs = {
   quoteToken?: InputMaybe<QuoteToken>;
 };
 
-export type SuiNetworkConfig = {
+export type SuiNetworkConfig = NetworkConfigBase & {
   __typename?: 'SuiNetworkConfig';
   baseTokenAddress: Scalars['String']['output'];
   baseTokenSymbol: Scalars['String']['output'];
@@ -7454,6 +10891,7 @@ export type SuiNetworkConfig = {
   defaultPairAddress: Scalars['String']['output'];
   defaultPairQuoteToken: QuoteToken;
   enabled: Scalars['Boolean']['output'];
+  explorer: ExplorerConfig;
   id: Scalars['ID']['output'];
   mainnet: Scalars['Boolean']['output'];
   name: Scalars['String']['output'];
@@ -7461,9 +10899,23 @@ export type SuiNetworkConfig = {
   networkId: Scalars['Int']['output'];
   networkName: Scalars['String']['output'];
   networkShortName: Scalars['String']['output'];
+  networkType: NetworkConfigType;
   newTokensEnabled?: Maybe<Scalars['Boolean']['output']>;
+  pricing: Array<NetworkPriceConfig>;
+  rpcs: Array<SuiRpcConfig>;
   stableCoinAddresses?: Maybe<Array<Scalars['String']['output']>>;
   wrappedBaseTokenSymbol: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type SuiRpcConfig = {
+  __typename?: 'SuiRpcConfig';
+  url: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type SuiRpcConfigInput = {
+  url: Scalars['String']['input'];
 };
 
 /** Event data for a token swap event. */
@@ -7736,6 +11188,8 @@ export type TokenFilterResult = {
   low24?: Maybe<Scalars['String']['output']>;
   /** The fully diluted market cap. For circulating market cap multiply `token { info { circulatingSupply } }` by `priceUSD`. */
   marketCap?: Maybe<Scalars['String']['output']>;
+  /** docs: hide */
+  notableHolderCount?: Maybe<Scalars['Int']['output']>;
   /** Metadata for the token's top pair. */
   pair?: Maybe<Pair>;
   /** The token price in USD. */
@@ -7752,6 +11206,10 @@ export type TokenFilterResult = {
   sellCount12?: Maybe<Scalars['Int']['output']>;
   /** The number of sells in the past 24 hours. */
   sellCount24?: Maybe<Scalars['Int']['output']>;
+  /** The percentage of wallets that are less than 1d old that have traded in the last 24h */
+  swapPct1dOldWallet?: Maybe<Scalars['String']['output']>;
+  /** The percentage of wallets that are less than 7d old that have traded in the last 24h */
+  swapPct7dOldWallet?: Maybe<Scalars['String']['output']>;
   /** Metadata for the token. */
   token?: Maybe<EnhancedToken>;
   /** The number of transactions in the past hour. */
@@ -7814,6 +11272,10 @@ export type TokenFilterResult = {
   volumeChange12?: Maybe<Scalars['String']['output']>;
   /** The percent volume change in the past 24 hours. Decimal format. */
   volumeChange24?: Maybe<Scalars['String']['output']>;
+  /** The average age of the wallets that traded in the last 24h */
+  walletAgeAvg?: Maybe<Scalars['String']['output']>;
+  /** The standard deviation of age of the wallets that traded in the last 24h */
+  walletAgeStd?: Maybe<Scalars['String']['output']>;
 };
 
 /** Input type of `TokenFilters`. */
@@ -7882,6 +11344,8 @@ export type TokenFilters = {
   launchpadMigrated?: InputMaybe<Scalars['Boolean']['input']>;
   /** The timestamp when the launchpad was migrated */
   launchpadMigratedAt?: InputMaybe<NumberFilter>;
+  /** The launchpad protocol */
+  launchpadProtocol?: InputMaybe<Scalars['String']['input']>;
   /** The amount of liquidity in the token's top pair. */
   liquidity?: InputMaybe<NumberFilter>;
   /** The lowest price in USD in the past hour. */
@@ -7916,6 +11380,10 @@ export type TokenFilters = {
   sellCount12?: InputMaybe<NumberFilter>;
   /** The number of sells in the past 24 hours. */
   sellCount24?: InputMaybe<NumberFilter>;
+  /** The percentage of wallets that are less than 1d old that have traded in the last 24h */
+  swapPct1dOldWallet?: InputMaybe<NumberFilter>;
+  /** The percentage of wallets that are less than 7d old that have traded in the last 24h */
+  swapPct7dOldWallet?: InputMaybe<NumberFilter>;
   /** Whether to ignore pairs/tokens not relevant to trending */
   trendingIgnored?: InputMaybe<Scalars['Boolean']['input']>;
   /** The number of transactions in the past hour. */
@@ -7978,6 +11446,32 @@ export type TokenFilters = {
   volumeChange12?: InputMaybe<NumberFilter>;
   /** The percent volume change in the past 24 hours. Decimal format. */
   volumeChange24?: InputMaybe<NumberFilter>;
+  /** The average age of the wallets that traded in the last 24h */
+  walletAgeAvg?: InputMaybe<NumberFilter>;
+  /** The standard deviation of age of the wallets that traded in the last 24h */
+  walletAgeStd?: InputMaybe<NumberFilter>;
+};
+
+/** docs: hide */
+export type TokenHistorySettings = {
+  __typename?: 'TokenHistorySettings';
+  expiry?: Maybe<Scalars['Int']['output']>;
+  onlyFirstBuy: Scalars['Boolean']['output'];
+  onlyFirstSell: Scalars['Boolean']['output'];
+};
+
+/** docs: hide */
+export type TokenHistorySettingsInput = {
+  expiry?: InputMaybe<Scalars['Int']['input']>;
+  onlyFirstBuy: Scalars['Boolean']['input'];
+  onlyFirstSell: Scalars['Boolean']['input'];
+};
+
+/** docs: hide */
+export type TokenIconUpdateUrlResponse = {
+  __typename?: 'TokenIconUpdateUrlResponse';
+  url?: Maybe<Scalars['String']['output']>;
+  viewUrl?: Maybe<Scalars['String']['output']>;
 };
 
 /** Metadata for a token. */
@@ -8208,6 +11702,8 @@ export enum TokenRankingAttribute {
   SellCount5m = 'sellCount5m',
   SellCount12 = 'sellCount12',
   SellCount24 = 'sellCount24',
+  SwapPct1dOldWallet = 'swapPct1dOldWallet',
+  SwapPct7dOldWallet = 'swapPct7dOldWallet',
   TrendingScore = 'trendingScore',
   TrendingScore1 = 'trendingScore1',
   TrendingScore4 = 'trendingScore4',
@@ -8243,7 +11739,9 @@ export enum TokenRankingAttribute {
   VolumeChange4 = 'volumeChange4',
   VolumeChange5m = 'volumeChange5m',
   VolumeChange12 = 'volumeChange12',
-  VolumeChange24 = 'volumeChange24'
+  VolumeChange24 = 'volumeChange24',
+  WalletAgeAvg = 'walletAgeAvg',
+  WalletAgeStd = 'walletAgeStd'
 }
 
 /** Response returned by `searchTokens`. */
@@ -8270,6 +11768,13 @@ export type TokenSparkline = {
 export type TokenSparklineInput = {
   /** The contract address & networkId of the token, joined by a colon. ex: 0xbe042e9d09cb588331ff911c2b46fd833a3e5bd6:1 */
   ids: Array<Scalars['String']['input']>;
+};
+
+/** docs: hide */
+export type TokenSummary = {
+  __typename?: 'TokenSummary';
+  text: Scalars['String']['output'];
+  updatedAt: Scalars['Int']['output'];
 };
 
 /** A top trader for a token. */
@@ -8336,6 +11841,132 @@ export type TokenTopTradersInput = {
   tokenAddress: Scalars['String']['input'];
   /** The trading period */
   tradingPeriod: TradingPeriod;
+};
+
+/** docs: hide */
+export type TokenWalletFilterConnection = {
+  __typename?: 'TokenWalletFilterConnection';
+  /** The number of wallets returned. */
+  count: Scalars['Int']['output'];
+  /** Where in the list the server started when returning items. */
+  offset: Scalars['Int']['output'];
+  /** The list of wallets matching the filter parameters. */
+  results: Array<TokenWalletFilterResult>;
+};
+
+/** docs: hide */
+export type TokenWalletFilterResult = {
+  __typename?: 'TokenWalletFilterResult';
+  /** The wallet address */
+  address: Scalars['String']['output'];
+  /** Amount bought in USD in the past day */
+  amountBoughtUsd1d: Scalars['String']['output'];
+  /** Amount bought in USD in the past week */
+  amountBoughtUsd1w: Scalars['String']['output'];
+  /** Amount bought in USD in the past year */
+  amountBoughtUsd1y: Scalars['String']['output'];
+  /** Amount bought in USD in the past 30 days */
+  amountBoughtUsd30d: Scalars['String']['output'];
+  /** Amount sold in USD in the past day */
+  amountSoldUsd1d: Scalars['String']['output'];
+  /** Amount sold in USD in the past week */
+  amountSoldUsd1w: Scalars['String']['output'];
+  /** Amount sold in USD in the past year */
+  amountSoldUsd1y: Scalars['String']['output'];
+  /** Amount sold in USD in the past 30 days */
+  amountSoldUsd30d: Scalars['String']['output'];
+  /** Amount sold USD all in the past day */
+  amountSoldUsdAll1d: Scalars['String']['output'];
+  /** Amount sold USD all in the past week */
+  amountSoldUsdAll1w: Scalars['String']['output'];
+  /** Amount sold USD all in the past year */
+  amountSoldUsdAll1y: Scalars['String']['output'];
+  /** Amount sold USD all in the past 30 days */
+  amountSoldUsdAll30d: Scalars['String']['output'];
+  /** Number of buys in the past day */
+  buys1d: Scalars['Int']['output'];
+  /** Number of buys in the past week */
+  buys1w: Scalars['Int']['output'];
+  /** Number of buys in the past year */
+  buys1y: Scalars['Int']['output'];
+  /** Number of buys in the past 30 days */
+  buys30d: Scalars['Int']['output'];
+  /** The unix timestamp for the first transaction from this wallet */
+  firstTransactionAt?: Maybe<Scalars['Int']['output']>;
+  /** The labels associated with the wallet */
+  labels: Array<Scalars['String']['output']>;
+  /** The unix timestamp for the last transaction from this wallet */
+  lastTransactionAt: Scalars['Int']['output'];
+  /** The network ID */
+  networkId: Scalars['Int']['output'];
+  /** The purchased token balance */
+  purchasedTokenBalance: Scalars['String']['output'];
+  /** Realized profit percentage in the past day */
+  realizedProfitPercentage1d: Scalars['Float']['output'];
+  /** Realized profit percentage in the past week */
+  realizedProfitPercentage1w: Scalars['Float']['output'];
+  /** Realized profit percentage in the past year */
+  realizedProfitPercentage1y: Scalars['Float']['output'];
+  /** Realized profit percentage in the past 30 days */
+  realizedProfitPercentage30d: Scalars['Float']['output'];
+  /** Realized profit in USD in the past day */
+  realizedProfitUsd1d: Scalars['String']['output'];
+  /** Realized profit in USD in the past week */
+  realizedProfitUsd1w: Scalars['String']['output'];
+  /** Realized profit in USD in the past year */
+  realizedProfitUsd1y: Scalars['String']['output'];
+  /** Realized profit in USD in the past 30 days */
+  realizedProfitUsd30d: Scalars['String']['output'];
+  /** The scammer score for the wallet. */
+  scammerScore?: Maybe<Scalars['Int']['output']>;
+  /** Number of sells in the past day */
+  sells1d: Scalars['Int']['output'];
+  /** Number of sells in the past week */
+  sells1w: Scalars['Int']['output'];
+  /** Number of sells in the past year */
+  sells1y: Scalars['Int']['output'];
+  /** Number of sells in the past 30 days */
+  sells30d: Scalars['Int']['output'];
+  /** Number of sells all in the past day */
+  sellsAll1d: Scalars['Int']['output'];
+  /** Number of sells all in the past week */
+  sellsAll1w: Scalars['Int']['output'];
+  /** Number of sells all in the past year */
+  sellsAll1y: Scalars['Int']['output'];
+  /** Number of sells all in the past 30 days */
+  sellsAll30d: Scalars['Int']['output'];
+  /** The token metadata */
+  token: EnhancedToken;
+  /** The token acquisition cost in USD */
+  tokenAcquisitionCostUsd: Scalars['String']['output'];
+  /** The token address */
+  tokenAddress: Scalars['String']['output'];
+  /** Token amount bought in the past day */
+  tokenAmountBought1d: Scalars['String']['output'];
+  /** Token amount bought in the past week */
+  tokenAmountBought1w: Scalars['String']['output'];
+  /** Token amount bought in the past year */
+  tokenAmountBought1y: Scalars['String']['output'];
+  /** Token amount bought in the past 30 days */
+  tokenAmountBought30d: Scalars['String']['output'];
+  /** Token amount sold in the past day */
+  tokenAmountSold1d: Scalars['String']['output'];
+  /** Token amount sold in the past week */
+  tokenAmountSold1w: Scalars['String']['output'];
+  /** Token amount sold in the past year */
+  tokenAmountSold1y: Scalars['String']['output'];
+  /** Token amount sold in the past 30 days */
+  tokenAmountSold30d: Scalars['String']['output'];
+  /** Token amount sold all in the past day */
+  tokenAmountSoldAll1d: Scalars['String']['output'];
+  /** Token amount sold all in the past week */
+  tokenAmountSoldAll1w: Scalars['String']['output'];
+  /** Token amount sold all in the past year */
+  tokenAmountSoldAll1y: Scalars['String']['output'];
+  /** Token amount sold all in the past 30 days */
+  tokenAmountSoldAll30d: Scalars['String']['output'];
+  /** The current token balance */
+  tokenBalance: Scalars['String']['output'];
 };
 
 /** A token with metadata. */
@@ -8419,6 +12050,124 @@ export type TokenWithMetadata = {
   volume: Scalars['String']['output'];
 };
 
+/** docs: hide */
+export type Trackable = {
+  networkId: Scalars['Int']['output'];
+};
+
+/** docs: hide */
+export type TrackedWallet = {
+  __typename?: 'TrackedWallet';
+  created: Scalars['Int']['output'];
+  labels?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
+  name: Scalars['String']['output'];
+  networkType: NetworkConfigType;
+  settings?: Maybe<TrackedWalletSettings>;
+  walletAddress: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type TrackedWalletBotPublishingConfig = {
+  __typename?: 'TrackedWalletBotPublishingConfig';
+  chatId?: Maybe<Scalars['String']['output']>;
+  enabled?: Maybe<Scalars['Boolean']['output']>;
+  threadId?: Maybe<Scalars['String']['output']>;
+};
+
+/** docs: hide */
+export type TrackedWalletBotPublishingConfigInput = {
+  chatId?: InputMaybe<Scalars['String']['input']>;
+  enabled: Scalars['Boolean']['input'];
+  threadId?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** docs: hide */
+export type TrackedWalletConnection = {
+  __typename?: 'TrackedWalletConnection';
+  cursor?: Maybe<Scalars['String']['output']>;
+  trackedWallets: Array<Maybe<TrackedWallet>>;
+  userId: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type TrackedWalletEvent = {
+  __typename?: 'TrackedWalletEvent';
+  eventData: TrackedWalletEventData;
+  eventId: Scalars['String']['output'];
+  eventSortKey: Scalars['String']['output'];
+  eventType: TrackedWalletEventType;
+  userId: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type TrackedWalletEventData = Event | NftEvent | RawTransaction;
+
+/** docs: hide */
+export enum TrackedWalletEventType {
+  NftEvent = 'NFT_EVENT',
+  RawTransaction = 'RAW_TRANSACTION',
+  TokenPairEvent = 'TOKEN_PAIR_EVENT'
+}
+
+/** docs: hide */
+export type TrackedWalletEventsConnection = {
+  __typename?: 'TrackedWalletEventsConnection';
+  cursor?: Maybe<Scalars['String']['output']>;
+  items: Array<Maybe<TrackedWalletEvent>>;
+};
+
+/** docs: hide */
+export type TrackedWalletInput = {
+  labels?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  name: Scalars['String']['input'];
+  networkType: NetworkConfigType;
+  settings?: InputMaybe<TrackedWalletSettingsInput>;
+  walletAddress: Scalars['String']['input'];
+};
+
+/** docs: hide */
+export type TrackedWalletSettings = {
+  __typename?: 'TrackedWalletSettings';
+  addressBlacklist?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
+  botPublishingConfig?: Maybe<TrackedWalletBotPublishingConfig>;
+  ignoreEventTypes?: Maybe<Array<Maybe<TrackedWalletEventType>>>;
+  ignoreTokenApprovals?: Maybe<Scalars['Boolean']['output']>;
+  maxSwapValue?: Maybe<Scalars['String']['output']>;
+  maxTokenMarketCap?: Maybe<Scalars['String']['output']>;
+  minSwapValue?: Maybe<Scalars['String']['output']>;
+  minTokenMarketCap?: Maybe<Scalars['String']['output']>;
+  showAlertsInWeb?: Maybe<Scalars['Boolean']['output']>;
+  tokenHistorySettings?: Maybe<TokenHistorySettings>;
+  webPublishingConfig?: Maybe<TrackedWalletWebPublishingConfig>;
+};
+
+/** docs: hide */
+export type TrackedWalletSettingsInput = {
+  addressBlacklist?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  botPublishingConfig?: InputMaybe<TrackedWalletBotPublishingConfigInput>;
+  ignoreEventTypes?: InputMaybe<Array<InputMaybe<TrackedWalletEventType>>>;
+  ignoreTokenApprovals?: InputMaybe<Scalars['Boolean']['input']>;
+  maxSwapValue?: InputMaybe<Scalars['String']['input']>;
+  maxTokenMarketCap?: InputMaybe<Scalars['String']['input']>;
+  minSwapValue?: InputMaybe<Scalars['String']['input']>;
+  minTokenMarketCap?: InputMaybe<Scalars['String']['input']>;
+  tokenHistorySettings?: InputMaybe<TokenHistorySettingsInput>;
+  webPublishingConfig?: InputMaybe<TrackedWalletWebPublishingConfigInput>;
+};
+
+/** docs: hide */
+export type TrackedWalletWebPublishingConfig = {
+  __typename?: 'TrackedWalletWebPublishingConfig';
+  enabled?: Maybe<Scalars['Boolean']['output']>;
+  showAlerts?: Maybe<Scalars['Boolean']['output']>;
+};
+
+/** docs: hide */
+export type TrackedWalletWebPublishingConfigInput = {
+  enabled: Scalars['Boolean']['input'];
+  showAlerts: Scalars['Boolean']['input'];
+};
+
 /** A time period used when calculating wallet trading data. */
 export enum TradingPeriod {
   Day = 'DAY',
@@ -8426,6 +12175,28 @@ export enum TradingPeriod {
   Week = 'WEEK',
   Year = 'YEAR'
 }
+
+/** docs: hide */
+export type TurnkeyEmailRecoveryInput = {
+  email: Scalars['String']['input'];
+  publicKey: Scalars['String']['input'];
+};
+
+/** docs: hide */
+export type TurnkeyPasskeyUser = {
+  __typename?: 'TurnkeyPasskeyUser';
+  subOrgId: Scalars['String']['output'];
+  userEmail?: Maybe<Scalars['String']['output']>;
+  userId: Scalars['String']['output'];
+  userName: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type TurnkeyUserEmailInput = {
+  email: Scalars['String']['input'];
+  request: SignedRequest;
+  verifiedAt?: InputMaybe<Scalars['Int']['input']>;
+};
 
 /** An unconfirmed token transaction. */
 export type UnconfirmedEvent = {
@@ -8532,11 +12303,842 @@ export type UnconfirmedSwapEventData = {
   type: EventType;
 };
 
+/** docs: hide */
+export type UniV3Tick = {
+  __typename?: 'UniV3Tick';
+  liquidityNet?: Maybe<Scalars['String']['output']>;
+  price0?: Maybe<Scalars['String']['output']>;
+  price1?: Maybe<Scalars['String']['output']>;
+  tick?: Maybe<Scalars['Int']['output']>;
+};
+
+/** docs: hide */
+export type UniV3TickConnection = {
+  __typename?: 'UniV3TickConnection';
+  /** The number of ticks returned. */
+  count?: Maybe<Scalars['Int']['output']>;
+  /** Where in the list the server started when returning items. */
+  offset?: Maybe<Scalars['Int']['output']>;
+  /** The list of Uni V3 ticks matching the filter parameters. */
+  results?: Maybe<Array<Maybe<UniV3Tick>>>;
+};
+
+/** docs: hide */
+export type UpdateAptosNetworkConfigInput = {
+  rpcs?: InputMaybe<Array<AptosRpcConfigInput>>;
+};
+
+/** docs: hide */
+export type UpdateChartLayoutInput = {
+  content: Scalars['String']['input'];
+  id: Scalars['Int']['input'];
+  name: Scalars['String']['input'];
+  resolution: Scalars['String']['input'];
+  symbol: Scalars['String']['input'];
+};
+
+/** docs: hide */
+export type UpdateConstantPriceConfigInput = {
+  tokenAddress: Scalars['String']['input'];
+  value: Scalars['String']['input'];
+};
+
+/** docs: hide */
+export type UpdateEvmNetworkConfigInput = {
+  evmConfig?: InputMaybe<EvmConfigInput>;
+  evmConstants?: InputMaybe<EvmConstantsInput>;
+  rpcs?: InputMaybe<Array<EvmRpcConfigInput>>;
+};
+
+/** docs: hide */
+export type UpdateExchangeInput = {
+  color?: InputMaybe<Scalars['String']['input']>;
+  enabled?: InputMaybe<Scalars['Boolean']['input']>;
+  exchangeVersion?: InputMaybe<Scalars['String']['input']>;
+  iconUrl?: InputMaybe<Scalars['String']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  supported?: InputMaybe<Scalars['Boolean']['input']>;
+  tradeUrl?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** docs: hide */
+export type UpdateExternalPriceConfigInput = {
+  referenceToken: ExternalPrices;
+  tokenAddress: Scalars['String']['input'];
+};
+
+/** docs: hide */
+export type UpdateFeatureInput = {
+  deleted?: InputMaybe<Scalars['Boolean']['input']>;
+  enabled: Scalars['Boolean']['input'];
+  name: Scalars['String']['input'];
+};
+
+/** docs: hide */
+export type UpdateMappedPriceConfigInput = {
+  referenceNetworkId: Scalars['Int']['input'];
+  referenceTokenAddress: Scalars['String']['input'];
+  tokenAddress: Scalars['String']['input'];
+};
+
+/** docs: hide */
+export type UpdateNetworkConfigInput = {
+  aptosInput?: InputMaybe<UpdateAptosNetworkConfigInput>;
+  baseTokenAddress?: InputMaybe<Scalars['String']['input']>;
+  baseTokenSymbol?: InputMaybe<Scalars['String']['input']>;
+  color?: InputMaybe<Scalars['String']['input']>;
+  defaultPairAddress?: InputMaybe<Scalars['String']['input']>;
+  defaultPairQuoteToken?: InputMaybe<QuoteToken>;
+  enabled?: InputMaybe<Scalars['Boolean']['input']>;
+  evmInput?: InputMaybe<UpdateEvmNetworkConfigInput>;
+  explorer?: InputMaybe<ExplorerConfigInput>;
+  mainnet?: InputMaybe<Scalars['Boolean']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  networkIconUrl?: InputMaybe<Scalars['String']['input']>;
+  networkId?: InputMaybe<Scalars['Int']['input']>;
+  networkName?: InputMaybe<Scalars['String']['input']>;
+  networkShortName?: InputMaybe<Scalars['String']['input']>;
+  networkType: NetworkConfigType;
+  newTokensEnabled?: InputMaybe<Scalars['Boolean']['input']>;
+  pricing?: InputMaybe<Array<InputMaybe<UpdatePriceConfigInput>>>;
+  solanaInput?: InputMaybe<UpdateSolanaNetworkConfigInput>;
+  stableCoinAddresses?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  starknetInput?: InputMaybe<UpdateStarknetNetworkConfigInput>;
+  suiInput?: InputMaybe<UpdateSuiNetworkConfigInput>;
+  wrappedBaseTokenSymbol?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** docs: hide */
+export type UpdatePriceConfigInput = {
+  constantPriceInput?: InputMaybe<UpdateConstantPriceConfigInput>;
+  externalPriceInput?: InputMaybe<UpdateExternalPriceConfigInput>;
+  mappedPriceInput?: InputMaybe<UpdateMappedPriceConfigInput>;
+};
+
+/** docs: hide */
+export type UpdateSolanaNetworkConfigInput = {
+  rpcs?: InputMaybe<Array<SolanaRpcConfigInput>>;
+};
+
+/** docs: hide */
+export type UpdateStarknetNetworkConfigInput = {
+  rpcs?: InputMaybe<Array<StarknetRpcConfigInput>>;
+};
+
+/** docs: hide */
+export type UpdateStrategyInput = {
+  name: Scalars['String']['input'];
+  orderParams: Array<CreateStrategyOrderParamInput>;
+};
+
+/** docs: hide */
+export type UpdateSuiNetworkConfigInput = {
+  rpcs?: InputMaybe<Array<SuiRpcConfigInput>>;
+};
+
+/** docs: hide */
+export type UpdateTrackedWalletInput = {
+  labels?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  settings?: InputMaybe<TrackedWalletSettingsInput>;
+  walletAddress: Scalars['String']['input'];
+};
+
+/** docs: hide */
+export type UpdateTrackedWalletsInput = {
+  userId: Scalars['String']['input'];
+  wallets: Array<UpdateTrackedWalletInput>;
+};
+
+/** docs: hide */
+export type UpdateUserContractListInput = {
+  icon?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['String']['input'];
+  public?: InputMaybe<Scalars['Boolean']['input']>;
+  title?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** docs: hide */
+export type UpdateUserReferralCodeResponse = {
+  __typename?: 'UpdateUserReferralCodeResponse';
+  newReferralCode: Scalars['String']['output'];
+  userId: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type User = {
+  __typename?: 'User';
+  ban?: Maybe<BanDetails>;
+  contractProposalStats?: Maybe<ContractProposalStats>;
+  createdAt: Scalars['Int']['output'];
+  groups?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
+  id: Scalars['String']['output'];
+  name?: Maybe<Scalars['String']['output']>;
+  updatedAt: Scalars['Int']['output'];
+  /** @deprecated use id instead */
+  username: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type UserAchievement = {
+  __typename?: 'UserAchievement';
+  achievementId: Scalars['String']['output'];
+  completed?: Maybe<Scalars['Boolean']['output']>;
+  description: Scalars['String']['output'];
+  imageUrl: Scalars['String']['output'];
+  lockedDescription?: Maybe<Scalars['String']['output']>;
+  name: Scalars['String']['output'];
+  pointsSeason: PointsSeason;
+  quantity?: Maybe<Scalars['Int']['output']>;
+  type: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type UserContractList = {
+  __typename?: 'UserContractList';
+  createdAt: Scalars['Int']['output'];
+  icon: Scalars['String']['output'];
+  id: Scalars['String']['output'];
+  isTokenInList?: Maybe<Scalars['Boolean']['output']>;
+  public?: Maybe<Scalars['Boolean']['output']>;
+  slug?: Maybe<Scalars['String']['output']>;
+  title: Scalars['String']['output'];
+  updatedAt: Scalars['Int']['output'];
+  userId: Scalars['String']['output'];
+};
+
+
+/** docs: hide */
+export type UserContractListIsTokenInListArgs = {
+  tokenId: Scalars['String']['input'];
+};
+
+/** docs: hide */
+export type UserContractListAndItems = {
+  __typename?: 'UserContractListAndItems';
+  items: Array<UserContractListItem>;
+  list: UserContractList;
+};
+
+/** docs: hide */
+export type UserContractListConnection = {
+  __typename?: 'UserContractListConnection';
+  cursor?: Maybe<Scalars['String']['output']>;
+  items: Array<UserContractList>;
+};
+
+/** docs: hide */
+export type UserContractListItem = {
+  __typename?: 'UserContractListItem';
+  address: Scalars['String']['output'];
+  contractType: ContractType;
+  createdAt: Scalars['Int']['output'];
+  listId: Scalars['String']['output'];
+  networkId: Scalars['Int']['output'];
+  sortKey: Scalars['String']['output'];
+  symbol: Scalars['String']['output'];
+  tokenId?: Maybe<Scalars['String']['output']>;
+  userId: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type UserContractListItemConnection = {
+  __typename?: 'UserContractListItemConnection';
+  cursor?: Maybe<Scalars['String']['output']>;
+  items?: Maybe<Array<UserContractListItem>>;
+};
+
+/** docs: hide */
+export type UserDailyRanks = {
+  __typename?: 'UserDailyRanks';
+  PNL_PERCENT?: Maybe<Scalars['Int']['output']>;
+  PNL_USD?: Maybe<Scalars['Int']['output']>;
+  VOLUME_USD?: Maybe<Scalars['Int']['output']>;
+};
+
+/** docs: hide */
+export type UserModel = {
+  __typename?: 'UserModel';
+  id?: Maybe<Scalars['String']['output']>;
+  nonce?: Maybe<Scalars['String']['output']>;
+  /** These are now legacy */
+  publicWalletAddress?: Maybe<Scalars['String']['output']>;
+  referralCode?: Maybe<Scalars['String']['output']>;
+  referralEarnings?: Maybe<Scalars['JSON']['output']>;
+  referralStartDate?: Maybe<Scalars['Int']['output']>;
+  referralTradeVolume?: Maybe<Scalars['JSON']['output']>;
+  referralsCount?: Maybe<Scalars['Int']['output']>;
+  referralsTradeVolume?: Maybe<Scalars['Float']['output']>;
+  referralsTrades?: Maybe<Scalars['Int']['output']>;
+  referrerCode?: Maybe<Scalars['String']['output']>;
+  referrerUserId?: Maybe<Scalars['String']['output']>;
+  rewardsPayoutTotal?: Maybe<Scalars['Float']['output']>;
+};
+
+/** docs: hide */
+export type UserPointsLeaderboard = {
+  __typename?: 'UserPointsLeaderboard';
+  level: Scalars['Int']['output'];
+  levelTier: LevelTier;
+  numTrophies: Scalars['Int']['output'];
+  pointsProgress: Scalars['Float']['output'];
+  revShareTrophies?: Maybe<Array<AchievementId>>;
+  stats: UserPointsLeaderboardStats;
+  userId: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type UserPointsLeaderboardStats = {
+  __typename?: 'UserPointsLeaderboardStats';
+  dailyStreak?: Maybe<Scalars['Int']['output']>;
+  latestTradeTimestamp?: Maybe<Scalars['Int']['output']>;
+  seasonPnlCumulativePercent: Scalars['Float']['output'];
+  seasonPnlPercent: Scalars['Float']['output'];
+  seasonPnlUsd: Scalars['Float']['output'];
+  seasonTradeCount: Scalars['Int']['output'];
+  seasonTradeCountBuy: Scalars['Int']['output'];
+  seasonTradeCountSell: Scalars['Int']['output'];
+  seasonVolumeUsd: Scalars['Float']['output'];
+  updatedAt: Scalars['Int']['output'];
+};
+
+/** docs: hide */
+export type UserPointsLeaderboardV2 = {
+  __typename?: 'UserPointsLeaderboardV2';
+  level: Scalars['Int']['output'];
+  levelTier: LevelTier;
+  numTrophies: Scalars['Int']['output'];
+  pointsProgress: Scalars['Float']['output'];
+  stats: UserPointsLeaderboardStats;
+  userId: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type UserQuest = {
+  __typename?: 'UserQuest';
+  achievementId: Scalars['String']['output'];
+  completedCount?: Maybe<Scalars['Int']['output']>;
+  completedTimestamp?: Maybe<Scalars['Int']['output']>;
+  currentProgress?: Maybe<Scalars['Float']['output']>;
+  description: Scalars['String']['output'];
+  imageUrl: Scalars['String']['output'];
+  isUnique?: Maybe<Scalars['Boolean']['output']>;
+  lockedDescription?: Maybe<Scalars['String']['output']>;
+  name: Scalars['String']['output'];
+  pointReward?: Maybe<Scalars['Int']['output']>;
+  pointsSeason: PointsSeason;
+  state: UserQuestState;
+  totalProgress?: Maybe<Scalars['Float']['output']>;
+  triggerAmount: Scalars['Int']['output'];
+  triggerCategory: Scalars['String']['output'];
+  triggerDenomination: Scalars['String']['output'];
+  type: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export enum UserQuestState {
+  Completed = 'COMPLETED',
+  Inactive = 'INACTIVE',
+  InProgress = 'IN_PROGRESS'
+}
+
+/** docs: hide */
+export type UserRevShare = {
+  __typename?: 'UserRevShare';
+  amountUsd: Scalars['Float']['output'];
+  amountUsdPerTier: Scalars['String']['output'];
+  updatedAt: Scalars['Int']['output'];
+  userId: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type UserRevShareEvent = {
+  __typename?: 'UserRevShareEvent';
+  amountUsd: Scalars['Float']['output'];
+  amountUsdPerTier: Scalars['String']['output'];
+  updatedAt: Scalars['Int']['output'];
+};
+
+/** docs: hide */
+export type UserRevShareEventsInput = {
+  cursor?: InputMaybe<Scalars['String']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  pointsSeason: PointsSeason;
+  userId: Scalars['String']['input'];
+};
+
+/** docs: hide */
+export type UserRevShareEventsResponse = {
+  __typename?: 'UserRevShareEventsResponse';
+  cursor?: Maybe<Scalars['String']['output']>;
+  items: Array<UserRevShareEvent>;
+};
+
+/** docs: hide */
+export type UserRevShareInput = {
+  cursor?: InputMaybe<Scalars['String']['input']>;
+  pointsSeason: PointsSeason;
+  userId?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** docs: hide */
+export type UserRevShareMeta = {
+  __typename?: 'UserRevShareMeta';
+  amountUsd: Scalars['Float']['output'];
+  amountUsdPerTier: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type UserRevShareResponse = {
+  __typename?: 'UserRevShareResponse';
+  cursor?: Maybe<Scalars['String']['output']>;
+  items: Array<UserRevShare>;
+};
+
+/** docs: hide */
+export type UserTrackedWalletSettings = {
+  __typename?: 'UserTrackedWalletSettings';
+  addressBlacklist?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
+  botPublishingConfig: TrackedWalletBotPublishingConfig;
+  ignoreEventTypes?: Maybe<Array<Maybe<TrackedWalletEventType>>>;
+  ignoreTokenApprovals?: Maybe<Scalars['Boolean']['output']>;
+  maxSwapValue?: Maybe<Scalars['String']['output']>;
+  maxTokenMarketCap?: Maybe<Scalars['String']['output']>;
+  minSwapValue?: Maybe<Scalars['String']['output']>;
+  minTokenMarketCap?: Maybe<Scalars['String']['output']>;
+  tokenHistorySettings?: Maybe<TokenHistorySettings>;
+  userId: Scalars['String']['output'];
+  webPublishingConfig: TrackedWalletWebPublishingConfig;
+};
+
+/** docs: hide */
+export type UserTrackedWalletSettingsInput = {
+  addressBlacklist?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  botPublishingConfig: TrackedWalletBotPublishingConfigInput;
+  ignoreEventTypes?: InputMaybe<Array<InputMaybe<TrackedWalletEventType>>>;
+  ignoreTokenApprovals?: InputMaybe<Scalars['Boolean']['input']>;
+  maxSwapValue?: InputMaybe<Scalars['String']['input']>;
+  maxTokenMarketCap?: InputMaybe<Scalars['String']['input']>;
+  minSwapValue?: InputMaybe<Scalars['String']['input']>;
+  minTokenMarketCap?: InputMaybe<Scalars['String']['input']>;
+  tokenHistorySettings?: InputMaybe<TokenHistorySettingsInput>;
+  userId: Scalars['String']['input'];
+  webPublishingConfig: TrackedWalletWebPublishingConfigInput;
+};
+
+/** docs: hide */
+export type WalletAggregateBackfillInput = {
+  walletAddress: Scalars['String']['input'];
+};
+
+/** docs: hide */
+export enum WalletAggregateBackfillState {
+  BackfillBlocked = 'BackfillBlocked',
+  BackfillCanceled = 'BackfillCanceled',
+  BackfillComplete = 'BackfillComplete',
+  BackfillInProgress = 'BackfillInProgress',
+  BackfillNotFound = 'BackfillNotFound',
+  BackfillRequestReceived = 'BackfillRequestReceived'
+}
+
+/** docs: hide */
+export type WalletAggregateBackfillStateInput = {
+  walletAddress: Scalars['String']['input'];
+};
+
+/** docs: hide */
+export type WalletAggregateBackfillStateResponse = {
+  __typename?: 'WalletAggregateBackfillStateResponse';
+  status: WalletAggregateBackfillState;
+  walletAddress: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type WalletAttestation = {
+  attestationObject: Scalars['String']['input'];
+  clientDataJson: Scalars['String']['input'];
+  credentialId: Scalars['String']['input'];
+  transports: Array<Scalars['String']['input']>;
+};
+
+/** docs: hide */
+export type WalletChartData = {
+  __typename?: 'WalletChartData';
+  realizedProfitUsd: Scalars['String']['output'];
+  resolution: Scalars['String']['output'];
+  swaps: Scalars['Int']['output'];
+  timestamp: Scalars['Int']['output'];
+  volumeUsd: Scalars['String']['output'];
+  volumeUsdAll: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type WalletChartInput = {
+  networkId?: InputMaybe<Scalars['Int']['input']>;
+  range: RangeInput;
+  resolution: Scalars['String']['input'];
+  walletAddress: Scalars['String']['input'];
+};
+
 export type WalletChartRange = {
   __typename?: 'WalletChartRange';
   end: Scalars['Int']['output'];
   start: Scalars['Int']['output'];
 };
+
+/** docs: hide */
+export type WalletChartResponse = {
+  __typename?: 'WalletChartResponse';
+  data: Array<WalletChartData>;
+  networkId?: Maybe<Scalars['Int']['output']>;
+  range: WalletChartRange;
+  resolution: Scalars['String']['output'];
+  walletAddress: Scalars['String']['output'];
+};
+
+/** docs: hide */
+export type WalletFilterConnection = {
+  __typename?: 'WalletFilterConnection';
+  /** The number of wallets returned. */
+  count: Scalars['Int']['output'];
+  /** Where in the list the server started when returning items. */
+  offset: Scalars['Int']['output'];
+  /** The list of wallets matching the filter parameters. */
+  results: Array<WalletFilterResult>;
+};
+
+/** docs: hide */
+export type WalletFilterResult = {
+  __typename?: 'WalletFilterResult';
+  /** The wallet address */
+  address: Scalars['String']['output'];
+  /** Average profit in USD per trade in the past day */
+  averageProfitUsdPerTrade1d: Scalars['String']['output'];
+  /** Average profit in USD per trade in the past week */
+  averageProfitUsdPerTrade1w: Scalars['String']['output'];
+  /** Average profit in USD per trade in the past year */
+  averageProfitUsdPerTrade1y: Scalars['String']['output'];
+  /** Average profit in USD per trade in the past 30 days */
+  averageProfitUsdPerTrade30d: Scalars['String']['output'];
+  /** Average swap amount in USD in the past day */
+  averageSwapAmountUsd1d: Scalars['String']['output'];
+  /** Average swap amount in USD in the past week */
+  averageSwapAmountUsd1w: Scalars['String']['output'];
+  /** Average swap amount in USD in the past year */
+  averageSwapAmountUsd1y: Scalars['String']['output'];
+  /** Average swap amount in USD in the past 30 days */
+  averageSwapAmountUsd30d: Scalars['String']['output'];
+  /** The unix timestamp for the first transaction from this wallet */
+  firstTransactionAt?: Maybe<Scalars['Int']['output']>;
+  /** The labels associated with the wallet */
+  labels: Array<Scalars['String']['output']>;
+  /** The unix timestamp for the last transaction from this wallet */
+  lastTransactionAt: Scalars['Int']['output'];
+  /** Realized profit percentage in the past day */
+  realizedProfitPercentage1d: Scalars['Float']['output'];
+  /** Realized profit percentage in the past week */
+  realizedProfitPercentage1w: Scalars['Float']['output'];
+  /** Realized profit percentage in the past year */
+  realizedProfitPercentage1y: Scalars['Float']['output'];
+  /** Realized profit percentage in the past 30 days */
+  realizedProfitPercentage30d: Scalars['Float']['output'];
+  /** Realized profit in USD in the past day */
+  realizedProfitUsd1d: Scalars['String']['output'];
+  /** Realized profit in USD in the past week */
+  realizedProfitUsd1w: Scalars['String']['output'];
+  /** Realized profit in USD in the past year */
+  realizedProfitUsd1y: Scalars['String']['output'];
+  /** Realized profit in USD in the past 30 days */
+  realizedProfitUsd30d: Scalars['String']['output'];
+  /** The scammer score for the wallet. */
+  scammerScore?: Maybe<Scalars['Int']['output']>;
+  /** Number of swaps in the past day */
+  swaps1d: Scalars['Int']['output'];
+  /** Number of swaps in the past week */
+  swaps1w: Scalars['Int']['output'];
+  /** Number of swaps in the past year */
+  swaps1y: Scalars['Int']['output'];
+  /** Number of swaps in the past 30 days */
+  swaps30d: Scalars['Int']['output'];
+  /** Total number of swaps in the past day including all tokens */
+  swapsAll1d: Scalars['Int']['output'];
+  /** Total number of swaps in the past week including all tokens */
+  swapsAll1w: Scalars['Int']['output'];
+  /** Total number of swaps in the past year including all tokens */
+  swapsAll1y: Scalars['Int']['output'];
+  /** Total number of swaps in the past 30 days including all tokens */
+  swapsAll30d: Scalars['Int']['output'];
+  /** Number of unique tokens traded in the past day */
+  uniqueTokens1d: Scalars['Int']['output'];
+  /** Number of unique tokens traded in the past week */
+  uniqueTokens1w: Scalars['Int']['output'];
+  /** Number of unique tokens traded in the past year */
+  uniqueTokens1y: Scalars['Int']['output'];
+  /** Number of unique tokens traded in the past 30 days */
+  uniqueTokens30d: Scalars['Int']['output'];
+  /** Volume in USD in the past day */
+  volumeUsd1d: Scalars['String']['output'];
+  /** Volume in USD in the past week */
+  volumeUsd1w: Scalars['String']['output'];
+  /** Volume in USD in the past year */
+  volumeUsd1y: Scalars['String']['output'];
+  /** Volume in USD in the past 30 days */
+  volumeUsd30d: Scalars['String']['output'];
+  /** Total volume in USD in the past day including all tokens */
+  volumeUsdAll1d: Scalars['String']['output'];
+  /** Total volume in USD in the past week including all tokens */
+  volumeUsdAll1w: Scalars['String']['output'];
+  /** Total volume in USD in the past year including all tokens */
+  volumeUsdAll1y: Scalars['String']['output'];
+  /** Total volume in USD in the past 30 days including all tokens */
+  volumeUsdAll30d: Scalars['String']['output'];
+  /** Win rate in the past day */
+  winRate1d: Scalars['Float']['output'];
+  /** Win rate in the past week */
+  winRate1w: Scalars['Float']['output'];
+  /** Win rate in the past year */
+  winRate1y: Scalars['Float']['output'];
+  /** Win rate in the past 30 days */
+  winRate30d: Scalars['Float']['output'];
+};
+
+/** docs: hide */
+export type WalletFilters = {
+  /** Average profit in USD per trade in the past day */
+  averageProfitUsdPerTrade1d?: InputMaybe<NumberFilter>;
+  /** Average profit in USD per trade in the past week */
+  averageProfitUsdPerTrade1w?: InputMaybe<NumberFilter>;
+  /** Average profit in USD per trade in the past year */
+  averageProfitUsdPerTrade1y?: InputMaybe<NumberFilter>;
+  /** Average profit in USD per trade in the past 30 days */
+  averageProfitUsdPerTrade30d?: InputMaybe<NumberFilter>;
+  /** Average swap amount in USD in the past day */
+  averageSwapAmountUsd1d?: InputMaybe<NumberFilter>;
+  /** Average swap amount in USD in the past week */
+  averageSwapAmountUsd1w?: InputMaybe<NumberFilter>;
+  /** Average swap amount in USD in the past year */
+  averageSwapAmountUsd1y?: InputMaybe<NumberFilter>;
+  /** Average swap amount in USD in the past 30 days */
+  averageSwapAmountUsd30d?: InputMaybe<NumberFilter>;
+  /** The unix timestamp for the first transaction from this wallet. */
+  firstTransactionAt?: InputMaybe<NumberFilter>;
+  /** The unix timestamp for the last transaction from this wallet. */
+  lastTransactionAt?: InputMaybe<NumberFilter>;
+  /** Realized profit percentage in the past day */
+  realizedProfitPercentage1d?: InputMaybe<NumberFilter>;
+  /** Realized profit percentage in the past week */
+  realizedProfitPercentage1w?: InputMaybe<NumberFilter>;
+  /** Realized profit percentage in the past year */
+  realizedProfitPercentage1y?: InputMaybe<NumberFilter>;
+  /** Realized profit percentage in the past 30 days */
+  realizedProfitPercentage30d?: InputMaybe<NumberFilter>;
+  /** Realized profit in USD in the past day */
+  realizedProfitUsd1d?: InputMaybe<NumberFilter>;
+  /** Realized profit in USD in the past week */
+  realizedProfitUsd1w?: InputMaybe<NumberFilter>;
+  /** Realized profit in USD in the past year */
+  realizedProfitUsd1y?: InputMaybe<NumberFilter>;
+  /** Realized profit in USD in the past 30 days */
+  realizedProfitUsd30d?: InputMaybe<NumberFilter>;
+  /** The scammer score for the wallet. */
+  scammerScore?: InputMaybe<NumberFilter>;
+  /** Number of swaps in the past day */
+  swaps1d?: InputMaybe<NumberFilter>;
+  /** Number of swaps in the past week */
+  swaps1w?: InputMaybe<NumberFilter>;
+  /** Number of swaps in the past year */
+  swaps1y?: InputMaybe<NumberFilter>;
+  /** Number of swaps in the past 30 days */
+  swaps30d?: InputMaybe<NumberFilter>;
+  /** Total number of swaps in the past day including all tokens */
+  swapsAll1d?: InputMaybe<NumberFilter>;
+  /** Total number of swaps in the past week including all tokens */
+  swapsAll1w?: InputMaybe<NumberFilter>;
+  /** Total number of swaps in the past year including all tokens */
+  swapsAll1y?: InputMaybe<NumberFilter>;
+  /** Total number of swaps in the past 30 days including all tokens */
+  swapsAll30d?: InputMaybe<NumberFilter>;
+  /** Number of unique tokens traded in the past day */
+  uniqueTokens1d?: InputMaybe<NumberFilter>;
+  /** Number of unique tokens traded in the past week */
+  uniqueTokens1w?: InputMaybe<NumberFilter>;
+  /** Number of unique tokens traded in the past year */
+  uniqueTokens1y?: InputMaybe<NumberFilter>;
+  /** Number of unique tokens traded in the past 30 days */
+  uniqueTokens30d?: InputMaybe<NumberFilter>;
+  /** Volume in USD in the past day */
+  volumeUsd1d?: InputMaybe<NumberFilter>;
+  /** Volume in USD in the past week */
+  volumeUsd1w?: InputMaybe<NumberFilter>;
+  /** Volume in USD in the past year */
+  volumeUsd1y?: InputMaybe<NumberFilter>;
+  /** Volume in USD in the past 30 days */
+  volumeUsd30d?: InputMaybe<NumberFilter>;
+  /** Total volume in USD in the past day including all tokens */
+  volumeUsdAll1d?: InputMaybe<NumberFilter>;
+  /** Total volume in USD in the past week including all tokens */
+  volumeUsdAll1w?: InputMaybe<NumberFilter>;
+  /** Total volume in USD in the past year including all tokens */
+  volumeUsdAll1y?: InputMaybe<NumberFilter>;
+  /** Total volume in USD in the past 30 days including all tokens */
+  volumeUsdAll30d?: InputMaybe<NumberFilter>;
+  /** Win rate in the past day */
+  winRate1d?: InputMaybe<NumberFilter>;
+  /** Win rate in the past week */
+  winRate1w?: InputMaybe<NumberFilter>;
+  /** Win rate in the past year */
+  winRate1y?: InputMaybe<NumberFilter>;
+  /** Win rate in the past 30 days */
+  winRate30d?: InputMaybe<NumberFilter>;
+};
+
+/** docs: hide */
+export type WalletNetworkFilters = {
+  /** Average profit in USD per trade in the past day */
+  averageProfitUsdPerTrade1d?: InputMaybe<NumberFilter>;
+  /** Average profit in USD per trade in the past week */
+  averageProfitUsdPerTrade1w?: InputMaybe<NumberFilter>;
+  /** Average profit in USD per trade in the past year */
+  averageProfitUsdPerTrade1y?: InputMaybe<NumberFilter>;
+  /** Average profit in USD per trade in the past 30 days */
+  averageProfitUsdPerTrade30d?: InputMaybe<NumberFilter>;
+  /** Average swap amount in USD in the past day */
+  averageSwapAmountUsd1d?: InputMaybe<NumberFilter>;
+  /** Average swap amount in USD in the past week */
+  averageSwapAmountUsd1w?: InputMaybe<NumberFilter>;
+  /** Average swap amount in USD in the past year */
+  averageSwapAmountUsd1y?: InputMaybe<NumberFilter>;
+  /** Average swap amount in USD in the past 30 days */
+  averageSwapAmountUsd30d?: InputMaybe<NumberFilter>;
+  /** The unix timestamp for the first transaction from this wallet. */
+  firstTransactionAt?: InputMaybe<NumberFilter>;
+  /** The unix timestamp for the last transaction from this wallet. */
+  lastTransactionAt?: InputMaybe<NumberFilter>;
+  /** The native token balance of the wallet. */
+  nativeTokenBalance?: InputMaybe<NumberFilter>;
+  /** Realized profit percentage in the past day */
+  realizedProfitPercentage1d?: InputMaybe<NumberFilter>;
+  /** Realized profit percentage in the past week */
+  realizedProfitPercentage1w?: InputMaybe<NumberFilter>;
+  /** Realized profit percentage in the past year */
+  realizedProfitPercentage1y?: InputMaybe<NumberFilter>;
+  /** Realized profit percentage in the past 30 days */
+  realizedProfitPercentage30d?: InputMaybe<NumberFilter>;
+  /** Realized profit in USD in the past day */
+  realizedProfitUsd1d?: InputMaybe<NumberFilter>;
+  /** Realized profit in USD in the past week */
+  realizedProfitUsd1w?: InputMaybe<NumberFilter>;
+  /** Realized profit in USD in the past year */
+  realizedProfitUsd1y?: InputMaybe<NumberFilter>;
+  /** Realized profit in USD in the past 30 days */
+  realizedProfitUsd30d?: InputMaybe<NumberFilter>;
+  /** The scammer score for the wallet. Indicates the likelihood of the wallet being a scammer. Zero being not a scammer and 100 being a definite scammer. */
+  scammerScore?: InputMaybe<NumberFilter>;
+  /** Number of swaps in the past day */
+  swaps1d?: InputMaybe<NumberFilter>;
+  /** Number of swaps in the past week */
+  swaps1w?: InputMaybe<NumberFilter>;
+  /** Number of swaps in the past year */
+  swaps1y?: InputMaybe<NumberFilter>;
+  /** Number of swaps in the past 30 days */
+  swaps30d?: InputMaybe<NumberFilter>;
+  /** Total number of swaps in the past day including all tokens */
+  swapsAll1d?: InputMaybe<NumberFilter>;
+  /** Total number of swaps in the past week including all tokens */
+  swapsAll1w?: InputMaybe<NumberFilter>;
+  /** Total number of swaps in the past year including all tokens */
+  swapsAll1y?: InputMaybe<NumberFilter>;
+  /** Total number of swaps in the past 30 days including all tokens */
+  swapsAll30d?: InputMaybe<NumberFilter>;
+  /** Number of unique tokens traded in the past day */
+  uniqueTokens1d?: InputMaybe<NumberFilter>;
+  /** Number of unique tokens traded in the past week */
+  uniqueTokens1w?: InputMaybe<NumberFilter>;
+  /** Number of unique tokens traded in the past year */
+  uniqueTokens1y?: InputMaybe<NumberFilter>;
+  /** Number of unique tokens traded in the past 30 days */
+  uniqueTokens30d?: InputMaybe<NumberFilter>;
+  /** Volume in USD in the past day */
+  volumeUsd1d?: InputMaybe<NumberFilter>;
+  /** Volume in USD in the past week */
+  volumeUsd1w?: InputMaybe<NumberFilter>;
+  /** Volume in USD in the past year */
+  volumeUsd1y?: InputMaybe<NumberFilter>;
+  /** Volume in USD in the past 30 days */
+  volumeUsd30d?: InputMaybe<NumberFilter>;
+  /** Total volume in USD in the past day including all tokens */
+  volumeUsdAll1d?: InputMaybe<NumberFilter>;
+  /** Total volume in USD in the past week including all tokens */
+  volumeUsdAll1w?: InputMaybe<NumberFilter>;
+  /** Total volume in USD in the past year including all tokens */
+  volumeUsdAll1y?: InputMaybe<NumberFilter>;
+  /** Total volume in USD in the past 30 days including all tokens */
+  volumeUsdAll30d?: InputMaybe<NumberFilter>;
+  /** Win rate in the past day */
+  winRate1d?: InputMaybe<NumberFilter>;
+  /** Win rate in the past week */
+  winRate1w?: InputMaybe<NumberFilter>;
+  /** Win rate in the past year */
+  winRate1y?: InputMaybe<NumberFilter>;
+  /** Win rate in the past 30 days */
+  winRate30d?: InputMaybe<NumberFilter>;
+};
+
+/** docs: hide */
+export type WalletNetworkRanking = {
+  /** The attribute to rank wallets by. */
+  attribute?: InputMaybe<WalletNetworkRankingAttribute>;
+  /** The direction to apply to the ranking attribute. */
+  direction?: InputMaybe<RankingDirection>;
+};
+
+/** docs: hide */
+export enum WalletNetworkRankingAttribute {
+  AverageProfitUsdPerTrade1d = 'averageProfitUsdPerTrade1d',
+  AverageProfitUsdPerTrade1w = 'averageProfitUsdPerTrade1w',
+  AverageProfitUsdPerTrade1y = 'averageProfitUsdPerTrade1y',
+  AverageProfitUsdPerTrade30d = 'averageProfitUsdPerTrade30d',
+  AverageSwapAmountUsd1d = 'averageSwapAmountUsd1d',
+  AverageSwapAmountUsd1w = 'averageSwapAmountUsd1w',
+  AverageSwapAmountUsd1y = 'averageSwapAmountUsd1y',
+  AverageSwapAmountUsd30d = 'averageSwapAmountUsd30d',
+  FirstTransactionAt = 'firstTransactionAt',
+  LastTransactionAt = 'lastTransactionAt',
+  NativeTokenBalance = 'nativeTokenBalance',
+  RealizedProfitPercentage1d = 'realizedProfitPercentage1d',
+  RealizedProfitPercentage1w = 'realizedProfitPercentage1w',
+  RealizedProfitPercentage1y = 'realizedProfitPercentage1y',
+  RealizedProfitPercentage30d = 'realizedProfitPercentage30d',
+  RealizedProfitUsd1d = 'realizedProfitUsd1d',
+  RealizedProfitUsd1w = 'realizedProfitUsd1w',
+  RealizedProfitUsd1y = 'realizedProfitUsd1y',
+  RealizedProfitUsd30d = 'realizedProfitUsd30d',
+  ScammerScore = 'scammerScore',
+  Swaps1d = 'swaps1d',
+  Swaps1w = 'swaps1w',
+  Swaps1y = 'swaps1y',
+  Swaps30d = 'swaps30d',
+  SwapsAll1d = 'swapsAll1d',
+  SwapsAll1w = 'swapsAll1w',
+  SwapsAll1y = 'swapsAll1y',
+  SwapsAll30d = 'swapsAll30d',
+  UniqueTokens1d = 'uniqueTokens1d',
+  UniqueTokens1w = 'uniqueTokens1w',
+  UniqueTokens1y = 'uniqueTokens1y',
+  UniqueTokens30d = 'uniqueTokens30d',
+  VolumeUsd1d = 'volumeUsd1d',
+  VolumeUsd1w = 'volumeUsd1w',
+  VolumeUsd1y = 'volumeUsd1y',
+  VolumeUsd30d = 'volumeUsd30d',
+  VolumeUsdAll1d = 'volumeUsdAll1d',
+  VolumeUsdAll1w = 'volumeUsdAll1w',
+  VolumeUsdAll1y = 'volumeUsdAll1y',
+  VolumeUsdAll30d = 'volumeUsdAll30d',
+  WinRate1d = 'winRate1d',
+  WinRate1w = 'winRate1w',
+  WinRate1y = 'winRate1y',
+  WinRate30d = 'winRate30d'
+}
 
 export type WalletNftCollection = {
   __typename?: 'WalletNftCollection';
@@ -8591,6 +13193,331 @@ export type WalletNftCollectionsResponse = {
   /** The list of collections for a wallet. */
   items: Array<WalletNftCollection>;
 };
+
+/** docs: hide */
+export type WalletPasskey = {
+  attestation: WalletAttestation;
+  challenge: Scalars['String']['input'];
+};
+
+/** docs: hide */
+export type WalletRanking = {
+  /** The attribute to rank wallets by. */
+  attribute?: InputMaybe<WalletRankingAttribute>;
+  /** The direction to apply to the ranking attribute. */
+  direction?: InputMaybe<RankingDirection>;
+};
+
+/** docs: hide */
+export enum WalletRankingAttribute {
+  AverageProfitUsdPerTrade1d = 'averageProfitUsdPerTrade1d',
+  AverageProfitUsdPerTrade1w = 'averageProfitUsdPerTrade1w',
+  AverageProfitUsdPerTrade1y = 'averageProfitUsdPerTrade1y',
+  AverageProfitUsdPerTrade30d = 'averageProfitUsdPerTrade30d',
+  AverageSwapAmountUsd1d = 'averageSwapAmountUsd1d',
+  AverageSwapAmountUsd1w = 'averageSwapAmountUsd1w',
+  AverageSwapAmountUsd1y = 'averageSwapAmountUsd1y',
+  AverageSwapAmountUsd30d = 'averageSwapAmountUsd30d',
+  FirstTransactionAt = 'firstTransactionAt',
+  LastTransactionAt = 'lastTransactionAt',
+  RealizedProfitPercentage1d = 'realizedProfitPercentage1d',
+  RealizedProfitPercentage1w = 'realizedProfitPercentage1w',
+  RealizedProfitPercentage1y = 'realizedProfitPercentage1y',
+  RealizedProfitPercentage30d = 'realizedProfitPercentage30d',
+  RealizedProfitUsd1d = 'realizedProfitUsd1d',
+  RealizedProfitUsd1w = 'realizedProfitUsd1w',
+  RealizedProfitUsd1y = 'realizedProfitUsd1y',
+  RealizedProfitUsd30d = 'realizedProfitUsd30d',
+  ScammerScore = 'scammerScore',
+  Swaps1d = 'swaps1d',
+  Swaps1w = 'swaps1w',
+  Swaps1y = 'swaps1y',
+  Swaps30d = 'swaps30d',
+  SwapsAll1d = 'swapsAll1d',
+  SwapsAll1w = 'swapsAll1w',
+  SwapsAll1y = 'swapsAll1y',
+  SwapsAll30d = 'swapsAll30d',
+  UniqueTokens1d = 'uniqueTokens1d',
+  UniqueTokens1w = 'uniqueTokens1w',
+  UniqueTokens1y = 'uniqueTokens1y',
+  UniqueTokens30d = 'uniqueTokens30d',
+  VolumeUsd1d = 'volumeUsd1d',
+  VolumeUsd1w = 'volumeUsd1w',
+  VolumeUsd1y = 'volumeUsd1y',
+  VolumeUsd30d = 'volumeUsd30d',
+  VolumeUsdAll1d = 'volumeUsdAll1d',
+  VolumeUsdAll1w = 'volumeUsdAll1w',
+  VolumeUsdAll1y = 'volumeUsdAll1y',
+  VolumeUsdAll30d = 'volumeUsdAll30d',
+  WinRate1d = 'winRate1d',
+  WinRate1w = 'winRate1w',
+  WinRate1y = 'winRate1y',
+  WinRate30d = 'winRate30d'
+}
+
+/** docs: hide */
+export enum WalletStatsDuration {
+  Day1 = 'day1',
+  Day30 = 'day30',
+  Week1 = 'week1',
+  Year1 = 'year1'
+}
+
+/** docs: hide */
+export type WalletTokenFilterRange = {
+  /** The maximum value (inclusive) */
+  max?: InputMaybe<Scalars['String']['input']>;
+  /** The minimum value (inclusive) */
+  min?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** docs: hide */
+export type WalletTokenFilters = {
+  /** Filter by amount bought in USD in the past day */
+  amountBoughtUsd1d?: InputMaybe<WalletTokenFilterRange>;
+  /** Filter by amount bought in USD in the past week */
+  amountBoughtUsd1w?: InputMaybe<WalletTokenFilterRange>;
+  /** Filter by amount bought in USD in the past year */
+  amountBoughtUsd1y?: InputMaybe<WalletTokenFilterRange>;
+  /** Filter by amount bought in USD in the past 30 days */
+  amountBoughtUsd30d?: InputMaybe<WalletTokenFilterRange>;
+  /** Filter by amount sold in USD in the past day */
+  amountSoldUsd1d?: InputMaybe<WalletTokenFilterRange>;
+  /** Filter by amount sold in USD in the past week */
+  amountSoldUsd1w?: InputMaybe<WalletTokenFilterRange>;
+  /** Filter by amount sold in USD in the past year */
+  amountSoldUsd1y?: InputMaybe<WalletTokenFilterRange>;
+  /** Filter by amount sold in USD in the past 30 days */
+  amountSoldUsd30d?: InputMaybe<WalletTokenFilterRange>;
+  /** Filter by number of buys in the past day */
+  buys1d?: InputMaybe<WalletTokenFilterRange>;
+  /** Filter by number of buys in the past week */
+  buys1w?: InputMaybe<WalletTokenFilterRange>;
+  /** Filter by number of buys in the past year */
+  buys1y?: InputMaybe<WalletTokenFilterRange>;
+  /** Filter by number of buys in the past 30 days */
+  buys30d?: InputMaybe<WalletTokenFilterRange>;
+  /** Filter by first transaction timestamp */
+  firstTransactionAt?: InputMaybe<WalletTokenFilterRange>;
+  /** Filter by last transaction timestamp */
+  lastTransactionAt?: InputMaybe<WalletTokenFilterRange>;
+  /** Filter by purchased token balance */
+  purchasedTokenBalance?: InputMaybe<WalletTokenFilterRange>;
+  /** Filter by realized profit percentage in the past day */
+  realizedProfitPercentage1d?: InputMaybe<WalletTokenFilterRange>;
+  /** Filter by realized profit percentage in the past week */
+  realizedProfitPercentage1w?: InputMaybe<WalletTokenFilterRange>;
+  /** Filter by realized profit percentage in the past year */
+  realizedProfitPercentage1y?: InputMaybe<WalletTokenFilterRange>;
+  /** Filter by realized profit percentage in the past 30 days */
+  realizedProfitPercentage30d?: InputMaybe<WalletTokenFilterRange>;
+  /** Filter by realized profit in USD in the past day */
+  realizedProfitUsd1d?: InputMaybe<WalletTokenFilterRange>;
+  /** Filter by realized profit in USD in the past week */
+  realizedProfitUsd1w?: InputMaybe<WalletTokenFilterRange>;
+  /** Filter by realized profit in USD in the past year */
+  realizedProfitUsd1y?: InputMaybe<WalletTokenFilterRange>;
+  /** Filter by realized profit in USD in the past 30 days */
+  realizedProfitUsd30d?: InputMaybe<WalletTokenFilterRange>;
+  /** Filter by scammer score */
+  scammerScore?: InputMaybe<WalletTokenFilterRange>;
+  /** Filter by number of sells in the past day */
+  sells1d?: InputMaybe<WalletTokenFilterRange>;
+  /** Filter by number of sells in the past week */
+  sells1w?: InputMaybe<WalletTokenFilterRange>;
+  /** Filter by number of sells in the past year */
+  sells1y?: InputMaybe<WalletTokenFilterRange>;
+  /** Filter by number of sells in the past 30 days */
+  sells30d?: InputMaybe<WalletTokenFilterRange>;
+  /** Filter by token acquisition cost in USD */
+  tokenAcquisitionCostUsd?: InputMaybe<WalletTokenFilterRange>;
+  /** Filter by token amount bought in the past day */
+  tokenAmountBought1d?: InputMaybe<WalletTokenFilterRange>;
+  /** Filter by token amount bought in the past week */
+  tokenAmountBought1w?: InputMaybe<WalletTokenFilterRange>;
+  /** Filter by token amount bought in the past year */
+  tokenAmountBought1y?: InputMaybe<WalletTokenFilterRange>;
+  /** Filter by token amount bought in the past 30 days */
+  tokenAmountBought30d?: InputMaybe<WalletTokenFilterRange>;
+  /** Filter by token amount sold in the past day */
+  tokenAmountSold1d?: InputMaybe<WalletTokenFilterRange>;
+  /** Filter by token amount sold in the past week */
+  tokenAmountSold1w?: InputMaybe<WalletTokenFilterRange>;
+  /** Filter by token amount sold in the past year */
+  tokenAmountSold1y?: InputMaybe<WalletTokenFilterRange>;
+  /** Filter by token amount sold in the past 30 days */
+  tokenAmountSold30d?: InputMaybe<WalletTokenFilterRange>;
+  /** Filter by token balance */
+  tokenBalance?: InputMaybe<WalletTokenFilterRange>;
+};
+
+/** docs: hide */
+export type WalletTokenFiltersV2 = {
+  /** Filter by amount bought in USD in the past day */
+  amountBoughtUsd1d?: InputMaybe<NumberFilter>;
+  /** Filter by amount bought in USD in the past week */
+  amountBoughtUsd1w?: InputMaybe<NumberFilter>;
+  /** Filter by amount bought in USD in the past year */
+  amountBoughtUsd1y?: InputMaybe<NumberFilter>;
+  /** Filter by amount bought in USD in the past 30 days */
+  amountBoughtUsd30d?: InputMaybe<NumberFilter>;
+  /** Filter by amount sold in USD in the past day */
+  amountSoldUsd1d?: InputMaybe<NumberFilter>;
+  /** Filter by amount sold in USD in the past week */
+  amountSoldUsd1w?: InputMaybe<NumberFilter>;
+  /** Filter by amount sold in USD in the past year */
+  amountSoldUsd1y?: InputMaybe<NumberFilter>;
+  /** Filter by amount sold in USD in the past 30 days */
+  amountSoldUsd30d?: InputMaybe<NumberFilter>;
+  /** Filter by number of buys in the past day */
+  buys1d?: InputMaybe<NumberFilter>;
+  /** Filter by number of buys in the past week */
+  buys1w?: InputMaybe<NumberFilter>;
+  /** Filter by number of buys in the past year */
+  buys1y?: InputMaybe<NumberFilter>;
+  /** Filter by number of buys in the past 30 days */
+  buys30d?: InputMaybe<NumberFilter>;
+  /** Filter by first transaction timestamp */
+  firstTransactionAt?: InputMaybe<NumberFilter>;
+  /** Filter by last transaction timestamp */
+  lastTransactionAt?: InputMaybe<NumberFilter>;
+  /** Filter by purchased token balance */
+  purchasedTokenBalance?: InputMaybe<NumberFilter>;
+  /** Filter by realized profit percentage in the past day */
+  realizedProfitPercentage1d?: InputMaybe<NumberFilter>;
+  /** Filter by realized profit percentage in the past week */
+  realizedProfitPercentage1w?: InputMaybe<NumberFilter>;
+  /** Filter by realized profit percentage in the past year */
+  realizedProfitPercentage1y?: InputMaybe<NumberFilter>;
+  /** Filter by realized profit percentage in the past 30 days */
+  realizedProfitPercentage30d?: InputMaybe<NumberFilter>;
+  /** Filter by realized profit in USD in the past day */
+  realizedProfitUsd1d?: InputMaybe<NumberFilter>;
+  /** Filter by realized profit in USD in the past week */
+  realizedProfitUsd1w?: InputMaybe<NumberFilter>;
+  /** Filter by realized profit in USD in the past year */
+  realizedProfitUsd1y?: InputMaybe<NumberFilter>;
+  /** Filter by realized profit in USD in the past 30 days */
+  realizedProfitUsd30d?: InputMaybe<NumberFilter>;
+  /** Filter by scammer score */
+  scammerScore?: InputMaybe<NumberFilter>;
+  /** Filter by number of sells in the past day */
+  sells1d?: InputMaybe<NumberFilter>;
+  /** Filter by number of sells in the past week */
+  sells1w?: InputMaybe<NumberFilter>;
+  /** Filter by number of sells in the past year */
+  sells1y?: InputMaybe<NumberFilter>;
+  /** Filter by number of sells in the past 30 days */
+  sells30d?: InputMaybe<NumberFilter>;
+  /** Filter by token acquisition cost in USD */
+  tokenAcquisitionCostUsd?: InputMaybe<NumberFilter>;
+  /** Filter by token amount bought in the past day */
+  tokenAmountBought1d?: InputMaybe<NumberFilter>;
+  /** Filter by token amount bought in the past week */
+  tokenAmountBought1w?: InputMaybe<NumberFilter>;
+  /** Filter by token amount bought in the past year */
+  tokenAmountBought1y?: InputMaybe<NumberFilter>;
+  /** Filter by token amount bought in the past 30 days */
+  tokenAmountBought30d?: InputMaybe<NumberFilter>;
+  /** Filter by token amount sold in the past day */
+  tokenAmountSold1d?: InputMaybe<NumberFilter>;
+  /** Filter by token amount sold in the past week */
+  tokenAmountSold1w?: InputMaybe<NumberFilter>;
+  /** Filter by token amount sold in the past year */
+  tokenAmountSold1y?: InputMaybe<NumberFilter>;
+  /** Filter by token amount sold in the past 30 days */
+  tokenAmountSold30d?: InputMaybe<NumberFilter>;
+  /** Filter by token balance */
+  tokenBalance?: InputMaybe<NumberFilter>;
+};
+
+/** docs: hide */
+export type WalletTokenRanking = {
+  /** The attribute to rank wallets by */
+  attribute: WalletTokenRankingAttribute;
+  /** The direction to apply to the ranking attribute */
+  direction: RankingDirection;
+};
+
+/** docs: hide */
+export enum WalletTokenRankingAttribute {
+  /** Amount bought in USD in the past day */
+  AmountBoughtUsd1d = 'amountBoughtUsd1d',
+  /** Amount bought in USD in the past week */
+  AmountBoughtUsd1w = 'amountBoughtUsd1w',
+  /** Amount bought in USD in the past year */
+  AmountBoughtUsd1y = 'amountBoughtUsd1y',
+  /** Amount bought in USD in the past 30 days */
+  AmountBoughtUsd30d = 'amountBoughtUsd30d',
+  /** Amount sold in USD in the past day */
+  AmountSoldUsd1d = 'amountSoldUsd1d',
+  /** Amount sold in USD in the past week */
+  AmountSoldUsd1w = 'amountSoldUsd1w',
+  /** Amount sold in USD in the past year */
+  AmountSoldUsd1y = 'amountSoldUsd1y',
+  /** Amount sold in USD in the past 30 days */
+  AmountSoldUsd30d = 'amountSoldUsd30d',
+  /** Number of buys in the past day */
+  Buys1d = 'buys1d',
+  /** Number of buys in the past week */
+  Buys1w = 'buys1w',
+  /** Number of buys in the past year */
+  Buys1y = 'buys1y',
+  /** Number of buys in the past 30 days */
+  Buys30d = 'buys30d',
+  /** The first transaction timestamp */
+  FirstTransactionAt = 'firstTransactionAt',
+  /** The last transaction timestamp */
+  LastTransactionAt = 'lastTransactionAt',
+  /** Purchased token balance */
+  PurchasedTokenBalance = 'purchasedTokenBalance',
+  /** Realized profit percentage in the past day */
+  RealizedProfitPercentage1d = 'realizedProfitPercentage1d',
+  /** Realized profit percentage in the past week */
+  RealizedProfitPercentage1w = 'realizedProfitPercentage1w',
+  /** Realized profit percentage in the past year */
+  RealizedProfitPercentage1y = 'realizedProfitPercentage1y',
+  /** Realized profit percentage in the past 30 days */
+  RealizedProfitPercentage30d = 'realizedProfitPercentage30d',
+  /** Realized profit in USD in the past day */
+  RealizedProfitUsd1d = 'realizedProfitUsd1d',
+  /** Realized profit in USD in the past week */
+  RealizedProfitUsd1w = 'realizedProfitUsd1w',
+  /** Realized profit in USD in the past year */
+  RealizedProfitUsd1y = 'realizedProfitUsd1y',
+  /** Realized profit in USD in the past 30 days */
+  RealizedProfitUsd30d = 'realizedProfitUsd30d',
+  /** The scammer score for the wallet. */
+  ScammerScore = 'scammerScore',
+  /** Number of sells in the past day */
+  Sells1d = 'sells1d',
+  /** Number of sells in the past week */
+  Sells1w = 'sells1w',
+  /** Number of sells in the past year */
+  Sells1y = 'sells1y',
+  /** Number of sells in the past 30 days */
+  Sells30d = 'sells30d',
+  /** Token acquisition cost in USD */
+  TokenAcquisitionCostUsd = 'tokenAcquisitionCostUsd',
+  /** Token amount bought in the past day */
+  TokenAmountBought1d = 'tokenAmountBought1d',
+  /** Token amount bought in the past week */
+  TokenAmountBought1w = 'tokenAmountBought1w',
+  /** Token amount bought in the past year */
+  TokenAmountBought1y = 'tokenAmountBought1y',
+  /** Token amount bought in the past 30 days */
+  TokenAmountBought30d = 'tokenAmountBought30d',
+  /** Token amount sold in the past day */
+  TokenAmountSold1d = 'tokenAmountSold1d',
+  /** Token amount sold in the past week */
+  TokenAmountSold1w = 'tokenAmountSold1w',
+  /** Token amount sold in the past year */
+  TokenAmountSold1y = 'tokenAmountSold1y',
+  /** Token amount sold in the past 30 days */
+  TokenAmountSold30d = 'tokenAmountSold30d',
+  /** Token balance */
+  TokenBalance = 'tokenBalance'
+}
 
 /** Metadata for a washtrade label. */
 export type WashtradeLabelForEvent = {
@@ -8688,6 +13615,19 @@ export type WindowedDetailedCurrencyPairStats = {
   volume?: Maybe<DetailedPairStatsStringMetrics>;
 };
 
+/** docs: hide */
+export type WindowedDetailedCurrencyWalletStats = {
+  __typename?: 'WindowedDetailedCurrencyWalletStats';
+  averageProfitUsdPerTrade: Scalars['String']['output'];
+  averageSwapAmountUsd: Scalars['String']['output'];
+  heldTokenAcquisitionCostUsd: Scalars['String']['output'];
+  realizedProfitPercentage: Scalars['Float']['output'];
+  realizedProfitUsd: Scalars['String']['output'];
+  soldTokenAcquisitionCostUsd: Scalars['String']['output'];
+  volumeUsd: Scalars['String']['output'];
+  volumeUsdAll: Scalars['String']['output'];
+};
+
 /** Price stats for an NFT collection over a time frame. Either in USD or the network's base token. */
 export type WindowedDetailedNftCurrencyStats = {
   __typename?: 'WindowedDetailedNftCurrencyStats';
@@ -8762,6 +13702,15 @@ export type WindowedDetailedNonCurrencyPairStats = {
   transactions?: Maybe<DetailedPairStatsNumberMetrics>;
 };
 
+/** docs: hide */
+export type WindowedDetailedNonCurrencyWalletStats = {
+  __typename?: 'WindowedDetailedNonCurrencyWalletStats';
+  losses: Scalars['Int']['output'];
+  swaps: Scalars['Int']['output'];
+  uniqueTokens: Scalars['Int']['output'];
+  wins: Scalars['Int']['output'];
+};
+
 /** Detailed pair stats over a time frame. */
 export type WindowedDetailedPairStats = {
   __typename?: 'WindowedDetailedPairStats';
@@ -8808,6 +13757,18 @@ export type WindowedDetailedStats = {
   volume: DetailedStatsStringMetrics;
   /** The window size used to request detailed stats. */
   windowSize: DetailedStatsWindowSize;
+};
+
+/** docs: hide */
+export type WindowedWalletStats = {
+  __typename?: 'WindowedWalletStats';
+  end: Scalars['Int']['output'];
+  lastTransactionAt: Scalars['Int']['output'];
+  networkId?: Maybe<Scalars['Int']['output']>;
+  start: Scalars['Int']['output'];
+  statsNonCurrency: WindowedDetailedNonCurrencyWalletStats;
+  statsUsd: WindowedDetailedCurrencyWalletStats;
+  walletAddress: Scalars['String']['output'];
 };
 
 export enum Join__Graph {
@@ -8866,6 +13827,36 @@ export type StatsNonCurrency = {
   uniqueSellers?: InputMaybe<StatsFilter>;
 };
 
+export type LaunchpadTokenEventFragment = { __typename?: 'LaunchpadTokenEventOutput', address: string, buyCount1?: number | null, devBurnt?: boolean | null, devSold?: boolean | null, devSoldAll?: boolean | null, eventType: LaunchpadTokenEventType, holders?: number | null, marketCap?: string | null, networkId: number, price?: number | null, protocol: string, sellCount1?: number | null, transactions1?: number | null, volume1?: number | null, token: { __typename?: 'EnhancedToken', address: string, decimals: number, id: string, name?: string | null, networkId: number, symbol?: string | null, createdAt?: number | null, imageSmallUrl?: string | null, exchanges?: Array<{ __typename?: 'Exchange', id: string, address: string, networkId: number, name?: string | null, iconUrl?: string | null }> | null, info?: { __typename?: 'TokenInfo', address: string, id: string, networkId: number, symbol: string, imageThumbUrl?: string | null, imageSmallUrl?: string | null, imageLargeUrl?: string | null } | null, socialLinks?: { __typename?: 'SocialLinks', twitter?: string | null, telegram?: string | null, website?: string | null, discord?: string | null } | null, launchpad?: { __typename?: 'LaunchpadData', graduationPercent?: number | null, poolAddress?: string | null, completedAt?: number | null, completed?: boolean | null, completedSlot?: number | null, migratedSlot?: number | null, migratedAt?: number | null, migrated?: boolean | null, migratedPoolAddress?: string | null } | null } } & { ' $fragmentName'?: 'LaunchpadTokenEventFragment' };
+
+export type OnLaunchpadTokenEventBatchSubscriptionVariables = Exact<{
+  input?: InputMaybe<OnLaunchpadTokenEventBatchInput>;
+}>;
+
+
+export type OnLaunchpadTokenEventBatchSubscription = { __typename?: 'Subscription', onLaunchpadTokenEventBatch: Array<(
+    { __typename?: 'LaunchpadTokenEventOutput' }
+    & { ' $fragmentRefs'?: { 'LaunchpadTokenEventFragment': LaunchpadTokenEventFragment } }
+  )> };
+
+export type LaunchpadFilterTokenResultFragment = { __typename?: 'TokenFilterResult', buyCount1?: number | null, createdAt?: number | null, holders?: number | null, marketCap?: string | null, priceUSD?: string | null, sellCount1?: number | null, uniqueTransactions1?: number | null, volume1?: string | null, exchanges?: Array<{ __typename?: 'Exchange', id: string, address: string, networkId: number, name?: string | null, iconUrl?: string | null } | null> | null, token?: { __typename?: 'EnhancedToken', address: string, decimals: number, id: string, name?: string | null, networkId: number, symbol?: string | null, createdAt?: number | null, imageSmallUrl?: string | null, info?: { __typename?: 'TokenInfo', address: string, id: string, networkId: number, symbol: string, imageThumbUrl?: string | null, imageSmallUrl?: string | null, imageLargeUrl?: string | null } | null, socialLinks?: { __typename?: 'SocialLinks', twitter?: string | null, telegram?: string | null, website?: string | null, discord?: string | null } | null, launchpad?: { __typename?: 'LaunchpadData', graduationPercent?: number | null, poolAddress?: string | null, completedAt?: number | null, completed?: boolean | null, completedSlot?: number | null, migratedSlot?: number | null, migratedAt?: number | null, migrated?: boolean | null, migratedPoolAddress?: string | null } | null } | null, pair?: { __typename?: 'Pair', address: string, networkId: number, exchangeHash: string, token0: string, token1: string, id: string } | null } & { ' $fragmentName'?: 'LaunchpadFilterTokenResultFragment' };
+
+export type LaunchpadTokensQueryVariables = Exact<{
+  filters?: InputMaybe<TokenFilters>;
+  statsType?: InputMaybe<TokenPairStatisticsType>;
+  phrase?: InputMaybe<Scalars['String']['input']>;
+  tokens?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>> | InputMaybe<Scalars['String']['input']>>;
+  rankings?: InputMaybe<Array<InputMaybe<TokenRanking>> | InputMaybe<TokenRanking>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type LaunchpadTokensQuery = { __typename?: 'Query', filterTokens?: { __typename?: 'TokenFilterConnection', count?: number | null, page?: number | null, results?: Array<(
+      { __typename?: 'TokenFilterResult' }
+      & { ' $fragmentRefs'?: { 'LaunchpadFilterTokenResultFragment': LaunchpadFilterTokenResultFragment } }
+    ) | null> | null } | null };
+
 export type TokenPageItemFragment = { __typename?: 'TokenFilterResult', priceUSD?: string | null, change24?: string | null, volume24?: string | null, txnCount24?: number | null, lastTransaction?: number | null, token?: { __typename?: 'EnhancedToken', id: string, address: string, name?: string | null, symbol?: string | null, info?: { __typename?: 'TokenInfo', imageThumbUrl?: string | null } | null } | null } & { ' $fragmentName'?: 'TokenPageItemFragment' };
 
 export type TokensPageQueryVariables = Exact<{
@@ -8880,5 +13871,9 @@ export type TokensPageQuery = { __typename?: 'Query', filterTokens?: { __typenam
       & { ' $fragmentRefs'?: { 'TokenPageItemFragment': TokenPageItemFragment } }
     ) | null> | null } | null };
 
+export const LaunchpadTokenEventFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"LaunchpadTokenEvent"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"LaunchpadTokenEventOutput"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"address"}},{"kind":"Field","name":{"kind":"Name","value":"buyCount1"}},{"kind":"Field","name":{"kind":"Name","value":"devBurnt"}},{"kind":"Field","name":{"kind":"Name","value":"devSold"}},{"kind":"Field","name":{"kind":"Name","value":"devSoldAll"}},{"kind":"Field","name":{"kind":"Name","value":"eventType"}},{"kind":"Field","name":{"kind":"Name","value":"holders"}},{"kind":"Field","name":{"kind":"Name","value":"marketCap"}},{"kind":"Field","name":{"kind":"Name","value":"networkId"}},{"kind":"Field","name":{"kind":"Name","value":"price"}},{"kind":"Field","name":{"kind":"Name","value":"protocol"}},{"kind":"Field","name":{"kind":"Name","value":"sellCount1"}},{"kind":"Field","name":{"kind":"Name","value":"transactions1"}},{"kind":"Field","name":{"kind":"Name","value":"volume1"}},{"kind":"Field","name":{"kind":"Name","value":"token"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"address"}},{"kind":"Field","name":{"kind":"Name","value":"decimals"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"networkId"}},{"kind":"Field","name":{"kind":"Name","value":"symbol"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"imageSmallUrl"}},{"kind":"Field","name":{"kind":"Name","value":"exchanges"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"address"}},{"kind":"Field","name":{"kind":"Name","value":"networkId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"iconUrl"}}]}},{"kind":"Field","name":{"kind":"Name","value":"info"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"address"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"networkId"}},{"kind":"Field","name":{"kind":"Name","value":"symbol"}},{"kind":"Field","name":{"kind":"Name","value":"imageThumbUrl"}},{"kind":"Field","name":{"kind":"Name","value":"imageSmallUrl"}},{"kind":"Field","name":{"kind":"Name","value":"imageLargeUrl"}}]}},{"kind":"Field","name":{"kind":"Name","value":"socialLinks"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"twitter"}},{"kind":"Field","name":{"kind":"Name","value":"telegram"}},{"kind":"Field","name":{"kind":"Name","value":"website"}},{"kind":"Field","name":{"kind":"Name","value":"discord"}}]}},{"kind":"Field","name":{"kind":"Name","value":"launchpad"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"graduationPercent"}},{"kind":"Field","name":{"kind":"Name","value":"poolAddress"}},{"kind":"Field","name":{"kind":"Name","value":"completedAt"}},{"kind":"Field","name":{"kind":"Name","value":"completed"}},{"kind":"Field","name":{"kind":"Name","value":"completedSlot"}},{"kind":"Field","name":{"kind":"Name","value":"migratedSlot"}},{"kind":"Field","name":{"kind":"Name","value":"migratedAt"}},{"kind":"Field","name":{"kind":"Name","value":"migrated"}},{"kind":"Field","name":{"kind":"Name","value":"migratedPoolAddress"}}]}}]}}]}}]} as unknown as DocumentNode<LaunchpadTokenEventFragment, unknown>;
+export const LaunchpadFilterTokenResultFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"LaunchpadFilterTokenResult"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"TokenFilterResult"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"buyCount1"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"holders"}},{"kind":"Field","name":{"kind":"Name","value":"marketCap"}},{"kind":"Field","name":{"kind":"Name","value":"priceUSD"}},{"kind":"Field","name":{"kind":"Name","value":"sellCount1"}},{"kind":"Field","name":{"kind":"Name","value":"uniqueTransactions1"}},{"kind":"Field","name":{"kind":"Name","value":"volume1"}},{"kind":"Field","name":{"kind":"Name","value":"exchanges"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"address"}},{"kind":"Field","name":{"kind":"Name","value":"networkId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"iconUrl"}}]}},{"kind":"Field","name":{"kind":"Name","value":"token"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"address"}},{"kind":"Field","name":{"kind":"Name","value":"decimals"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"networkId"}},{"kind":"Field","name":{"kind":"Name","value":"symbol"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"imageSmallUrl"}},{"kind":"Field","name":{"kind":"Name","value":"info"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"address"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"networkId"}},{"kind":"Field","name":{"kind":"Name","value":"symbol"}},{"kind":"Field","name":{"kind":"Name","value":"imageThumbUrl"}},{"kind":"Field","name":{"kind":"Name","value":"imageSmallUrl"}},{"kind":"Field","name":{"kind":"Name","value":"imageLargeUrl"}}]}},{"kind":"Field","name":{"kind":"Name","value":"socialLinks"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"twitter"}},{"kind":"Field","name":{"kind":"Name","value":"telegram"}},{"kind":"Field","name":{"kind":"Name","value":"website"}},{"kind":"Field","name":{"kind":"Name","value":"discord"}}]}},{"kind":"Field","name":{"kind":"Name","value":"launchpad"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"graduationPercent"}},{"kind":"Field","name":{"kind":"Name","value":"poolAddress"}},{"kind":"Field","name":{"kind":"Name","value":"completedAt"}},{"kind":"Field","name":{"kind":"Name","value":"completed"}},{"kind":"Field","name":{"kind":"Name","value":"completedSlot"}},{"kind":"Field","name":{"kind":"Name","value":"migratedSlot"}},{"kind":"Field","name":{"kind":"Name","value":"migratedAt"}},{"kind":"Field","name":{"kind":"Name","value":"migrated"}},{"kind":"Field","name":{"kind":"Name","value":"migratedPoolAddress"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"pair"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"address"}},{"kind":"Field","name":{"kind":"Name","value":"networkId"}},{"kind":"Field","name":{"kind":"Name","value":"exchangeHash"}},{"kind":"Field","name":{"kind":"Name","value":"token0"}},{"kind":"Field","name":{"kind":"Name","value":"token1"}},{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<LaunchpadFilterTokenResultFragment, unknown>;
 export const TokenPageItemFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"TokenPageItem"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"TokenFilterResult"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"priceUSD"}},{"kind":"Field","name":{"kind":"Name","value":"change24"}},{"kind":"Field","name":{"kind":"Name","value":"volume24"}},{"kind":"Field","name":{"kind":"Name","value":"txnCount24"}},{"kind":"Field","name":{"kind":"Name","value":"lastTransaction"}},{"kind":"Field","name":{"kind":"Name","value":"token"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"address"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"symbol"}},{"kind":"Field","name":{"kind":"Name","value":"info"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"imageThumbUrl"}}]}}]}}]}}]} as unknown as DocumentNode<TokenPageItemFragment, unknown>;
+export const OnLaunchpadTokenEventBatchDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"OnLaunchpadTokenEventBatch"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"OnLaunchpadTokenEventBatchInput"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"onLaunchpadTokenEventBatch"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"LaunchpadTokenEvent"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"LaunchpadTokenEvent"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"LaunchpadTokenEventOutput"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"address"}},{"kind":"Field","name":{"kind":"Name","value":"buyCount1"}},{"kind":"Field","name":{"kind":"Name","value":"devBurnt"}},{"kind":"Field","name":{"kind":"Name","value":"devSold"}},{"kind":"Field","name":{"kind":"Name","value":"devSoldAll"}},{"kind":"Field","name":{"kind":"Name","value":"eventType"}},{"kind":"Field","name":{"kind":"Name","value":"holders"}},{"kind":"Field","name":{"kind":"Name","value":"marketCap"}},{"kind":"Field","name":{"kind":"Name","value":"networkId"}},{"kind":"Field","name":{"kind":"Name","value":"price"}},{"kind":"Field","name":{"kind":"Name","value":"protocol"}},{"kind":"Field","name":{"kind":"Name","value":"sellCount1"}},{"kind":"Field","name":{"kind":"Name","value":"transactions1"}},{"kind":"Field","name":{"kind":"Name","value":"volume1"}},{"kind":"Field","name":{"kind":"Name","value":"token"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"address"}},{"kind":"Field","name":{"kind":"Name","value":"decimals"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"networkId"}},{"kind":"Field","name":{"kind":"Name","value":"symbol"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"imageSmallUrl"}},{"kind":"Field","name":{"kind":"Name","value":"exchanges"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"address"}},{"kind":"Field","name":{"kind":"Name","value":"networkId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"iconUrl"}}]}},{"kind":"Field","name":{"kind":"Name","value":"info"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"address"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"networkId"}},{"kind":"Field","name":{"kind":"Name","value":"symbol"}},{"kind":"Field","name":{"kind":"Name","value":"imageThumbUrl"}},{"kind":"Field","name":{"kind":"Name","value":"imageSmallUrl"}},{"kind":"Field","name":{"kind":"Name","value":"imageLargeUrl"}}]}},{"kind":"Field","name":{"kind":"Name","value":"socialLinks"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"twitter"}},{"kind":"Field","name":{"kind":"Name","value":"telegram"}},{"kind":"Field","name":{"kind":"Name","value":"website"}},{"kind":"Field","name":{"kind":"Name","value":"discord"}}]}},{"kind":"Field","name":{"kind":"Name","value":"launchpad"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"graduationPercent"}},{"kind":"Field","name":{"kind":"Name","value":"poolAddress"}},{"kind":"Field","name":{"kind":"Name","value":"completedAt"}},{"kind":"Field","name":{"kind":"Name","value":"completed"}},{"kind":"Field","name":{"kind":"Name","value":"completedSlot"}},{"kind":"Field","name":{"kind":"Name","value":"migratedSlot"}},{"kind":"Field","name":{"kind":"Name","value":"migratedAt"}},{"kind":"Field","name":{"kind":"Name","value":"migrated"}},{"kind":"Field","name":{"kind":"Name","value":"migratedPoolAddress"}}]}}]}}]}}]} as unknown as DocumentNode<OnLaunchpadTokenEventBatchSubscription, OnLaunchpadTokenEventBatchSubscriptionVariables>;
+export const LaunchpadTokensDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"LaunchpadTokens"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"TokenFilters"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"statsType"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"TokenPairStatisticsType"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"phrase"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"tokens"}},"type":{"kind":"ListType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"rankings"}},"type":{"kind":"ListType","type":{"kind":"NamedType","name":{"kind":"Name","value":"TokenRanking"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"limit"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"offset"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"filterTokens"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filters"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}},{"kind":"Argument","name":{"kind":"Name","value":"statsType"},"value":{"kind":"Variable","name":{"kind":"Name","value":"statsType"}}},{"kind":"Argument","name":{"kind":"Name","value":"phrase"},"value":{"kind":"Variable","name":{"kind":"Name","value":"phrase"}}},{"kind":"Argument","name":{"kind":"Name","value":"tokens"},"value":{"kind":"Variable","name":{"kind":"Name","value":"tokens"}}},{"kind":"Argument","name":{"kind":"Name","value":"rankings"},"value":{"kind":"Variable","name":{"kind":"Name","value":"rankings"}}},{"kind":"Argument","name":{"kind":"Name","value":"limit"},"value":{"kind":"Variable","name":{"kind":"Name","value":"limit"}}},{"kind":"Argument","name":{"kind":"Name","value":"offset"},"value":{"kind":"Variable","name":{"kind":"Name","value":"offset"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"results"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"LaunchpadFilterTokenResult"}}]}},{"kind":"Field","name":{"kind":"Name","value":"count"}},{"kind":"Field","name":{"kind":"Name","value":"page"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"LaunchpadFilterTokenResult"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"TokenFilterResult"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"buyCount1"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"holders"}},{"kind":"Field","name":{"kind":"Name","value":"marketCap"}},{"kind":"Field","name":{"kind":"Name","value":"priceUSD"}},{"kind":"Field","name":{"kind":"Name","value":"sellCount1"}},{"kind":"Field","name":{"kind":"Name","value":"uniqueTransactions1"}},{"kind":"Field","name":{"kind":"Name","value":"volume1"}},{"kind":"Field","name":{"kind":"Name","value":"exchanges"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"address"}},{"kind":"Field","name":{"kind":"Name","value":"networkId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"iconUrl"}}]}},{"kind":"Field","name":{"kind":"Name","value":"token"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"address"}},{"kind":"Field","name":{"kind":"Name","value":"decimals"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"networkId"}},{"kind":"Field","name":{"kind":"Name","value":"symbol"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"imageSmallUrl"}},{"kind":"Field","name":{"kind":"Name","value":"info"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"address"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"networkId"}},{"kind":"Field","name":{"kind":"Name","value":"symbol"}},{"kind":"Field","name":{"kind":"Name","value":"imageThumbUrl"}},{"kind":"Field","name":{"kind":"Name","value":"imageSmallUrl"}},{"kind":"Field","name":{"kind":"Name","value":"imageLargeUrl"}}]}},{"kind":"Field","name":{"kind":"Name","value":"socialLinks"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"twitter"}},{"kind":"Field","name":{"kind":"Name","value":"telegram"}},{"kind":"Field","name":{"kind":"Name","value":"website"}},{"kind":"Field","name":{"kind":"Name","value":"discord"}}]}},{"kind":"Field","name":{"kind":"Name","value":"launchpad"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"graduationPercent"}},{"kind":"Field","name":{"kind":"Name","value":"poolAddress"}},{"kind":"Field","name":{"kind":"Name","value":"completedAt"}},{"kind":"Field","name":{"kind":"Name","value":"completed"}},{"kind":"Field","name":{"kind":"Name","value":"completedSlot"}},{"kind":"Field","name":{"kind":"Name","value":"migratedSlot"}},{"kind":"Field","name":{"kind":"Name","value":"migratedAt"}},{"kind":"Field","name":{"kind":"Name","value":"migrated"}},{"kind":"Field","name":{"kind":"Name","value":"migratedPoolAddress"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"pair"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"address"}},{"kind":"Field","name":{"kind":"Name","value":"networkId"}},{"kind":"Field","name":{"kind":"Name","value":"exchangeHash"}},{"kind":"Field","name":{"kind":"Name","value":"token0"}},{"kind":"Field","name":{"kind":"Name","value":"token1"}},{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<LaunchpadTokensQuery, LaunchpadTokensQueryVariables>;
 export const TokensPageDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"TokensPage"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"TokenFilters"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"rankings"}},"type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"TokenRanking"}}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"limit"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"filterTokens"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filters"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}},{"kind":"Argument","name":{"kind":"Name","value":"rankings"},"value":{"kind":"Variable","name":{"kind":"Name","value":"rankings"}}},{"kind":"Argument","name":{"kind":"Name","value":"limit"},"value":{"kind":"Variable","name":{"kind":"Name","value":"limit"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"results"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"TokenPageItem"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"TokenPageItem"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"TokenFilterResult"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"priceUSD"}},{"kind":"Field","name":{"kind":"Name","value":"change24"}},{"kind":"Field","name":{"kind":"Name","value":"volume24"}},{"kind":"Field","name":{"kind":"Name","value":"txnCount24"}},{"kind":"Field","name":{"kind":"Name","value":"lastTransaction"}},{"kind":"Field","name":{"kind":"Name","value":"token"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"address"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"symbol"}},{"kind":"Field","name":{"kind":"Name","value":"info"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"imageThumbUrl"}}]}}]}}]}}]} as unknown as DocumentNode<TokensPageQuery, TokensPageQueryVariables>;

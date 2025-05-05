@@ -1,0 +1,87 @@
+fragment LaunchpadFilterTokenResult on TokenFilterResult {
+  buyCount1
+  createdAt
+  holders
+  marketCap
+  priceUSD
+  sellCount1
+  uniqueTransactions1
+  volume1
+  exchanges {
+    id
+    address
+    networkId
+    name
+    iconUrl
+  }
+  token {
+    address
+    decimals
+    id
+    name
+    networkId
+    symbol
+    createdAt
+    imageSmallUrl
+    info {
+      address
+      id
+      networkId
+      symbol
+      imageThumbUrl
+      imageSmallUrl
+      imageLargeUrl
+    }
+   socialLinks {
+      twitter
+      telegram
+      website
+      discord
+    }
+    launchpad {
+      graduationPercent
+      poolAddress
+      completedAt
+      completed
+      completedSlot
+      migratedSlot
+      migratedAt
+      migrated
+      migratedPoolAddress
+    }
+  }
+  pair {
+    address
+    networkId
+    exchangeHash
+    token0
+    token1
+    id
+  }
+}
+
+query LaunchpadTokens(
+  $filters: TokenFilters
+  $statsType: TokenPairStatisticsType
+  $phrase: String
+  $tokens: [String]
+  $rankings: [TokenRanking]
+  $limit: Int
+  $offset: Int
+) {
+  filterTokens(
+    filters: $filters
+    statsType: $statsType
+    phrase: $phrase
+    tokens: $tokens
+    rankings: $rankings
+    limit: $limit
+    offset: $offset
+  ) {
+    results {
+      ...LaunchpadFilterTokenResult
+    }
+    count
+    page
+  }
+}

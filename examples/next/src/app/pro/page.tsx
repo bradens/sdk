@@ -266,7 +266,7 @@ export default function ProPage() {
       </div>
 
       {/* Grid Layout Area - Always render the container and RGL */}
-      <div className="flex-grow px-4 overflow-auto">
+      <div className="flex-grow overflow-auto">
           <ResponsiveGridLayout
               className="layout"
               layouts={layouts}
