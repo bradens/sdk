@@ -5,227 +5,39 @@ import { Button } from '@/components/ui/button';
 import { TokenChart } from '@/components/TokenChart';
 import { TokenSearchDialog } from '@/components/TokenSearchDialog';
 import TokenTransactionsLoader from '@/components/TokenTransactionsLoader';
-import { X } from 'lucide-react';
-import { TokenSearchInput, SelectedTokenBasics } from '@/components/TokenSearchInput';
+import { Plus, X } from 'lucide-react';
+import { TokenSearchInput } from '@/components/TokenSearchInput';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 // Imports for react-grid-layout
-import { Responsive, WidthProvider, Layout } from 'react-grid-layout';
+import { Responsive, WidthProvider } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 
+// Import the new hook
+import { useProPageState } from '@/hooks/useProPageState';
+
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
-// LocalStorage keys
-const LOCALSTORAGE_PANELS_KEY = 'proPagePanels';
-const LOCALSTORAGE_LAYOUTS_KEY = 'proPageLayouts';
-
-// Define the panel interface correctly
-interface SelectedPanel {
-  id: string;
-  type: 'chart' | 'transactions';
-  tokenId: string;
-  networkId: number;
-  name?: string | null;
-  symbol?: string | null;
-  decimals?: number | null;
-}
-
-// Define the payload type expected by addPanel
-// (Matches AddPanelPayload from dialog, but defined locally for clarity)
-interface AddPanelData {
-  tokenId: string;
-  networkId: number;
-  name?: string | null;
-  symbol?: string | null;
-  decimals?: number | null;
-  type: 'chart' | 'transactions';
-}
-
-// Type for editing a panel (payload from TokenSearchInput)
-type EditPanelData = SelectedTokenBasics;
-
 export default function ProPage() {
-  const [selectedPanels, setSelectedPanels] = useState<SelectedPanel[]>([]);
+  // Use the custom hook for state management
+  const {
+    selectedPanels,
+    layouts,
+    addPanel,
+    removePanel,
+    handlePanelTokenChange,
+    onLayoutChange,
+  } = useProPageState();
+
+  // State related to UI interaction (search dialog, popovers)
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [layouts, setLayouts] = useState<{ [key: string]: Layout[] }>({});
-  // State to control which popover is open
   const [openPopoverId, setOpenPopoverId] = useState<string | null>(null);
-
-  // Load state from localStorage on initial render
-  useEffect(() => {
-    try {
-      const savedPanels = localStorage.getItem(LOCALSTORAGE_PANELS_KEY);
-      const savedLayouts = localStorage.getItem(LOCALSTORAGE_LAYOUTS_KEY);
-
-      if (savedPanels) {
-        const parsedPanels = JSON.parse(savedPanels) as SelectedPanel[];
-        // Basic validation (can be more robust)
-        if (Array.isArray(parsedPanels)) {
-            setSelectedPanels(parsedPanels);
-        } else {
-            console.error("Invalid panels data found in localStorage:", parsedPanels);
-            localStorage.removeItem(LOCALSTORAGE_PANELS_KEY); // Clear invalid data
-        }
-      }
-
-      if (savedLayouts) {
-        const parsedLayouts = JSON.parse(savedLayouts) as { [key: string]: Layout[] };
-        // Basic validation (can be more robust)
-        if (typeof parsedLayouts === 'object' && parsedLayouts !== null && savedPanels) {
-            // Use the panels loaded from storage IN THIS EFFECT for validation
-             const loadedPanels = JSON.parse(savedPanels) as SelectedPanel[];
-             const panelIds = new Set(loadedPanels.map(p => p.id));
-             const validatedLayouts: { [key: string]: Layout[] } = {};
-             for (const breakpoint in parsedLayouts) {
-                 // Ensure the breakpoint data is an array before filtering
-                 if (Array.isArray(parsedLayouts[breakpoint])) {
-                     validatedLayouts[breakpoint] = parsedLayouts[breakpoint].filter(item => panelIds.has(item.i));
-                 } else {
-                     console.warn(`Invalid layout data for breakpoint ${breakpoint}:`, parsedLayouts[breakpoint]);
-                 }
-             }
-            setLayouts(validatedLayouts);
-        } else {
-            console.error("Invalid layouts data found in localStorage or panels missing:", parsedLayouts);
-            localStorage.removeItem(LOCALSTORAGE_LAYOUTS_KEY); // Clear invalid data
-        }
-      }
-    } catch (error) {
-      console.error("Failed to load state from localStorage:", error);
-      // Optionally clear storage if parsing fails
-      localStorage.removeItem(LOCALSTORAGE_PANELS_KEY);
-      localStorage.removeItem(LOCALSTORAGE_LAYOUTS_KEY);
-    }
-  }, []); // Empty dependency array ensures this runs only once on mount
-
-  // Save state to localStorage whenever panels or layouts change
-  useEffect(() => {
-    try {
-      // Only save if there are panels to prevent saving empty arrays unnecessarily on first load
-      if (selectedPanels.length > 0) {
-          localStorage.setItem(LOCALSTORAGE_PANELS_KEY, JSON.stringify(selectedPanels));
-      } else {
-          // Clear storage if panels are empty
-          localStorage.removeItem(LOCALSTORAGE_PANELS_KEY);
-      }
-
-      // Only save layouts if there are layouts to save
-       const breakpointsWithLayouts = Object.keys(layouts).filter(key => layouts[key]?.length > 0);
-       if (breakpointsWithLayouts.length > 0) {
-           localStorage.setItem(LOCALSTORAGE_LAYOUTS_KEY, JSON.stringify(layouts));
-       } else {
-           // Clear storage if layouts are empty
-           localStorage.removeItem(LOCALSTORAGE_LAYOUTS_KEY);
-       }
-    } catch (error) {
-      console.error("Failed to save state to localStorage:", error);
-    }
-  }, [selectedPanels, layouts]); // Dependencies: run when panels or layouts change
 
   const handleAddClick = useCallback(() => {
     setIsSearchOpen(true);
     setOpenPopoverId(null); // Ensure no popover is open
   }, []);
-
-  // Handler for when a token is selected via Popover
-  const handlePanelTokenChange = (panelId: string, newTokenData: EditPanelData) => {
-    setSelectedPanels(prevPanels =>
-      prevPanels.map(panel =>
-        panel.id === panelId
-          ? { ...panel, ...newTokenData }
-          : panel
-      )
-    );
-    setOpenPopoverId(null); // Close the popover after selection
-  };
-
-  // Updated addPanel function - takes the full data object
-  const addPanel = (panelData: AddPanelData) => {
-    const newItemId = `${panelData.networkId}-${panelData.tokenId}-${panelData.type}-${Date.now()}`;
-    const newPanel: SelectedPanel = {
-      ...panelData, // Spread data received from dialog
-      id: newItemId,
-      // type is already included in panelData
-    };
-
-    setSelectedPanels((prev) => [...prev, newPanel]);
-
-    // Add layout item
-    const newLayoutItem: Layout = {
-      i: newItemId,
-      x: (selectedPanels.length * 4) % 12,
-      y: Infinity,
-      w: panelData.type === 'chart' ? 6 : 8,
-      h: panelData.type === 'chart' ? 4 : 5,
-    };
-
-    setLayouts((prevLayouts) => {
-      const updatedLayouts = { ...prevLayouts };
-      const breakpoint = Object.keys(updatedLayouts)[0] || 'lg';
-      updatedLayouts[breakpoint] = [...(updatedLayouts[breakpoint] || []), newLayoutItem];
-      if (!prevLayouts[breakpoint]) {
-        updatedLayouts['lg'] = [newLayoutItem];
-      }
-
-      // Compact layout after adding a new item
-      // RGL might handle this, but explicitly calling compact might be needed
-      // if using preventCollision or other specific RGL configs.
-      // This part might need adjustment based on RGL behavior.
-       const currentBreakpoint = Object.keys(updatedLayouts)[0] || 'lg'; // Assuming 'lg' or first available
-       if (updatedLayouts[currentBreakpoint]) {
-           // RGL doesn't expose compact directly, layout change usually triggers it
-           // Ensure the new item doesn't cause unnecessary layout shifts if possible
-           // Often, setting y: Infinity helps RGL place it at the bottom initially
-       }
-
-      return updatedLayouts;
-    });
-
-    // No pendingToken or search dialog state to clear here,
-    // dialog closes itself after calling onAddPanel
-  };
-
-  // Handler for layout changes
-  const onLayoutChange = (layout: Layout[], allLayouts: { [key: string]: Layout[] }) => {
-    const currentLgLayout = layouts['lg'] || [];
-    // Avoid unnecessary updates if only keys changed due to filtering
-    if (layout.length === currentLgLayout.length && JSON.stringify(layout) === JSON.stringify(currentLgLayout)) {
-      return;
-    }
-    // Filter out layout items that don't correspond to a selectedPanel
-    // This prevents issues if removePanel updates state faster than layout syncs
-    const currentPanelIds = new Set(selectedPanels.map(p => p.id));
-    const filteredLayouts = { ...allLayouts };
-    for (const breakpoint in filteredLayouts) {
-      filteredLayouts[breakpoint] = filteredLayouts[breakpoint].filter(item => currentPanelIds.has(item.i));
-    }
-    setLayouts(filteredLayouts);
-  };
-
-  // Updated removePanel function
-  const removePanel = (idToRemove: string) => {
-    // Stop propagation if called directly from button event
-    // event?.stopPropagation();
-
-    setSelectedPanels(prev => prev.filter(panel => panel.id !== idToRemove));
-
-    // Explicitly remove layout item from state for immediate visual update
-    setLayouts(prevLayouts => {
-      const newLayouts = { ...prevLayouts };
-      for (const breakpoint in newLayouts) {
-        newLayouts[breakpoint] = newLayouts[breakpoint]?.filter(item => item.i !== idToRemove);
-      }
-      // Remove breakpoint if it becomes empty
-      for (const breakpoint in newLayouts) {
-        if (newLayouts[breakpoint]?.length === 0) {
-          // delete newLayouts[breakpoint]; // Or keep empty array? Keeping it might be safer for RGL
-          // Keep empty array to avoid issues with RGL expecting the breakpoint key
-        }
-      }
-      return newLayouts;
-    });
-  };
 
   // Effect to handle keyboard shortcut
   useEffect(() => {
@@ -256,12 +68,10 @@ export default function ProPage() {
   return (
     <div className="py-4 h-screen flex flex-col">
       {/* Header Section */}
-      <div className="flex justify-between items-center mb-4 px-4">
-        <h1 className="text-2xl font-bold">Pro Mode</h1>
+      <div className="flex justify-between items-center mb-2 px-4">
         <Button onClick={handleAddClick} size="sm">
-           {/* Change button text based on whether panels exist? Optional. */}
-           {/* {selectedPanels.length > 0 ? "Add Another Panel" : "Add Panel"} */}
-           Add Panel
+        <Plus />
+           {selectedPanels.length > 0 ? "Add Another Panel" : "Add Panel"}
         </Button>
       </div>
 
@@ -277,8 +87,7 @@ export default function ProPage() {
               draggableHandle=".drag-handle"
               isDraggable
               isResizable
-              // compactType={null} // Optional: Adjust compaction as needed
-              // preventCollision={true} // Optional
+              preventCollision={true}
           >
               {selectedPanels.map((panel) => (
                 <div key={panel.id} style={{ transitionProperty: 'all' }} className="transition-all duration-500 border-4 border-transparent hover:ring-2 hover:ring-primary/50 bg-card overflow-hidden shadow-md flex flex-col group">

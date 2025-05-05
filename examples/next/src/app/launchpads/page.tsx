@@ -19,15 +19,11 @@ import {
 import { useCodexSdk } from '@/hooks/useCodexSdk';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal, Clock, Repeat, Users, Filter } from "lucide-react";
-import Image from 'next/image';
-import { print } from 'graphql';
-import Link from 'next/link';
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Terminal } from "lucide-react";
 import { useDebounce } from "@/hooks/useDebounce";
-import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { LaunchpadTokenCard } from '@/components/LaunchpadTokenCard';
+import { print } from 'graphql';
+import { ColumnFilterPopover } from '@/components/ColumnFilterPopover';
 
 type CleanupFunction = () => void;
 
@@ -48,170 +44,6 @@ const initialFilterState: ColumnFilters = {
     holders: { min: '', max: '' },
     marketCap: { min: '', max: '' },
     transactions1h: { min: '', max: '' },
-};
-
-const formatNumber = (num: number | string | null | undefined, options: Intl.NumberFormatOptions = {}) => {
-  if (num === null || num === undefined) return 'N/A';
-  const numericValue = typeof num === 'string' ? parseFloat(num) : num;
-  if (isNaN(numericValue)) return 'N/A';
-  return new Intl.NumberFormat('en-US', {
-    notation: 'compact',
-    maximumFractionDigits: 2,
-    ...options
-  }).format(numericValue);
-};
-
-const formatPercent = (num: number | null | undefined) => {
-  if (num === null || num === undefined) return 'N/A';
-  return `${num.toFixed(2)}%`;
-}
-
-interface TokenCardProps {
-  token: LaunchpadFilterTokenResultFragment;
-}
-
-const TokenCard: React.FC<TokenCardProps> = ({ token }) => {
-    const name = token.token?.name ?? 'Unknown Name';
-    const symbol = token.token?.symbol ?? '???';
-    const imageUrl = token.token?.imageSmallUrl
-                    || token.token?.info?.imageThumbUrl
-                    || token.token?.info?.imageSmallUrl
-                    || token.token?.info?.imageLargeUrl;
-    const marketCap = token.marketCap;
-    const graduationPercent = token.token?.launchpad?.graduationPercent;
-    const holders = token.holders;
-    const createdAt = token.token?.createdAt;
-    const networkId = token.token?.networkId;
-    const tokenId = token.token?.address;
-
-    const getTimeAgo = (timestamp: number | null | undefined): string => {
-        if (!timestamp) return '-';
-        const seconds = Math.floor((new Date().getTime() - timestamp * 1000) / 1000);
-        let interval = seconds / 31536000;
-        if (interval > 1) return Math.floor(interval) + "y";
-        interval = seconds / 2592000;
-        if (interval > 1) return Math.floor(interval) + "mo";
-        interval = seconds / 86400;
-        if (interval > 1) return Math.floor(interval) + "d";
-        interval = seconds / 3600;
-        if (interval > 1) return Math.floor(interval) + "h";
-        interval = seconds / 60;
-        if (interval > 1) return Math.floor(interval) + "m";
-        return Math.floor(seconds) + "s";
-    }
-    const timeAgo = getTimeAgo(createdAt);
-
-    const linkHref = (networkId && tokenId) ? `/networks/${networkId}/tokens/${encodeURIComponent(tokenId)}` : '#';
-    const isLinkDisabled = !(networkId && tokenId);
-
-    return (
-        <Link
-            href={linkHref}
-            passHref
-            className={`transition-all hover:border-primary/60 border bg-background p-2 flex flex-col gap-1.5 ${isLinkDisabled ? 'opacity-50 pointer-events-none' : 'cursor-pointer'}`}
-            aria-disabled={isLinkDisabled}
-            onClick={(e) => { if (isLinkDisabled) e.preventDefault(); }}
-        >
-            <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 flex-shrink min-w-0">
-                    {imageUrl &&
-                        <Image
-                            key={imageUrl}
-                            src={imageUrl}
-                            alt={`${name} logo`}
-                            width={36}
-                            height={36}
-                            placeholder="empty"
-                            className="rounded-md flex-shrink-0 object-cover bg-muted"
-                        />
-                    }
-                    <div className="flex-grow min-w-0">
-                        <p className="font-semibold text-sm truncate" title={name}>{name}</p>
-                        <p className="text-xs text-muted-foreground truncate">{symbol}</p>
-                    </div>
-                </div>
-            </div>
-
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-                 <div className="flex items-center gap-1">
-                     <Clock className="h-3 w-3" />
-                     <span>{timeAgo}</span>
-                </div>
-            </div>
-
-             <div className="flex items-center justify-between text-xs text-muted-foreground gap-2 flex-wrap">
-                <div className="flex items-center gap-1" title="Graduation Progress">
-                     <Repeat className="h-3.5 w-3.5 text-green-500" />
-                     <span className="font-medium text-foreground">{formatPercent(graduationPercent)}</span>
-                </div>
-                 <div className="flex items-center gap-1" title="Holders">
-                     <Users className="h-3.5 w-3.5" />
-                     <span className="font-medium text-foreground">{formatNumber(holders)}</span>
-                </div>
-                 <div className="flex items-center gap-1" title="Transactions (Placeholder)">
-                     <span>Tx</span>
-                     <span className="font-medium text-foreground">{token.transactions1 ?? '-'}</span>
-                </div>
-                 <div className="flex items-center gap-1" title="Volume (Placeholder)">
-                     <span>V</span>
-                     <span className="font-medium text-foreground">{formatNumber(token.volume1, {style: 'currency', currency: 'USD'})}</span>
-                </div>
-                 <div className="flex items-center gap-1" title="Market Cap">
-                     <span>MC</span>
-                     <span className="font-medium text-foreground">{formatNumber(marketCap, { style: 'currency', currency: 'USD', minimumFractionDigits: 0 })}</span>
-                </div>
-             </div>
-        </Link>
-    );
-};
-
-const LoadingColumn: React.FC = () => (
-  <div className="space-y-3">
-    {[...Array(5)].map((_, i) => (
-      <Skeleton key={i} className="h-[120px] w-full rounded-md" />
-    ))}
-  </div>
-);
-
-interface FilterInputGroupProps {
-    label: string;
-    filterKey: keyof ColumnFilters;
-    filters: ColumnFilters;
-    setFilters: React.Dispatch<React.SetStateAction<ColumnFilters>>;
-}
-
-const FilterInputGroup: React.FC<FilterInputGroupProps> = ({ label, filterKey, filters, setFilters }) => {
-    const handleChange = (bound: 'min' | 'max', value: string) => {
-        setFilters(prev => ({
-            ...prev,
-            [filterKey]: {
-                ...prev[filterKey],
-                [bound]: value
-            }
-        }));
-    };
-
-    return (
-        <div className="grid grid-cols-2 gap-2 items-end">
-            <Label htmlFor={`${filterKey}-min`} className="text-xs col-span-2 mb-1">{label}</Label>
-            <Input
-                id={`${filterKey}-min`}
-                type="number"
-                placeholder="Min"
-                value={filters[filterKey].min}
-                onChange={(e) => handleChange('min', e.target.value)}
-                className="h-8 text-xs"
-            />
-            <Input
-                id={`${filterKey}-max`}
-                type="number"
-                placeholder="Max"
-                value={filters[filterKey].max}
-                onChange={(e) => handleChange('max', e.target.value)}
-                className="h-8 text-xs"
-            />
-        </div>
-    );
 };
 
 export default function LaunchpadsPage() {
@@ -561,19 +393,14 @@ export default function LaunchpadsPage() {
         <div className="bg-card p-1 rounded-lg shadow flex flex-col overflow-hidden">
           <h2 className="text-xl font-semibold mb-2 pb-1 flex-shrink-0 flex items-center justify-between">
             New
-            <Popover open={openPopover === 'new'} onOpenChange={(isOpen) => setOpenPopover(isOpen ? 'new' : null)}>
-                <PopoverTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-7 w-7">
-                        <Filter className="h-4 w-4" />
-                    </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-64 p-2 space-y-2">
-                    <h3 className="text-sm font-medium mb-1">Filter New</h3>
-                    <FilterInputGroup label="Graduation %" filterKey="graduationPercent" filters={newFilters} setFilters={setNewFilters} />
-                    <FilterInputGroup label="Holders" filterKey="holders" filters={newFilters} setFilters={setNewFilters} />
-                    <FilterInputGroup label="Market Cap" filterKey="marketCap" filters={newFilters} setFilters={setNewFilters} />
-                </PopoverContent>
-            </Popover>
+            <ColumnFilterPopover
+                title="Filter New"
+                popoverKey="new"
+                filters={newFilters}
+                setFilters={setNewFilters}
+                openPopover={openPopover}
+                setOpenPopover={setOpenPopover}
+            />
           </h2>
           <div className="flex-grow overflow-y-auto space-y-3 pr-1 custom-scrollbar">
             {newLoading || isSdkLoading ? (
@@ -581,7 +408,7 @@ export default function LaunchpadsPage() {
             ) : newTokens.length === 0 ? (
               <p className="text-muted-foreground text-center py-4">No new tokens found.</p>
             ) : (
-              newTokens.map((token) => <TokenCard key={token.token?.id ?? Math.random()} token={token} />)
+              newTokens.map((token) => <LaunchpadTokenCard key={token.token?.id ?? Math.random()} token={token} />)
             )}
           </div>
         </div>
@@ -589,19 +416,14 @@ export default function LaunchpadsPage() {
          <div className="bg-card p-1 rounded-lg shadow flex flex-col overflow-hidden">
           <h2 className="text-xl font-semibold mb-2 pb-1 flex-shrink-0 flex items-center justify-between">
             Completing
-            <Popover open={openPopover === 'completing'} onOpenChange={(isOpen) => setOpenPopover(isOpen ? 'completing' : null)}>
-                <PopoverTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-7 w-7">
-                        <Filter className="h-4 w-4" />
-                    </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-64 p-2 space-y-2">
-                     <h3 className="text-sm font-medium mb-1">Filter Completing</h3>
-                     <FilterInputGroup label="Graduation %" filterKey="graduationPercent" filters={completingFilters} setFilters={setCompletingFilters} />
-                     <FilterInputGroup label="Holders" filterKey="holders" filters={completingFilters} setFilters={setCompletingFilters} />
-                     <FilterInputGroup label="Market Cap" filterKey="marketCap" filters={completingFilters} setFilters={setCompletingFilters} />
-                </PopoverContent>
-            </Popover>
+             <ColumnFilterPopover
+                title="Filter Completing"
+                popoverKey="completing"
+                filters={completingFilters}
+                setFilters={setCompletingFilters}
+                openPopover={openPopover}
+                setOpenPopover={setOpenPopover}
+            />
           </h2>
            <div className="flex-grow overflow-y-auto space-y-3 pr-1 custom-scrollbar">
              {completingLoading || isSdkLoading ? (
@@ -609,7 +431,7 @@ export default function LaunchpadsPage() {
             ) : completingTokens.length === 0 ? (
                <p className="text-muted-foreground text-center py-4">No completing tokens found.</p>
             ) : (
-              completingTokens.map((token) => <TokenCard key={token.token?.id ?? Math.random()} token={token} />)
+              completingTokens.map((token) => <LaunchpadTokenCard key={token.token?.id ?? Math.random()} token={token} />)
             )}
           </div>
         </div>
@@ -617,19 +439,14 @@ export default function LaunchpadsPage() {
          <div className="bg-card p-1 rounded-lg shadow flex flex-col overflow-hidden">
           <h2 className="text-xl font-semibold mb-2 pb-1 flex-shrink-0 flex items-center justify-between">
             Completed
-            <Popover open={openPopover === 'completed'} onOpenChange={(isOpen) => setOpenPopover(isOpen ? 'completed' : null)}>
-                <PopoverTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-7 w-7">
-                        <Filter className="h-4 w-4" />
-                    </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-64 p-2 space-y-2">
-                     <h3 className="text-sm font-medium mb-1">Filter Completed</h3>
-                     <FilterInputGroup label="Graduation %" filterKey="graduationPercent" filters={completedFilters} setFilters={setCompletedFilters} />
-                     <FilterInputGroup label="Holders" filterKey="holders" filters={completedFilters} setFilters={setCompletedFilters} />
-                     <FilterInputGroup label="Market Cap" filterKey="marketCap" filters={completedFilters} setFilters={setCompletedFilters} />
-                </PopoverContent>
-            </Popover>
+            <ColumnFilterPopover
+                title="Filter Completed"
+                popoverKey="completed"
+                filters={completedFilters}
+                setFilters={setCompletedFilters}
+                openPopover={openPopover}
+                setOpenPopover={setOpenPopover}
+            />
           </h2>
            <div className="flex-grow overflow-y-auto space-y-3 pr-1 custom-scrollbar">
             {completedLoading || isSdkLoading ? (
@@ -637,7 +454,7 @@ export default function LaunchpadsPage() {
             ) : completedTokens.length === 0 ? (
                <p className="text-muted-foreground text-center py-4">No completed tokens found.</p>
              ) : (
-              completedTokens.map((token) => <TokenCard key={token.token?.id ?? Math.random()} token={token} />)
+              completedTokens.map((token) => <LaunchpadTokenCard key={token.token?.id ?? Math.random()} token={token} />)
             )}
           </div>
         </div>
@@ -663,4 +480,12 @@ export default function LaunchpadsPage() {
     </div>
   );
 }
+
+const LoadingColumn: React.FC = () => (
+  <div className="space-y-3">
+    {[...Array(5)].map((_, i) => (
+      <Skeleton key={i} className="h-[120px] w-full rounded-md" />
+    ))}
+  </div>
+);
 
