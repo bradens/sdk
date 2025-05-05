@@ -20,6 +20,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Terminal, Clock, Repeat, Users } from "lucide-react";
 import Image from 'next/image';
 import { print } from 'graphql';
+import Link from 'next/link'; // Import Link
 
 // Define CleanupFunction type if not available elsewhere
 type CleanupFunction = () => void;
@@ -57,6 +58,8 @@ const TokenCard: React.FC<TokenCardProps> = ({ token }) => {
     const graduationPercent = token.token?.launchpad?.graduationPercent;
     const holders = token.holders;
     const createdAt = token.token?.createdAt;
+    const networkId = token.token?.networkId;
+    const tokenId = token.token?.address;
 
     const getTimeAgo = (timestamp: number | null | undefined): string => {
         if (!timestamp) return '-';
@@ -75,9 +78,22 @@ const TokenCard: React.FC<TokenCardProps> = ({ token }) => {
     }
     const timeAgo = getTimeAgo(createdAt);
 
+    // Construct the link href
+    const linkHref = (networkId && tokenId) ? `/networks/${networkId}/tokens/${encodeURIComponent(tokenId)}` : '#';
+    // Disable link if missing required params
+    const isLinkDisabled = !(networkId && tokenId);
+
     return (
-         <div className="transition-all hover:border-primary/60 border bg-background p-2 flex flex-col gap-1.5">
-            {/* Top Row: Image, Name/Symbol, Buy Button */}
+        <Link
+            href={linkHref}
+            passHref // passHref is generally not needed without <a> but doesn't hurt
+            // Removed legacyBehavior
+            className={`transition-all hover:border-primary/60 border bg-background p-2 flex flex-col gap-1.5 ${isLinkDisabled ? 'opacity-50 pointer-events-none' : 'cursor-pointer'}`}
+            aria-disabled={isLinkDisabled}
+            onClick={(e) => { if (isLinkDisabled) e.preventDefault(); }}
+        >
+            {/* Removed wrapping <a> tag - Content now direct child of Link */}
+            {/* Top Row: Image, Name/Symbol */}
             <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 flex-shrink min-w-0">
                     {imageUrl &&
@@ -96,18 +112,14 @@ const TokenCard: React.FC<TokenCardProps> = ({ token }) => {
                         <p className="text-xs text-muted-foreground truncate">{symbol}</p>
                     </div>
                 </div>
-                {/* <Button variant="ghost" size="sm" className="text-xs px-2 py-1 h-auto flex-shrink-0">
-                    <ShoppingCart className="h-3 w-3 mr-1" /> Buy
-                </Button> */}
             </div>
 
-            {/* Second Row: Time Ago, Social Icons */}
+            {/* Second Row: Time Ago */}
             <div className="flex items-center justify-between text-xs text-muted-foreground">
                  <div className="flex items-center gap-1">
                      <Clock className="h-3 w-3" />
                      <span>{timeAgo}</span>
                 </div>
-                {/* Social Icons Placeholder */}
             </div>
 
              {/* Third Row: Progress, Holders, Tx, V, MCap */}
@@ -133,7 +145,7 @@ const TokenCard: React.FC<TokenCardProps> = ({ token }) => {
                      <span className="font-medium text-foreground">{formatNumber(marketCap, { style: 'currency', currency: 'USD', minimumFractionDigits: 0 })}</span>
                 </div>
              </div>
-        </div>
+        </Link>
     );
 };
 
