@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   TokenRanking,
   TokenRankingAttribute,
   RankingDirection,
-} from '@codex-data/sdk/dist/sdk/generated/graphql'; // Import SDK types
+  NumberFilter,
+} from '@codex-data/sdk/dist/sdk/generated/graphql';
 import {
   LaunchpadTokenEventType,
   LaunchpadFilterTokenResultFragment,
@@ -13,19 +14,42 @@ import {
   OnLaunchpadTokenEventBatchSubscription,
   LaunchpadTokenEventFragment,
   LaunchpadTokensDocument,
+  TokenFilters,
 } from '@/gql/graphql';
 import { useCodexSdk } from '@/hooks/useCodexSdk';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal, Clock, Repeat, Users } from "lucide-react";
+import { Terminal, Clock, Repeat, Users, Filter } from "lucide-react";
 import Image from 'next/image';
 import { print } from 'graphql';
-import Link from 'next/link'; // Import Link
+import Link from 'next/link';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useDebounce } from "@/hooks/useDebounce";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-// Define CleanupFunction type if not available elsewhere
 type CleanupFunction = () => void;
 
-// --- Helper Functions (remain the same) ---
+type LaunchpadEvent = LaunchpadTokenEventFragment;
+
+type FilterBounds = { min: string; max: string };
+interface ColumnFilters {
+    graduationPercent: FilterBounds;
+    priceChange1h: FilterBounds;
+    holders: FilterBounds;
+    marketCap: FilterBounds;
+    transactions1h: FilterBounds;
+}
+
+const initialFilterState: ColumnFilters = {
+    graduationPercent: { min: '', max: '' },
+    priceChange1h: { min: '', max: '' },
+    holders: { min: '', max: '' },
+    marketCap: { min: '', max: '' },
+    transactions1h: { min: '', max: '' },
+};
+
 const formatNumber = (num: number | string | null | undefined, options: Intl.NumberFormatOptions = {}) => {
   if (num === null || num === undefined) return 'N/A';
   const numericValue = typeof num === 'string' ? parseFloat(num) : num;
@@ -42,7 +66,6 @@ const formatPercent = (num: number | null | undefined) => {
   return `${num.toFixed(2)}%`;
 }
 
-// --- Updated Token Card Component ---
 interface TokenCardProps {
   token: LaunchpadFilterTokenResultFragment;
 }
@@ -53,7 +76,7 @@ const TokenCard: React.FC<TokenCardProps> = ({ token }) => {
     const imageUrl = token.token?.imageSmallUrl
                     || token.token?.info?.imageThumbUrl
                     || token.token?.info?.imageSmallUrl
-                    || token.token?.info?.imageLargeUrl
+                    || token.token?.info?.imageLargeUrl;
     const marketCap = token.marketCap;
     const graduationPercent = token.token?.launchpad?.graduationPercent;
     const holders = token.holders;
@@ -78,22 +101,17 @@ const TokenCard: React.FC<TokenCardProps> = ({ token }) => {
     }
     const timeAgo = getTimeAgo(createdAt);
 
-    // Construct the link href
     const linkHref = (networkId && tokenId) ? `/networks/${networkId}/tokens/${encodeURIComponent(tokenId)}` : '#';
-    // Disable link if missing required params
     const isLinkDisabled = !(networkId && tokenId);
 
     return (
         <Link
             href={linkHref}
-            passHref // passHref is generally not needed without <a> but doesn't hurt
-            // Removed legacyBehavior
+            passHref
             className={`transition-all hover:border-primary/60 border bg-background p-2 flex flex-col gap-1.5 ${isLinkDisabled ? 'opacity-50 pointer-events-none' : 'cursor-pointer'}`}
             aria-disabled={isLinkDisabled}
             onClick={(e) => { if (isLinkDisabled) e.preventDefault(); }}
         >
-            {/* Removed wrapping <a> tag - Content now direct child of Link */}
-            {/* Top Row: Image, Name/Symbol */}
             <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 flex-shrink min-w-0">
                     {imageUrl &&
@@ -114,7 +132,6 @@ const TokenCard: React.FC<TokenCardProps> = ({ token }) => {
                 </div>
             </div>
 
-            {/* Second Row: Time Ago */}
             <div className="flex items-center justify-between text-xs text-muted-foreground">
                  <div className="flex items-center gap-1">
                      <Clock className="h-3 w-3" />
@@ -122,7 +139,6 @@ const TokenCard: React.FC<TokenCardProps> = ({ token }) => {
                 </div>
             </div>
 
-             {/* Third Row: Progress, Holders, Tx, V, MCap */}
              <div className="flex items-center justify-between text-xs text-muted-foreground gap-2 flex-wrap">
                 <div className="flex items-center gap-1" title="Graduation Progress">
                      <Repeat className="h-3.5 w-3.5 text-green-500" />
@@ -134,11 +150,11 @@ const TokenCard: React.FC<TokenCardProps> = ({ token }) => {
                 </div>
                  <div className="flex items-center gap-1" title="Transactions (Placeholder)">
                      <span>Tx</span>
-                     <span className="font-medium text-foreground">{token.transactions1}</span>
+                     <span className="font-medium text-foreground">{token.transactions1 ?? '-'}</span>
                 </div>
                  <div className="flex items-center gap-1" title="Volume (Placeholder)">
                      <span>V</span>
-                     <span className="font-medium text-foreground">{token.volume1}</span>
+                     <span className="font-medium text-foreground">{formatNumber(token.volume1, {style: 'currency', currency: 'USD'})}</span>
                 </div>
                  <div className="flex items-center gap-1" title="Market Cap">
                      <span>MC</span>
@@ -149,7 +165,6 @@ const TokenCard: React.FC<TokenCardProps> = ({ token }) => {
     );
 };
 
-// --- Loading Skeleton (remains the same) ---
 const LoadingColumn: React.FC = () => (
   <div className="space-y-3">
     {[...Array(5)].map((_, i) => (
@@ -158,14 +173,62 @@ const LoadingColumn: React.FC = () => (
   </div>
 );
 
-// --- Main Launchpads Page Component ---
+interface FilterInputGroupProps {
+    label: string;
+    filterKey: keyof ColumnFilters;
+    filters: ColumnFilters;
+    setFilters: React.Dispatch<React.SetStateAction<ColumnFilters>>;
+}
+
+const FilterInputGroup: React.FC<FilterInputGroupProps> = ({ label, filterKey, filters, setFilters }) => {
+    const handleChange = (bound: 'min' | 'max', value: string) => {
+        setFilters(prev => ({
+            ...prev,
+            [filterKey]: {
+                ...prev[filterKey],
+                [bound]: value
+            }
+        }));
+    };
+
+    return (
+        <div className="grid grid-cols-2 gap-2 items-end">
+            <Label htmlFor={`${filterKey}-min`} className="text-xs col-span-2 mb-1">{label}</Label>
+            <Input
+                id={`${filterKey}-min`}
+                type="number"
+                placeholder="Min"
+                value={filters[filterKey].min}
+                onChange={(e) => handleChange('min', e.target.value)}
+                className="h-8 text-xs"
+            />
+            <Input
+                id={`${filterKey}-max`}
+                type="number"
+                placeholder="Max"
+                value={filters[filterKey].max}
+                onChange={(e) => handleChange('max', e.target.value)}
+                className="h-8 text-xs"
+            />
+        </div>
+    );
+};
 
 export default function LaunchpadsPage() {
   const [newTokens, setNewTokens] = useState<LaunchpadFilterTokenResultFragment[]>([]);
   const [completingTokens, setCompletingTokens] = useState<LaunchpadFilterTokenResultFragment[]>([]);
   const [completedTokens, setCompletedTokens] = useState<LaunchpadFilterTokenResultFragment[]>([]);
 
-  // Loading and Error States
+  const [newFilters, setNewFilters] = useState<ColumnFilters>(initialFilterState);
+  const [completingFilters, setCompletingFilters] = useState<ColumnFilters>(initialFilterState);
+  const [completedFilters, setCompletedFilters] = useState<ColumnFilters>(initialFilterState);
+
+  const debouncedNewFilters = useDebounce(newFilters, 500);
+  const debouncedCompletingFilters = useDebounce(completingFilters, 500);
+  const debouncedCompletedFilters = useDebounce(completedFilters, 500);
+
+  const [openPopover, setOpenPopover] = useState<'new' | 'completing' | 'completed' | null>(null);
+
   const [newLoading, setNewLoading] = useState(true);
   const [completingLoading, setCompletingLoading] = useState(true);
   const [completedLoading, setCompletedLoading] = useState(true);
@@ -177,23 +240,62 @@ export default function LaunchpadsPage() {
   const { sdk, isLoading: isSdkLoading, isAuthenticated } = useCodexSdk();
   const cleanupSubscriptionRef = useRef<CleanupFunction | null>(null);
 
-  // Effect for fetching NEW tokens
+  const buildGqlFilters = useCallback((baseFilters: Partial<TokenFilters>, columnFilters: ColumnFilters): Partial<TokenFilters> => {
+      const gqlFilters = { ...baseFilters };
+
+      const parseBounds = (bounds: FilterBounds) => {
+          const min = parseFloat(bounds.min);
+          const max = parseFloat(bounds.max);
+          const filter: NumberFilter = {};
+          if (!isNaN(min)) filter.gte = min;
+          if (!isNaN(max)) filter.lte = max;
+          return (filter.gte !== undefined || filter.lte !== undefined) ? filter : undefined;
+      };
+
+      const filterMappings: { [K in keyof ColumnFilters]: keyof TokenFilters | null } = {
+          graduationPercent: 'launchpadGraduationPercent',
+          priceChange1h: 'change1',
+          holders: 'holders',
+          marketCap: 'marketCap',
+          transactions1h: 'txnCount1',
+      };
+
+      for (const key in columnFilters) {
+          const filterKey = key as keyof ColumnFilters;
+          const gqlKey = filterMappings[filterKey];
+          if (gqlKey) {
+              const boundsFilter = parseBounds(columnFilters[filterKey]);
+
+              if (boundsFilter) {
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  gqlFilters[gqlKey] = boundsFilter as any;
+              }
+          }
+      }
+      return gqlFilters;
+  }, []);
+
   useEffect(() => {
     if (!sdk || isSdkLoading || !isAuthenticated) return;
     let isMounted = true;
     setNewLoading(true);
     setNewError(null);
+
+    const gqlFilters = buildGqlFilters(
+        { launchpadMigrated: false, launchpadCompleted: false },
+        debouncedNewFilters
+    );
+
     sdk.query(LaunchpadTokensDocument, {
         limit: 20,
         offset: 0,
-        filters: { launchpadMigrated: false, launchpadCompleted: false },
+        filters: gqlFilters,
         rankings: [{ attribute: TokenRankingAttribute.CreatedAt, direction: RankingDirection.Desc }] as TokenRanking[],
     })
     .then(response => {
        if (!isMounted) return;
-       // Adjusted filter: Filter out nullish items first
        const results = response.filterTokens?.results?.filter(item => !!item) ?? [];
-       setNewTokens(results as LaunchpadFilterTokenResultFragment[]); // Cast after filtering nulls
+       setNewTokens(results as LaunchpadFilterTokenResultFragment[]);
     })
     .catch(err => {
        if (!isMounted) return;
@@ -205,26 +307,31 @@ export default function LaunchpadsPage() {
        setNewLoading(false);
     });
      return () => { isMounted = false; };
-  }, [sdk, isSdkLoading, isAuthenticated]);
+  }, [sdk, isSdkLoading, isAuthenticated, debouncedNewFilters, buildGqlFilters]);
 
-  // Effect for fetching COMPLETING tokens
   useEffect(() => {
     if (!sdk || isSdkLoading || !isAuthenticated) return;
     let isMounted = true;
     setCompletingLoading(true);
     setCompletingError(null);
+
+    const gqlFilters = buildGqlFilters(
+         { launchpadMigrated: false, launchpadCompleted: false },
+         debouncedCompletingFilters
+    );
+
     sdk.query(LaunchpadTokensDocument, {
         limit: 20,
         offset: 0,
-        filters: { launchpadCompleted: false, launchpadGraduationPercent: { gte: 80, lt: 100 }, lastTransaction: { gt: Math.floor(new Date().getTime() / 1000) - 60 * 60 * 24 } },
+        filters: gqlFilters,
         rankings: [{ attribute: TokenRankingAttribute.GraduationPercent, direction: RankingDirection.Desc }] as TokenRanking[],
     })
     .then(response => {
       if (!isMounted) return;
-      // Adjusted filter
       const results = response.filterTokens?.results?.filter(item => !!item) ?? [];
       setCompletingTokens(
-        (results as LaunchpadFilterTokenResultFragment[]).filter(token => !(token.token?.launchpad?.completed))
+        (results as LaunchpadFilterTokenResultFragment[])
+          .filter(token => !(token.token?.launchpad?.completed))
       );
     })
     .catch(err => {
@@ -237,23 +344,27 @@ export default function LaunchpadsPage() {
       setCompletingLoading(false);
     });
      return () => { isMounted = false; };
-  }, [sdk, isSdkLoading, isAuthenticated]);
+  }, [sdk, isSdkLoading, isAuthenticated, debouncedCompletingFilters, buildGqlFilters]);
 
-  // Effect for fetching COMPLETED tokens
   useEffect(() => {
     if (!sdk || isSdkLoading || !isAuthenticated) return;
     let isMounted = true;
     setCompletedLoading(true);
     setCompletedError(null);
+
+     const gqlFilters = buildGqlFilters(
+         { launchpadMigrated: true },
+         debouncedCompletedFilters
+    );
+
     sdk.query(LaunchpadTokensDocument, {
         limit: 20,
         offset: 0,
-        filters: { launchpadMigrated: true },
+        filters: gqlFilters,
         rankings: [{ attribute: TokenRankingAttribute.LaunchpadMigratedAt, direction: RankingDirection.Desc }] as TokenRanking[],
     })
     .then(response => {
       if (!isMounted) return;
-      // Adjusted filter
       const results = response.filterTokens?.results?.filter(item => !!item) ?? [];
       setCompletedTokens(results as LaunchpadFilterTokenResultFragment[]);
     })
@@ -267,9 +378,64 @@ export default function LaunchpadsPage() {
        setCompletedLoading(false);
     });
     return () => { isMounted = false; };
-  }, [sdk, isSdkLoading, isAuthenticated]);
+  }, [sdk, isSdkLoading, isAuthenticated, debouncedCompletedFilters, buildGqlFilters]);
 
-  // Effect for Subscription
+  const checkClientFilters = useCallback((event: LaunchpadEvent, columnFilters: ColumnFilters): boolean => {
+        const parseMinMax = (filterKey: keyof ColumnFilters): { min: number | null; max: number | null } => {
+            const minNum = parseFloat(columnFilters[filterKey].min);
+            const maxNum = parseFloat(columnFilters[filterKey].max);
+            return {
+                min: isNaN(minNum) ? null : minNum,
+                max: isNaN(maxNum) ? null : maxNum
+            };
+        };
+
+        const eventAttrMap: { [K in keyof ColumnFilters]: string | null } = {
+            graduationPercent: 'token.launchpad.graduationPercent',
+            priceChange1h: 'change1',
+            holders: 'holders',
+            marketCap: 'marketCap',
+            transactions1h: 'transactions1',
+        };
+
+        for (const key in columnFilters) {
+            const filterKey = key as keyof ColumnFilters;
+            const eventPath = eventAttrMap[filterKey];
+            if (!eventPath) continue;
+
+            let eventValue: unknown = event;
+            const pathParts = eventPath.split('.');
+            try {
+                for (const part of pathParts) {
+                    if (typeof eventValue === 'object' && eventValue !== null && part in eventValue) {
+                        eventValue = (eventValue as Record<string, unknown>)[part];
+                    } else {
+                        eventValue = undefined;
+                        break; // Exit loop if path is broken
+                    }
+                }
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            } catch (_ignoredError) {
+                eventValue = undefined;
+            }
+
+            if (eventValue === undefined || eventValue === null) continue;
+
+            const { min, max } = parseMinMax(filterKey);
+
+            let numericValue = eventValue;
+            if (typeof eventValue === 'string') {
+                numericValue = parseFloat(eventValue);
+            }
+            if (typeof numericValue !== 'number' || isNaN(numericValue)) continue;
+
+            if (min !== null && numericValue < min) return false;
+            if (max !== null && numericValue > max) return false;
+        }
+
+        return true;
+    }, []);
+
   useEffect(() => {
     if (!sdk || isSdkLoading || !isAuthenticated) return;
 
@@ -280,40 +446,37 @@ export default function LaunchpadsPage() {
     const startSubscription = async () => {
         try {
             const cleanup = sdk.subscribe<OnLaunchpadTokenEventBatchSubscription>(
-              print(OnLaunchpadTokenEventBatchDocument), // Pass the DocumentNode stringified
+              print(OnLaunchpadTokenEventBatchDocument),
               {},
               {
                 next: (data) => {
                   if (!isSubscribed) return;
-                  // Use type from SDK subscription generic if possible, else cast
                   const batch = data?.data?.onLaunchpadTokenEventBatch as LaunchpadTokenEventFragment[];
                   if (!batch) return;
 
-                  console.log(`batch updating ${batch.length} tokens`)
+                  console.log(`batch updating ${batch.length} tokens`);
 
-                  // --- State Update Logic ---
-                   setNewTokens(prev => {
+                  setNewTokens(prev => {
                         let updated = [...prev];
                         batch.forEach((event) => {
-                            if (!event) return;
+                            if (!event || !checkClientFilters(event, newFilters)) return;
                             updated = updated.filter(t => t.token?.id !== event.token?.id);
                             if ((event.eventType === LaunchpadTokenEventType.Deployed || event.eventType === LaunchpadTokenEventType.Created || event.eventType === LaunchpadTokenEventType.Updated)
                                 && !(event.token?.launchpad?.migrated) && !(event.token?.launchpad?.completed)) {
                                 if (!updated.some(t => t.token?.id === event.token?.id)) {
-                                 // Cast event to the type used in state
                                  updated.push(event as LaunchpadFilterTokenResultFragment);
                                 }
                             }
                         });
                         return updated
                             .sort((a, b) => (b.token?.createdAt ?? 0) - (a.token?.createdAt ?? 0))
-                            .slice(0, 20);
+                            .slice(0, 50);
                     });
 
                     setCompletingTokens(prev => {
                         let updated = [...prev];
                         batch.forEach((event) => {
-                            if (!event) return;
+                            if (!event || !checkClientFilters(event, completingFilters)) return;
                             updated = updated.filter(t => t.token?.id !== event.token?.id);
                             if ((event.eventType === LaunchpadTokenEventType.Updated || event.eventType === LaunchpadTokenEventType.Completed)
                                 && !(event.token?.launchpad?.migrated)) {
@@ -325,13 +488,13 @@ export default function LaunchpadsPage() {
                         return updated
                             .filter(t => !(t.token?.launchpad?.migrated) && !(t.token?.launchpad?.completed))
                             .sort((a, b) => (b.token?.launchpad?.graduationPercent ?? 0) - (a.token?.launchpad?.graduationPercent ?? 0))
-                            .slice(0, 20);
+                            .slice(0, 50);
                     });
 
                     setCompletedTokens(prev => {
                         let updated = [...prev];
                         batch.forEach((event) => {
-                            if (!event) return;
+                            if (!event || !checkClientFilters(event, completedFilters)) return;
                             updated = updated.filter(t => t.token?.id !== event.token?.id);
                             if (event.token?.launchpad?.migrated) {
                                  if (!updated.some(t => t.token?.id === event.token?.id)) {
@@ -341,7 +504,7 @@ export default function LaunchpadsPage() {
                         });
                         return updated
                             .sort((a, b) => (b.token?.launchpad?.migratedAt ?? 0) - (a.token?.launchpad?.migratedAt ?? 0))
-                            .slice(0, 20);
+                            .slice(0, 50);
                     });
                 },
                 error: (err: Error) => {
@@ -350,44 +513,40 @@ export default function LaunchpadsPage() {
                   setSubError(err instanceof Error ? err : new Error('Subscription failed'));
                 },
                 complete: () => {
-                    if (!isSubscribed) return;
-                    console.log('Subscription completed');
+                   if (!isSubscribed) return;
+                  console.log('Subscription completed');
                 }
               }
             );
-             // Store the cleanup function (assuming sdk.subscribe returns it directly now)
-             if (cleanup && typeof cleanup === 'function') {
+            if (cleanup && typeof cleanup === 'function') {
                  cleanupSubscriptionRef.current = cleanup;
              } else {
                  console.warn("Subscription did not return a cleanup function.");
              }
         } catch (err) {
             if (!isSubscribed) return;
-             console.error("Failed to start subscription:", err);
-             setSubError(err instanceof Error ? err : new Error('Failed to start subscription'));
+            console.error("Failed to start subscription:", err);
+            setSubError(err instanceof Error ? err : new Error('Failed to start subscription'));
         }
     };
 
     startSubscription();
 
-    // Cleanup function
     return () => {
-      isSubscribed = false;
-      if (cleanupSubscriptionRef.current) {
-        console.log("Cleaning up subscription...")
-        cleanupSubscriptionRef.current();
-        cleanupSubscriptionRef.current = null;
-      }
+        isSubscribed = false;
+        if (cleanupSubscriptionRef.current) {
+            console.log("Cleaning up subscription...")
+            cleanupSubscriptionRef.current();
+            cleanupSubscriptionRef.current = null;
+        }
     };
 
-  }, [sdk, isSdkLoading, isAuthenticated]);
+}, [sdk, isSdkLoading, isAuthenticated, checkClientFilters, newFilters, completingFilters, completedFilters]);
 
-  // Consolidate errors
   const errors = [newError, completingError, completedError, subError].filter(Boolean);
 
   return (
     <div className="p-1 md:p-1 lg:p-1 h-screen flex flex-col">
-       {/* Display Errors */}
        {errors.length > 0 && (
         <Alert variant="destructive" className="mb-4 flex-shrink-0">
           <Terminal className="h-4 w-4" />
@@ -399,9 +558,23 @@ export default function LaunchpadsPage() {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-1 flex-grow overflow-hidden">
-        {/* New Column */}
         <div className="bg-card p-1 rounded-lg shadow flex flex-col overflow-hidden">
-          <h2 className="text-xl font-semibold mb-2 pb-1 flex-shrink-0">New</h2>
+          <h2 className="text-xl font-semibold mb-2 pb-1 flex-shrink-0 flex items-center justify-between">
+            New
+            <Popover open={openPopover === 'new'} onOpenChange={(isOpen) => setOpenPopover(isOpen ? 'new' : null)}>
+                <PopoverTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-7 w-7">
+                        <Filter className="h-4 w-4" />
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 p-2 space-y-2">
+                    <h3 className="text-sm font-medium mb-1">Filter New</h3>
+                    <FilterInputGroup label="Graduation %" filterKey="graduationPercent" filters={newFilters} setFilters={setNewFilters} />
+                    <FilterInputGroup label="Holders" filterKey="holders" filters={newFilters} setFilters={setNewFilters} />
+                    <FilterInputGroup label="Market Cap" filterKey="marketCap" filters={newFilters} setFilters={setNewFilters} />
+                </PopoverContent>
+            </Popover>
+          </h2>
           <div className="flex-grow overflow-y-auto space-y-3 pr-1 custom-scrollbar">
             {newLoading || isSdkLoading ? (
               <LoadingColumn />
@@ -413,9 +586,23 @@ export default function LaunchpadsPage() {
           </div>
         </div>
 
-        {/* Completing Column */}
          <div className="bg-card p-1 rounded-lg shadow flex flex-col overflow-hidden">
-          <h2 className="text-xl font-semibold mb-2 pb-1 flex-shrink-0">Completing</h2>
+          <h2 className="text-xl font-semibold mb-2 pb-1 flex-shrink-0 flex items-center justify-between">
+            Completing
+            <Popover open={openPopover === 'completing'} onOpenChange={(isOpen) => setOpenPopover(isOpen ? 'completing' : null)}>
+                <PopoverTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-7 w-7">
+                        <Filter className="h-4 w-4" />
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 p-2 space-y-2">
+                     <h3 className="text-sm font-medium mb-1">Filter Completing</h3>
+                     <FilterInputGroup label="Graduation %" filterKey="graduationPercent" filters={completingFilters} setFilters={setCompletingFilters} />
+                     <FilterInputGroup label="Holders" filterKey="holders" filters={completingFilters} setFilters={setCompletingFilters} />
+                     <FilterInputGroup label="Market Cap" filterKey="marketCap" filters={completingFilters} setFilters={setCompletingFilters} />
+                </PopoverContent>
+            </Popover>
+          </h2>
            <div className="flex-grow overflow-y-auto space-y-3 pr-1 custom-scrollbar">
              {completingLoading || isSdkLoading ? (
               <LoadingColumn />
@@ -427,9 +614,23 @@ export default function LaunchpadsPage() {
           </div>
         </div>
 
-        {/* Completed Column */}
          <div className="bg-card p-1 rounded-lg shadow flex flex-col overflow-hidden">
-          <h2 className="text-xl font-semibold mb-2 pb-1 flex-shrink-0">Completed</h2>
+          <h2 className="text-xl font-semibold mb-2 pb-1 flex-shrink-0 flex items-center justify-between">
+            Completed
+            <Popover open={openPopover === 'completed'} onOpenChange={(isOpen) => setOpenPopover(isOpen ? 'completed' : null)}>
+                <PopoverTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-7 w-7">
+                        <Filter className="h-4 w-4" />
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 p-2 space-y-2">
+                     <h3 className="text-sm font-medium mb-1">Filter Completed</h3>
+                     <FilterInputGroup label="Graduation %" filterKey="graduationPercent" filters={completedFilters} setFilters={setCompletedFilters} />
+                     <FilterInputGroup label="Holders" filterKey="holders" filters={completedFilters} setFilters={setCompletedFilters} />
+                     <FilterInputGroup label="Market Cap" filterKey="marketCap" filters={completedFilters} setFilters={setCompletedFilters} />
+                </PopoverContent>
+            </Popover>
+          </h2>
            <div className="flex-grow overflow-y-auto space-y-3 pr-1 custom-scrollbar">
             {completedLoading || isSdkLoading ? (
               <LoadingColumn />
