@@ -14,8 +14,6 @@ export const Navbar = () => {
         <Link href="/pro" className="hover:ring-2 hover:ring-primary/50 rounded-md px-2 py-1 text-sm font-medium hover:text-primary transition-colors">
           Pro
         </Link>
-      </div>
-      <div className="flex items-center space-x-4">
         <Link href="/pro" className="hover:ring-2 hover:ring-primary/50 rounded-md px-2 py-1 text-sm font-medium hover:text-primary transition-colors">
           Meme
         </Link>
