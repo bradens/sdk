@@ -4,17 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Filter } from 'lucide-react';
-
-// Define the structure for filter bounds and column filters
-// (Copied from launchpads/page.tsx - consider moving to a types file later if reused more broadly)
-type FilterBounds = { min: string; max: string };
-export interface ColumnFilters {
-    graduationPercent: FilterBounds;
-    priceChange1h: FilterBounds;
-    holders: FilterBounds;
-    marketCap: FilterBounds;
-    transactions1h: FilterBounds;
-}
+// Import types from the new types file
+import type { ColumnFilters } from '@/types/launchpad';
 
 // Internal component for rendering Min/Max inputs for a filter key
 interface FilterInputGroupProps {
