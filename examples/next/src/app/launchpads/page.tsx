@@ -17,7 +17,7 @@ import {
 import { useCodexSdk } from '@/hooks/useCodexSdk';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal } from "lucide-react";
+import { Terminal, Clock, Repeat, Users } from "lucide-react";
 import Image from 'next/image';
 import { print } from 'graphql';
 
@@ -41,47 +41,100 @@ const formatPercent = (num: number | null | undefined) => {
   return `${num.toFixed(2)}%`;
 }
 
-// --- Token Card Component (remain the same) ---
+// --- Updated Token Card Component ---
 interface TokenCardProps {
   token: LaunchpadFilterTokenResultFragment;
 }
 
 const TokenCard: React.FC<TokenCardProps> = ({ token }) => {
-  const name = token.token?.name ?? 'Unknown Name';
-  const symbol = token.token?.symbol ?? '???';
-  const imageUrl = token.token?.info?.imageThumbUrl
-                 || token.token?.info?.imageSmallUrl
-                 || token.token?.info?.imageLargeUrl
-                 || token.token?.imageSmallUrl
-  const marketCap = token.marketCap;
-  const price = token.priceUSD;
-  const graduationPercent = token.token?.launchpad?.graduationPercent;
-  const holders = token.holders;
+    const name = token.token?.name ?? 'Unknown Name';
+    const symbol = token.token?.symbol ?? '???';
+    const imageUrl = token.token?.imageSmallUrl
+                    || token.token?.info?.imageThumbUrl
+                    || token.token?.info?.imageSmallUrl
+                    || token.token?.info?.imageLargeUrl
+    const marketCap = token.marketCap;
+    const graduationPercent = token.token?.launchpad?.graduationPercent;
+    const holders = token.holders;
+    const createdAt = token.token?.createdAt;
 
-  return (
-    <div className="border bg-background p-3 rounded-md shadow-sm hover:shadow-md transition-shadow">
-      <div className="flex items-center mb-2">
-        <Image
-          key={imageUrl}
-          src={imageUrl ?? '/placeholder-icon.png'}
-          alt={`${name} logo`}
-          width={24}
-          height={24}
-          className="rounded-full mr-2 object-cover bg-muted"
-        />
-        <div className="flex-1 min-w-0">
-            <p className="font-semibold text-sm truncate" title={name}>{name}</p>
-            <p className="text-xs text-muted-foreground">{symbol}</p>
+    const getTimeAgo = (timestamp: number | null | undefined): string => {
+        if (!timestamp) return '-';
+        const seconds = Math.floor((new Date().getTime() - timestamp * 1000) / 1000);
+        let interval = seconds / 31536000;
+        if (interval > 1) return Math.floor(interval) + "y";
+        interval = seconds / 2592000;
+        if (interval > 1) return Math.floor(interval) + "mo";
+        interval = seconds / 86400;
+        if (interval > 1) return Math.floor(interval) + "d";
+        interval = seconds / 3600;
+        if (interval > 1) return Math.floor(interval) + "h";
+        interval = seconds / 60;
+        if (interval > 1) return Math.floor(interval) + "m";
+        return Math.floor(seconds) + "s";
+    }
+    const timeAgo = getTimeAgo(createdAt);
+
+    return (
+         <div className="transition-all hover:border-primary/60 border bg-background p-2 flex flex-col gap-1.5">
+            {/* Top Row: Image, Name/Symbol, Buy Button */}
+            <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 flex-shrink min-w-0">
+                    {imageUrl &&
+                        <Image
+                            key={imageUrl}
+                            src={imageUrl}
+                            alt={`${name} logo`}
+                            width={36}
+                            height={36}
+                            placeholder="empty"
+                            className="rounded-md flex-shrink-0 object-cover bg-muted"
+                        />
+                    }
+                    <div className="flex-grow min-w-0">
+                        <p className="font-semibold text-sm truncate" title={name}>{name}</p>
+                        <p className="text-xs text-muted-foreground truncate">{symbol}</p>
+                    </div>
+                </div>
+                {/* <Button variant="ghost" size="sm" className="text-xs px-2 py-1 h-auto flex-shrink-0">
+                    <ShoppingCart className="h-3 w-3 mr-1" /> Buy
+                </Button> */}
+            </div>
+
+            {/* Second Row: Time Ago, Social Icons */}
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+                 <div className="flex items-center gap-1">
+                     <Clock className="h-3 w-3" />
+                     <span>{timeAgo}</span>
+                </div>
+                {/* Social Icons Placeholder */}
+            </div>
+
+             {/* Third Row: Progress, Holders, Tx, V, MCap */}
+             <div className="flex items-center justify-between text-xs text-muted-foreground gap-2 flex-wrap">
+                <div className="flex items-center gap-1" title="Graduation Progress">
+                     <Repeat className="h-3.5 w-3.5 text-green-500" />
+                     <span className="font-medium text-foreground">{formatPercent(graduationPercent)}</span>
+                </div>
+                 <div className="flex items-center gap-1" title="Holders">
+                     <Users className="h-3.5 w-3.5" />
+                     <span className="font-medium text-foreground">{formatNumber(holders)}</span>
+                </div>
+                 <div className="flex items-center gap-1" title="Transactions (Placeholder)">
+                     <span>Tx</span>
+                     <span className="font-medium text-foreground">{token.transactions1}</span>
+                </div>
+                 <div className="flex items-center gap-1" title="Volume (Placeholder)">
+                     <span>V</span>
+                     <span className="font-medium text-foreground">{token.volume1}</span>
+                </div>
+                 <div className="flex items-center gap-1" title="Market Cap">
+                     <span>MC</span>
+                     <span className="font-medium text-foreground">{formatNumber(marketCap, { style: 'currency', currency: 'USD', minimumFractionDigits: 0 })}</span>
+                </div>
+             </div>
         </div>
-      </div>
-       <div className="text-xs space-y-1">
-            <p>MCap: <span className="font-medium">{formatNumber(marketCap, { style: 'currency', currency: 'USD' })}</span></p>
-            <p>Price: <span className="font-medium">{formatNumber(price, { style: 'currency', currency: 'USD', maximumFractionDigits: 8 })}</span></p>
-            <p>Graduation: <span className="font-medium">{formatPercent(graduationPercent)}</span></p>
-            <p>Holders: <span className="font-medium">{formatNumber(holders)}</span></p>
-      </div>
-    </div>
-  );
+    );
 };
 
 // --- Loading Skeleton (remains the same) ---
@@ -126,8 +179,9 @@ export default function LaunchpadsPage() {
     })
     .then(response => {
        if (!isMounted) return;
-       const results = response.filterTokens?.results?.filter((item): item is LaunchpadFilterTokenResultFragment => !!item?.token) ?? [];
-       setNewTokens(results);
+       // Adjusted filter: Filter out nullish items first
+       const results = response.filterTokens?.results?.filter(item => !!item) ?? [];
+       setNewTokens(results as LaunchpadFilterTokenResultFragment[]); // Cast after filtering nulls
     })
     .catch(err => {
        if (!isMounted) return;
@@ -150,13 +204,16 @@ export default function LaunchpadsPage() {
     sdk.query(LaunchpadTokensDocument, {
         limit: 20,
         offset: 0,
-        filters: { launchpadCompleted: false, launchpadGraduationPercent: { gte: 80, lt: 100 } },
+        filters: { launchpadCompleted: false, launchpadGraduationPercent: { gte: 80, lt: 100 }, lastTransaction: { gt: Math.floor(new Date().getTime() / 1000) - 60 * 60 * 24 } },
         rankings: [{ attribute: TokenRankingAttribute.GraduationPercent, direction: RankingDirection.Desc }] as TokenRanking[],
     })
     .then(response => {
       if (!isMounted) return;
-      const results = response.filterTokens?.results?.filter((item): item is LaunchpadFilterTokenResultFragment => !!item?.token) ?? [];
-      setCompletingTokens(results.filter(token => !(token.token?.launchpad?.completed)));
+      // Adjusted filter
+      const results = response.filterTokens?.results?.filter(item => !!item) ?? [];
+      setCompletingTokens(
+        (results as LaunchpadFilterTokenResultFragment[]).filter(token => !(token.token?.launchpad?.completed))
+      );
     })
     .catch(err => {
       if (!isMounted) return;
@@ -184,8 +241,9 @@ export default function LaunchpadsPage() {
     })
     .then(response => {
       if (!isMounted) return;
-      const results = response.filterTokens?.results?.filter((item): item is LaunchpadFilterTokenResultFragment => !!item?.token) ?? [];
-      setCompletedTokens(results);
+      // Adjusted filter
+      const results = response.filterTokens?.results?.filter(item => !!item) ?? [];
+      setCompletedTokens(results as LaunchpadFilterTokenResultFragment[]);
     })
     .catch(err => {
        if (!isMounted) return;
@@ -204,91 +262,94 @@ export default function LaunchpadsPage() {
     if (!sdk || isSdkLoading || !isAuthenticated) return;
 
     let isSubscribed = true;
-    cleanupSubscriptionRef.current = null; // Reset cleanup ref
+    cleanupSubscriptionRef.current = null;
     setSubError(null);
 
     const startSubscription = async () => {
         try {
-            const cleanup = sdk.subscribe<OnLaunchpadTokenEventBatchSubscription>(print(OnLaunchpadTokenEventBatchDocument), {},
+            const cleanup = sdk.subscribe<OnLaunchpadTokenEventBatchSubscription>(
+              print(OnLaunchpadTokenEventBatchDocument), // Pass the DocumentNode stringified
+              {},
               {
                 next: (data) => {
                   if (!isSubscribed) return;
+                  // Use type from SDK subscription generic if possible, else cast
                   const batch = data?.data?.onLaunchpadTokenEventBatch as LaunchpadTokenEventFragment[];
                   if (!batch) return;
 
                   console.log(`batch updating ${batch.length} tokens`)
 
-                  // --- State Update Logic (remains the same) ---
-                  setNewTokens(prev => {
-                      let updated = [...prev];
-                      batch.forEach((event) => {
-                          if (!event) return;
+                  // --- State Update Logic ---
+                   setNewTokens(prev => {
+                        let updated = [...prev];
+                        batch.forEach((event) => {
+                            if (!event) return;
+                            updated = updated.filter(t => t.token?.id !== event.token?.id);
+                            if ((event.eventType === LaunchpadTokenEventType.Deployed || event.eventType === LaunchpadTokenEventType.Created || event.eventType === LaunchpadTokenEventType.Updated)
+                                && !(event.token?.launchpad?.migrated) && !(event.token?.launchpad?.completed)) {
+                                if (!updated.some(t => t.token?.id === event.token?.id)) {
+                                 // Cast event to the type used in state
+                                 updated.push(event as LaunchpadFilterTokenResultFragment);
+                                }
+                            }
+                        });
+                        return updated
+                            .sort((a, b) => (b.token?.createdAt ?? 0) - (a.token?.createdAt ?? 0))
+                            .slice(0, 20);
+                    });
 
-                          updated = updated.filter(t => t.token?.id !== event.token?.id);
-                          if ((event.eventType === LaunchpadTokenEventType.Deployed || event.eventType === LaunchpadTokenEventType.Created || event.eventType === LaunchpadTokenEventType.Updated)
-                              && !(event.token?.launchpad?.migrated) && !(event.token?.launchpad?.completed)) {
-                              if (!updated.some(t => t.token?.id === event.token?.id)) {
-                                updated.push(event as LaunchpadFilterTokenResultFragment);
-                              }
-                          }
-                      });
-                      return updated
-                          .sort((a, b) => (b.token?.createdAt ?? 0) - (a.token?.createdAt ?? 0))
-                          .slice(0, 20);
-                  });
+                    setCompletingTokens(prev => {
+                        let updated = [...prev];
+                        batch.forEach((event) => {
+                            if (!event) return;
+                            updated = updated.filter(t => t.token?.id !== event.token?.id);
+                            if ((event.eventType === LaunchpadTokenEventType.Updated || event.eventType === LaunchpadTokenEventType.Completed)
+                                && !(event.token?.launchpad?.migrated)) {
+                                if (!updated.some(t => t.token?.id === event.token?.id)) {
+                                 updated.push(event as LaunchpadFilterTokenResultFragment);
+                                }
+                            }
+                        });
+                        return updated
+                            .filter(t => !(t.token?.launchpad?.migrated) && !(t.token?.launchpad?.completed))
+                            .sort((a, b) => (b.token?.launchpad?.graduationPercent ?? 0) - (a.token?.launchpad?.graduationPercent ?? 0))
+                            .slice(0, 20);
+                    });
 
-                  setCompletingTokens(prev => {
-                      let updated = [...prev];
-                      batch.forEach((event) => {
-                          if (!event) return;
-                          updated = updated.filter(t => t.token?.id !== event.token?.id);
-                          if ((event.eventType === LaunchpadTokenEventType.Updated || event.eventType === LaunchpadTokenEventType.Completed)
-                              && !(event.token?.launchpad?.migrated)) {
-                              if (!updated.some(t => t.token?.id === event.token?.id)) {
-                                updated.push(event as LaunchpadFilterTokenResultFragment);
-                              }
-                          }
-                      });
-                      return updated
-                          .filter(t => !(t.token?.launchpad?.migrated) && !(t.token?.launchpad?.completed))
-                          .sort((a, b) => (b.token?.launchpad?.graduationPercent ?? 0) - (a.token?.launchpad?.graduationPercent ?? 0))
-                          .slice(0, 20);
-                  });
-
-                  setCompletedTokens(prev => {
-                      let updated = [...prev];
-                      batch.forEach((event) => {
-                          if (!event) return;
-                          updated = updated.filter(t => t.token?.id !== event.token?.id);
-                          if (event.token?.launchpad?.migrated) {
-                               if (!updated.some(t => t.token?.id === event.token?.id)) {
-                                  updated.push(event as LaunchpadFilterTokenResultFragment);
-                               }
-                          }
-                      });
-                      return updated
-                          .sort((a, b) => (b.token?.launchpad?.migratedAt ?? 0) - (a.token?.launchpad?.migratedAt ?? 0))
-                          .slice(0, 20);
-                  });
+                    setCompletedTokens(prev => {
+                        let updated = [...prev];
+                        batch.forEach((event) => {
+                            if (!event) return;
+                            updated = updated.filter(t => t.token?.id !== event.token?.id);
+                            if (event.token?.launchpad?.migrated) {
+                                 if (!updated.some(t => t.token?.id === event.token?.id)) {
+                                   updated.push(event as LaunchpadFilterTokenResultFragment);
+                                 }
+                            }
+                        });
+                        return updated
+                            .sort((a, b) => (b.token?.launchpad?.migratedAt ?? 0) - (a.token?.launchpad?.migratedAt ?? 0))
+                            .slice(0, 20);
+                    });
                 },
                 error: (err: Error) => {
                   if (!isSubscribed) return;
                   console.error("Subscription error:", err);
                   setSubError(err instanceof Error ? err : new Error('Subscription failed'));
                 },
-                complete: () => { // Added complete method
+                complete: () => {
                     if (!isSubscribed) return;
                     console.log('Subscription completed');
-                    // Optionally reset error or perform other cleanup on complete
-                    // setSubError(null);
                 }
               }
             );
-             // Store the cleanup function once the promise resolves
+             // Store the cleanup function (assuming sdk.subscribe returns it directly now)
              if (cleanup && typeof cleanup === 'function') {
                  cleanupSubscriptionRef.current = cleanup;
+             } else {
+                 console.warn("Subscription did not return a cleanup function.");
              }
-        } catch (err) { // Catch errors during the subscription setup itself
+        } catch (err) {
             if (!isSubscribed) return;
              console.error("Failed to start subscription:", err);
              setSubError(err instanceof Error ? err : new Error('Failed to start subscription'));
@@ -297,7 +358,7 @@ export default function LaunchpadsPage() {
 
     startSubscription();
 
-    // Cleanup function: Call the stored cleanup function
+    // Cleanup function
     return () => {
       isSubscribed = false;
       if (cleanupSubscriptionRef.current) {

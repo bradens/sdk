@@ -5,7 +5,7 @@ fragment LaunchpadFilterTokenResult on TokenFilterResult {
   marketCap
   priceUSD
   sellCount1
-  uniqueTransactions1
+  transactions1: txnCount1
   volume1
   exchanges {
     id

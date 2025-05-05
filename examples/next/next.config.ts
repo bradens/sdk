@@ -8,6 +8,10 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'token-media.defined.fi',
       },
+      {
+        protocol: 'https',
+        hostname: 'crypto-token-logos-production.s3.us-west-2.amazonaws.com',
+      },
     ],
   },
 };
