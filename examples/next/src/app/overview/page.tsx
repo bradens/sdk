@@ -5,6 +5,7 @@ import { RankingDirection, TokenRankingAttribute } from '@codex-data/sdk/dist/sd
 
 // Interface for the data structure passed to the client/treemap component
 interface TreemapTokenData {
+  address?: string | null;
   name: string;
   symbol: string;
   marketCap: number;
@@ -21,6 +22,7 @@ type SdkResultItem = {
   priceUSD?: string | number | null;
   volume24?: string | number | null;
   token?: {
+    address?: string | null;
     name?: string | null;
     symbol?: string | null;
     networkId?: number | null;
@@ -74,6 +76,7 @@ async function getTreemapData(): Promise<TreemapTokenData[]> {
         // Construct the object matching TreemapTokenData
         const tokenData: TreemapTokenData = {
           name: item.token.name || 'N/A',
+          address: item.token.address || '',
           symbol: item.token.symbol || 'N/A',
           marketCap: marketCapNum,
           change24: safeToNumber(item.change24),

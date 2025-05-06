@@ -4,6 +4,7 @@ import React from 'react';
 import { Treemap, ResponsiveContainer, Tooltip, Rectangle } from 'recharts';
 import type { TooltipProps } from 'recharts';
 import type { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent';
+import { useRouter } from 'next/navigation';
 
 // Define the expected data structure for each token
 interface TokenData {
@@ -14,6 +15,7 @@ interface TokenData {
   networkId?: number;
   priceUSD?: number;
   volume24?: number;
+  address?: string;
 }
 
 interface OverviewTreemapProps {
@@ -29,6 +31,9 @@ interface CustomCellProps {
   height: number;
   fill: string; // Default fill passed by Treemap
   name?: string;
+  symbol?: string;
+  address?: string;
+  networkId?: number;
   change24?: number;
 }
 
@@ -63,16 +68,26 @@ function calculateColor(change: number | null | undefined): string {
 
 // Custom Cell Component for Treemap
 const CustomTreemapCell = (props: CustomCellProps) => {
-  const { name, change24, depth, x, y, width, height } = props; // Removed unused default `fill`
+  const { address, name, networkId, change24, depth, x, y, width, height } = props;
 
   // Calculate fill color based on change24
   const cellFill = calculateColor(change24);
+  const router = useRouter();
+
+  const handleCellClick = () => {
+    console.log('handleCellClick', networkId, address);
+    if (networkId && address) {
+      router.push(`/networks/${networkId}/tokens/${address}`);
+    } else {
+      console.warn('Missing networkId or address (for tokenId) for navigation. Token name:', name);
+    }
+  };
 
   return (
-    <g>
+    <g onClick={handleCellClick} style={{ cursor: 'pointer' }}>
       <Rectangle x={x} y={y} width={width} height={height} fill={cellFill} stroke="#fff" />
       {depth === 1 && width > 60 && height > 25 ? (
-        <text x={x + width / 2} y={y + height / 2 + 7} textAnchor="middle" fill="#fff" fontSize={14}>
+        <text x={x + width / 2} y={y + height / 2 + 7} textAnchor="middle" fill="#fff" fontSize={14} pointerEvents="none">
           {name}
         </text>
       ) : null}
@@ -103,6 +118,9 @@ export const OverviewTreemap: React.FC<OverviewTreemapProps> = ({ data }) => {
   const treemapChartData = data.map(token => ({
     ...token,
     name: token.symbol || token.name || 'Unknown',
+    symbol: token.symbol,
+    address: token.address,
+    networkId: token.networkId,
     size: token.marketCap != null ? Math.max(token.marketCap, 0) : 0,
   }));
 
