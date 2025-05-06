@@ -17,6 +17,9 @@ export const Navbar = () => {
         <Link href="/launchpads" className="rounded-md px-2 py-1 text-sm font-medium hover:text-primary transition-colors">
           Launchpads
         </Link>
+        <Link href="/overview" className="rounded-md px-2 py-1 text-sm font-medium hover:text-primary transition-colors">
+          Overview
+        </Link>
       </div>
     </nav>
   );
