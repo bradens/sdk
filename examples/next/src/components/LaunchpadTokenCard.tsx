@@ -1,5 +1,4 @@
 import React from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { Clock, Repeat, Users } from 'lucide-react';
 import type { LaunchpadFilterTokenResultFragment } from '@/gql/graphql';
@@ -39,13 +38,13 @@ export const LaunchpadTokenCard: React.FC<TokenCardProps> = ({ token }) => {
             <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 flex-shrink min-w-0">
                     {imageUrl &&
-                        <Image
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
                             key={imageUrl}
                             src={imageUrl}
                             alt={`${name} logo`}
                             width={36}
                             height={36}
-                            placeholder="empty"
                             className="rounded-md flex-shrink-0 object-cover bg-muted"
                         />
                     }
