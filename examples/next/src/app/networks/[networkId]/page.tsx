@@ -150,7 +150,8 @@ export default async function NetworkPage({ params }: NetworkPageProps) {
                       <tr key={tokenAddress} className="border-b border-dashed border-border/30 hover:bg-muted/30">
                         <td className="p-2 flex items-center justify-center">
                           {token?.info?.imageThumbUrl ? (
-                            <Image
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
                               src={token.info.imageThumbUrl}
                               alt={`${token.name || 'Token'} icon`}
                               width={24}
