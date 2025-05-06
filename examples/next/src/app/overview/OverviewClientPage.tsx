@@ -21,7 +21,7 @@ interface OverviewClientPageProps {
 }
 
 export default function OverviewClientPage({ initialData }: OverviewClientPageProps) {
-  const [hideStables, setHideStables] = useState(false);
+  const [hideStables, setHideStables] = useState(true);
   const [displayedData, setDisplayedData] = useState<TokenData[]>([]);
 
   // Effect to filter data when initialData or hideStables changes

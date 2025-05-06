@@ -35,6 +35,7 @@ interface CustomCellProps {
   address?: string;
   networkId?: number;
   change24?: number;
+  router: ReturnType<typeof useRouter>;
 }
 
 // Function to calculate color based on change percentage
@@ -68,11 +69,10 @@ function calculateColor(change: number | null | undefined): string {
 
 // Custom Cell Component for Treemap
 const CustomTreemapCell = (props: CustomCellProps) => {
-  const { address, name, networkId, change24, depth, x, y, width, height } = props;
+  const { address, name, networkId, change24, depth, x, y, width, height, router } = props;
 
   // Calculate fill color based on change24
   const cellFill = calculateColor(change24);
-  const router = useRouter();
 
   const handleCellClick = () => {
     console.log('handleCellClick', networkId, address);
@@ -114,6 +114,7 @@ const CustomTooltip = ({ active, payload }: TooltipProps<ValueType, NameType>) =
 };
 
 export const OverviewTreemap: React.FC<OverviewTreemapProps> = ({ data }) => {
+  const router = useRouter();
   // Prepare data directly from the passed (already filtered) props
   const treemapChartData = data.map(token => ({
     ...token,
@@ -122,6 +123,7 @@ export const OverviewTreemap: React.FC<OverviewTreemapProps> = ({ data }) => {
     address: token.address,
     networkId: token.networkId,
     size: token.marketCap != null ? Math.max(token.marketCap, 0) : 0,
+    router,
   }));
 
   // Render container and chart directly
