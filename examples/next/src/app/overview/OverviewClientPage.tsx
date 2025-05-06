@@ -42,7 +42,7 @@ export default function OverviewClientPage({ initialData }: OverviewClientPagePr
 
   return (
     // Use flexbox for the main layout
-    <main className="flex flex-col w-full h-screen p-4">
+    <main className="flex flex-col w-full h-[calc(100vh-45px)] p-4">
       {/* Header Row: Title and Checkbox */}
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold">Token Overview Treemap</h1>
