@@ -1,7 +1,6 @@
 import { Codex } from "@codex-data/sdk";
 import Link from "next/link";
 import React from "react";
-import Image from "next/image";
 
 import { TokensPageDocument, TokensPageQuery, TokensPageQueryVariables, Network, TokenPageItemFragment, RankingDirection, TokenRankingAttribute } from "@/gql/graphql"; // Import directly from graphql.ts
 
