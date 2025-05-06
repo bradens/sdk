@@ -8,6 +8,7 @@ import { LaunchpadColumn } from '@/components/LaunchpadColumn';
 
 export default function LaunchpadsPage() {
   const [openPopover, setOpenPopover] = useState<'new' | 'completing' | 'completed' | null>(null);
+  const solanaNetworkId = 1399811149;
 
   const {
     newTokens,
@@ -24,7 +25,7 @@ export default function LaunchpadsPage() {
     completingLoading,
     completedLoading,
     errors,
-  } = useLaunchpadData();
+  } = useLaunchpadData({ networkId: solanaNetworkId });
 
   return (
     <div className="p-1 md:p-1 lg:p-1 h-screen flex flex-col">

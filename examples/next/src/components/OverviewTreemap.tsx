@@ -22,20 +22,28 @@ interface OverviewTreemapProps {
   data: TokenData[];
 }
 
-// Define props for the custom cell again, trying to be specific
-interface CustomCellProps {
+// Props that recharts provides to the Treemap content renderer
+// (based on common Treemap usage and typical recharts patterns)
+interface RechartsCellPayload extends TokenData {
+    size: number; // Corresponds to dataKey
+}
+
+interface RechartsProvidedCellProps {
   depth: number;
   x: number;
   y: number;
   width: number;
   height: number;
-  fill: string; // Default fill passed by Treemap
-  name?: string;
-  symbol?: string;
-  address?: string;
-  networkId?: number;
-  change24?: number;
-  router: ReturnType<typeof useRouter>;
+  index: number;
+  payload: RechartsCellPayload; // The individual data item for this cell
+  name: string; // Corresponds to nameKey
+  value: number; // Corresponds to dataKey value
+  fill: string; // Default fill from Treemap (we override this)
+}
+
+// Props for our custom cell, including what recharts provides + our custom navigateTo
+interface CustomCellProps extends RechartsProvidedCellProps {
+  navigateTo: (path: string) => void;
 }
 
 // Function to calculate color based on change percentage
@@ -68,18 +76,17 @@ function calculateColor(change: number | null | undefined): string {
 }
 
 // Custom Cell Component for Treemap
-const CustomTreemapCell = (props: CustomCellProps) => {
-  const { address, name, networkId, change24, depth, x, y, width, height, router } = props;
+const CustomTreemapCell: React.FC<CustomCellProps> = (props) => {
+  const { depth, x, y, width, height, navigateTo, payload, name: cellName } = props;
+  const { change24, address, networkId } = payload;
 
-  // Calculate fill color based on change24
-  const cellFill = calculateColor(change24);
+  const cellFill = calculateColor(change24); // Use change24 from payload
 
   const handleCellClick = () => {
-    console.log('handleCellClick', networkId, address);
     if (networkId && address) {
-      router.push(`/networks/${networkId}/tokens/${address}`);
+      navigateTo(`/networks/${networkId}/tokens/${address}`);
     } else {
-      console.warn('Missing networkId or address (for tokenId) for navigation. Token name:', name);
+      console.warn('Missing networkId or address for navigation. Token name:', cellName, 'Payload:', payload);
     }
   };
 
@@ -88,7 +95,7 @@ const CustomTreemapCell = (props: CustomCellProps) => {
       <Rectangle x={x} y={y} width={width} height={height} fill={cellFill} stroke="#fff" />
       {depth === 1 && width > 60 && height > 25 ? (
         <text x={x + width / 2} y={y + height / 2 + 7} textAnchor="middle" fill="#fff" fontSize={14} pointerEvents="none">
-          {name}
+          {cellName} {/* Use cellName (from props.name) for display */}
         </text>
       ) : null}
     </g>
@@ -115,30 +122,24 @@ const CustomTooltip = ({ active, payload }: TooltipProps<ValueType, NameType>) =
 
 export const OverviewTreemap: React.FC<OverviewTreemapProps> = ({ data }) => {
   const router = useRouter();
-  // Prepare data directly from the passed (already filtered) props
+
   const treemapChartData = data.map(token => ({
     ...token,
     name: token.symbol || token.name || 'Unknown',
-    symbol: token.symbol,
-    address: token.address,
-    networkId: token.networkId,
     size: token.marketCap != null ? Math.max(token.marketCap, 0) : 0,
-    router,
+    router: router,
   }));
 
-  // Render container and chart directly
-  // No need for conditional rendering based on filtering state here
   return (
     <ResponsiveContainer width="100%" height="100%">
       <Treemap
         data={treemapChartData}
         dataKey="size"
-        stroke="#fff"
-        fill="#8884d8" // Default fill (will be overridden by content renderer)
-        isAnimationActive={false}
         nameKey="name"
+        stroke="#fff"
+        isAnimationActive={false}
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        content={CustomTreemapCell as any}
+        content={CustomTreemapCell as any }
       >
         <Tooltip content={<CustomTooltip />} />
       </Treemap>

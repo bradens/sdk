@@ -19,6 +19,9 @@ import { print } from 'graphql';
 import { useDebounce } from "@/hooks/useDebounce";
 import type { ColumnFilters } from '@/types/launchpad';
 
+interface UseLaunchpadDataProps {
+  networkId?: number;
+}
 
 // Define types used within the hook (can be moved to types file if needed elsewhere)
 type LaunchpadEvent = LaunchpadTokenEventFragment;
@@ -33,7 +36,7 @@ const initialFilterState: ColumnFilters = {
     transactions1h: { min: '', max: '' },
 };
 
-export function useLaunchpadData() {
+export function useLaunchpadData({ networkId }: UseLaunchpadDataProps = {}) {
     const [newTokens, setNewTokens] = useState<LaunchpadFilterTokenResultFragment[]>([]);
     const [completingTokens, setCompletingTokens] = useState<LaunchpadFilterTokenResultFragment[]>([]);
     const [completedTokens, setCompletedTokens] = useState<LaunchpadFilterTokenResultFragment[]>([]);
@@ -58,7 +61,9 @@ export function useLaunchpadData() {
     const cleanupSubscriptionRef = useRef<CleanupFunction | null>(null);
 
     const buildGqlFilters = useCallback((baseFilters: Partial<TokenFilters>, columnFilters: ColumnFilters): Partial<TokenFilters> => {
-      const gqlFilters = { ...baseFilters };
+      const gqlFilters: Partial<TokenFilters> = { ...baseFilters };
+      // networkId filtering will be applied client-side for initial fetch,
+      // as TokenFilters doesn't directly support it for the main entity.
 
       const parseBounds = (bounds: { min: string; max: string }) => {
           const min = parseFloat(bounds.min);
@@ -155,8 +160,10 @@ export function useLaunchpadData() {
         setNewLoading(true);
         setNewError(null);
 
+        const baseGqlFilters: Partial<TokenFilters> = { launchpadMigrated: false, launchpadCompleted: false };
+        // networkId will be applied client-side after fetch
         const gqlFilters = buildGqlFilters(
-            { launchpadMigrated: false, launchpadCompleted: false },
+            baseGqlFilters,
             debouncedNewFilters
         );
 
@@ -168,8 +175,11 @@ export function useLaunchpadData() {
         })
         .then(response => {
            if (!isMounted) return;
-           const results = response.filterTokens?.results?.filter(item => !!item) ?? [];
-           setNewTokens(results as LaunchpadFilterTokenResultFragment[]);
+           let fetchedTokens = (response.filterTokens?.results?.filter(item => !!item) ?? []) as LaunchpadFilterTokenResultFragment[];
+           if (networkId) {
+            fetchedTokens = fetchedTokens.filter(r => r.token?.networkId === networkId);
+           }
+           setNewTokens(fetchedTokens);
         })
         .catch(err => {
            if (!isMounted) return;
@@ -181,7 +191,7 @@ export function useLaunchpadData() {
            setNewLoading(false);
         });
          return () => { isMounted = false; };
-      }, [sdk, isSdkLoading, isAuthenticated, debouncedNewFilters, buildGqlFilters]);
+      }, [sdk, isSdkLoading, isAuthenticated, debouncedNewFilters, buildGqlFilters, networkId]);
 
     // Fetch Initial Data for Completing Tokens
     useEffect(() => {
@@ -190,8 +200,10 @@ export function useLaunchpadData() {
         setCompletingLoading(true);
         setCompletingError(null);
 
+        const baseGqlFilters: Partial<TokenFilters> = { launchpadMigrated: false, launchpadCompleted: false };
+        // networkId will be applied client-side after fetch
         const gqlFilters = buildGqlFilters(
-             { launchpadMigrated: false, launchpadCompleted: false },
+             baseGqlFilters,
              debouncedCompletingFilters
         );
 
@@ -203,10 +215,12 @@ export function useLaunchpadData() {
         })
         .then(response => {
           if (!isMounted) return;
-          const results = response.filterTokens?.results?.filter(item => !!item) ?? [];
+          let fetchedTokens = (response.filterTokens?.results?.filter(item => !!item) ?? []) as LaunchpadFilterTokenResultFragment[];
+          if (networkId) {
+            fetchedTokens = fetchedTokens.filter(r => r.token?.networkId === networkId);
+          }
           setCompletingTokens(
-            (results as LaunchpadFilterTokenResultFragment[])
-              .filter(token => !(token.token?.launchpad?.completed))
+            fetchedTokens.filter(token => !(token.token?.launchpad?.completed))
           );
         })
         .catch(err => {
@@ -219,7 +233,7 @@ export function useLaunchpadData() {
           setCompletingLoading(false);
         });
          return () => { isMounted = false; };
-      }, [sdk, isSdkLoading, isAuthenticated, debouncedCompletingFilters, buildGqlFilters]);
+      }, [sdk, isSdkLoading, isAuthenticated, debouncedCompletingFilters, buildGqlFilters, networkId]);
 
     // Fetch Initial Data for Completed Tokens
     useEffect(() => {
@@ -228,8 +242,10 @@ export function useLaunchpadData() {
         setCompletedLoading(true);
         setCompletedError(null);
 
+         const baseGqlFilters: Partial<TokenFilters> = { launchpadMigrated: true };
+         // networkId will be applied client-side after fetch
          const gqlFilters = buildGqlFilters(
-             { launchpadMigrated: true },
+             baseGqlFilters,
              debouncedCompletedFilters
         );
 
@@ -241,8 +257,11 @@ export function useLaunchpadData() {
         })
         .then(response => {
           if (!isMounted) return;
-          const results = response.filterTokens?.results?.filter(item => !!item) ?? [];
-          setCompletedTokens(results as LaunchpadFilterTokenResultFragment[]);
+          let fetchedTokens = (response.filterTokens?.results?.filter(item => !!item) ?? []) as LaunchpadFilterTokenResultFragment[];
+          if (networkId) {
+            fetchedTokens = fetchedTokens.filter(r => r.token?.networkId === networkId);
+          }
+          setCompletedTokens(fetchedTokens);
         })
         .catch(err => {
            if (!isMounted) return;
@@ -254,7 +273,7 @@ export function useLaunchpadData() {
            setCompletedLoading(false);
         });
         return () => { isMounted = false; };
-      }, [sdk, isSdkLoading, isAuthenticated, debouncedCompletedFilters, buildGqlFilters]);
+      }, [sdk, isSdkLoading, isAuthenticated, debouncedCompletedFilters, buildGqlFilters, networkId]);
 
       // Handle Subscription Updates
       useEffect(() => {
@@ -266,9 +285,11 @@ export function useLaunchpadData() {
 
         const startSubscription = async () => {
             try {
+                // Based on OnLaunchpadTokenEventBatchSubscriptionVariables, input itself is optional.
+                const subscriptionVars = {};
                 const cleanup = sdk.subscribe<OnLaunchpadTokenEventBatchSubscription>(
                   print(OnLaunchpadTokenEventBatchDocument),
-                  {},
+                  subscriptionVars,
                   {
                     next: (data) => {
                       if (!isSubscribed) return;
@@ -281,7 +302,7 @@ export function useLaunchpadData() {
                       setNewTokens(prev => {
                             let updated = [...prev];
                             batch.forEach((event) => {
-                                if (!event || !checkClientFilters(event, newFilters)) return;
+                                if (!event || (networkId && event.networkId !== networkId) || !checkClientFilters(event, newFilters)) return;
                                 updated = updated.filter(t => t.token?.id !== event.token?.id);
                                 if ((event.eventType === LaunchpadTokenEventType.Deployed || event.eventType === LaunchpadTokenEventType.Created || event.eventType === LaunchpadTokenEventType.Updated)
                                     && !(event.token?.launchpad?.migrated) && !(event.token?.launchpad?.completed)) {
@@ -299,7 +320,7 @@ export function useLaunchpadData() {
                         setCompletingTokens(prev => {
                             let updated = [...prev];
                             batch.forEach((event) => {
-                                if (!event || !checkClientFilters(event, completingFilters)) return;
+                                if (!event || (networkId && event.networkId !== networkId) || !checkClientFilters(event, completingFilters)) return;
                                 updated = updated.filter(t => t.token?.id !== event.token?.id);
                                 if ((event.eventType === LaunchpadTokenEventType.Updated || event.eventType === LaunchpadTokenEventType.Completed)
                                     && !(event.token?.launchpad?.migrated)) {
@@ -318,7 +339,7 @@ export function useLaunchpadData() {
                         setCompletedTokens(prev => {
                             let updated = [...prev];
                             batch.forEach((event) => {
-                                if (!event || !checkClientFilters(event, completedFilters)) return;
+                                if (!event || (networkId && event.networkId !== networkId) || !checkClientFilters(event, completedFilters)) return;
                                 updated = updated.filter(t => t.token?.id !== event.token?.id);
                                 if (event.token?.launchpad?.migrated) {
                                      if (!updated.some(t => t.token?.id === event.token?.id)) {
@@ -364,7 +385,7 @@ export function useLaunchpadData() {
                 cleanupSubscriptionRef.current = null;
             }
         };
-    }, [sdk, isSdkLoading, isAuthenticated, checkClientFilters, newFilters, completingFilters, completedFilters, buildGqlFilters]); // Added buildGqlFilters dependency
+    }, [sdk, isSdkLoading, isAuthenticated, checkClientFilters, newFilters, completingFilters, completedFilters, buildGqlFilters, networkId]); // Added buildGqlFilters dependency and networkId
 
     // Combine errors for easy display
     const combinedErrors = [newError, completingError, completedError, subError].filter(Boolean);
