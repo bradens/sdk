@@ -36,14 +36,13 @@ interface RechartsProvidedCellProps {
   height: number;
   index: number;
   payload: RechartsCellPayload; // The individual data item for this cell
+  change24: number;
+  address: string;
+  networkId: number;
   name: string; // Corresponds to nameKey
   value: number; // Corresponds to dataKey value
   fill: string; // Default fill from Treemap (we override this)
-}
-
-// Props for our custom cell, including what recharts provides + our custom navigateTo
-interface CustomCellProps extends RechartsProvidedCellProps {
-  navigateTo: (path: string) => void;
+  router: ReturnType<typeof useRouter>;
 }
 
 // Function to calculate color based on change percentage
@@ -76,15 +75,14 @@ function calculateColor(change: number | null | undefined): string {
 }
 
 // Custom Cell Component for Treemap
-const CustomTreemapCell: React.FC<CustomCellProps> = (props) => {
-  const { depth, x, y, width, height, navigateTo, payload, name: cellName } = props;
-  const { change24, address, networkId } = payload;
+const CustomTreemapCell: React.FC<RechartsProvidedCellProps> = (props) => {
+  const { depth, x, y, width, height, router, change24, address, networkId, payload, name: cellName } = props;
 
   const cellFill = calculateColor(change24); // Use change24 from payload
 
   const handleCellClick = () => {
     if (networkId && address) {
-      navigateTo(`/networks/${networkId}/tokens/${address}`);
+      router.push(`/networks/${networkId}/tokens/${address}`);
     } else {
       console.warn('Missing networkId or address for navigation. Token name:', cellName, 'Payload:', payload);
     }

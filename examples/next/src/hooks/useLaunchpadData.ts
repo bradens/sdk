@@ -296,8 +296,6 @@ export function useLaunchpadData({ networkId }: UseLaunchpadDataProps = {}) {
                       const batch = data?.data?.onLaunchpadTokenEventBatch as LaunchpadTokenEventFragment[];
                       if (!batch) return;
 
-                      console.log(`batch updating ${batch.length} tokens`);
-
                       // Update New Tokens
                       setNewTokens(prev => {
                             let updated = [...prev];
