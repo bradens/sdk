@@ -25,7 +25,7 @@ export const Navbar = () => {
           Overview
         </Link>
         {/* Privy Login/Logout Button */}
-        {ready && (
+        {/* {ready && (
           authenticated ? (
             <button
               onClick={logout}
@@ -41,7 +41,7 @@ export const Navbar = () => {
               Login
             </button>
           )
-        )}
+        )} */}
       </div>
     </nav>
   );
