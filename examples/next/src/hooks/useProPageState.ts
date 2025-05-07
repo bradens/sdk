@@ -209,6 +209,38 @@ export function useProPageState() {
       }
   }, [selectedPanels, layouts]); // Include layouts in dependencies to compare against previous state
 
+  const togglePanelType = useCallback((panelId: string) => {
+    setSelectedPanels(prevPanels =>
+      prevPanels.map(panel =>
+        panel.id === panelId
+          ? { ...panel, type: panel.type === 'chart' ? 'transactions' : 'chart' }
+          : panel
+      )
+    );
+
+    setLayouts(prevLayouts => {
+      const newLayouts = { ...prevLayouts };
+      let layoutsModified = false;
+      for (const breakpoint in newLayouts) {
+        newLayouts[breakpoint] = newLayouts[breakpoint]?.map(layoutItem => {
+          if (layoutItem.i === panelId) {
+            layoutsModified = true;
+            // const currentPanel = selectedPanels.find(p => p.id === panelId);
+            // Adjust dimensions based on the new type - REMOVED
+            // The type in `currentPanel` is the *old* type before toggle, so we check the opposite
+            return {
+              ...layoutItem,
+              // w: currentPanel?.type === 'transactions' ? 6 : 8, // REMOVED
+              // h: currentPanel?.type === 'transactions' ? 4 : 5, // REMOVED
+            };
+          }
+          return layoutItem;
+        });
+      }
+      return layoutsModified ? newLayouts : prevLayouts;
+    });
+  }, [selectedPanels]); // selectedPanels is a dependency because we use it to find the panel for dimension toggling
+
   return {
     selectedPanels,
     layouts,
@@ -216,5 +248,6 @@ export function useProPageState() {
     removePanel,
     handlePanelTokenChange,
     onLayoutChange,
+    togglePanelType, // Expose the new function
   };
 }

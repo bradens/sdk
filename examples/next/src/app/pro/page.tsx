@@ -28,6 +28,7 @@ export default function ProPage() {
     removePanel,
     handlePanelTokenChange,
     onLayoutChange,
+    togglePanelType,
   } = useProPageState();
 
   // State related to UI interaction (search dialog, popovers)
@@ -66,10 +67,10 @@ export default function ProPage() {
   }, [handleAddClick]); // Add handleAddClick to dependency array if ESLint requires
 
   return (
-    <div className="py-4 h-screen flex flex-col">
+    <div className="py-2 h-screen flex flex-col">
       {/* Header Section */}
-      <div className="flex justify-between items-center mb-2 px-4">
-        <Button onClick={handleAddClick} size="sm">
+      <div className="flex justify-between items-center px-2">
+        <Button onClick={handleAddClick} size="sm" variant="outline" className="cursor-pointer hover:!border-primary border-dashed !border-primary/50">
         <Plus />
            {selectedPanels.length > 0 ? "Add Another Panel" : "Add Panel"}
         </Button>
@@ -78,20 +79,23 @@ export default function ProPage() {
       {/* Grid Layout Area - Always render the container and RGL */}
       <div className="flex-grow overflow-auto">
           <ResponsiveGridLayout
-              className="layout"
+              className="layout px-0"
               layouts={layouts}
               breakpoints={{lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0}}
               cols={{lg: 12, md: 10, sm: 6, xs: 4, xxs: 2}}
               rowHeight={100}
               onLayoutChange={onLayoutChange}
+              containerPadding={[0,10]}
+              resizeHandles={['nw', 'ne', 'se', 'sw']}
               draggableHandle=".drag-handle"
+              margin={[0,0]}
               isDraggable
               isResizable
               preventCollision={true}
           >
               {selectedPanels.map((panel) => (
-                <div key={panel.id} style={{ transitionProperty: 'all' }} className="transition-all duration-500 border-4 border-transparent hover:ring-2 hover:ring-primary/50 bg-card overflow-hidden shadow-md flex flex-col group">
-                  <div className="drag-handle bg-muted p-2 cursor-move flex justify-between items-center">
+                <div key={panel.id} style={{ transitionProperty: 'all' }} className="transition-all duration-500 hover:border-primary/50 bg-card overflow-hidden flex flex-col group relative  border-dashed border-1 border-bg/50">
+                  <div className="drag-handle bg-muted cursor-move flex justify-between items-center absolute top-0 left-0 right-0 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-1">
                       <Popover
                           open={openPopoverId === panel.id}
                           onOpenChange={(isOpen) => {
@@ -107,7 +111,7 @@ export default function ProPage() {
                                       e.stopPropagation();
                                   }}
                               >
-                                  {panel.symbol ?? panel.tokenId.substring(0, 6)}... - {panel.type === 'chart' ? 'Chart' : 'Txns'}
+                                  {panel.symbol ?? panel.tokenId.substring(0, 6)}...
                               </span>
                           </PopoverTrigger>
                           <PopoverContent className="w-80 p-0">
@@ -119,6 +123,33 @@ export default function ProPage() {
                               />
                           </PopoverContent>
                       </Popover>
+                      {/* Buttons for toggling panel type */}
+                      <div className="flex items-center space-x-1 ml-auto mr-1">
+                          <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (panel.type !== 'chart') togglePanelType(panel.id);
+                              }}
+                              onMouseDown={(e) => e.stopPropagation()}
+                              className={`cursor-pointer h-5 px-1 text-xs ${panel.type === 'chart' ? 'font-semibold' : ''}`}
+                          >
+                              Chart
+                          </Button>
+                          <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (panel.type !== 'transactions') togglePanelType(panel.id);
+                              }}
+                              onMouseDown={(e) => e.stopPropagation()}
+                              className={`cursor-pointer h-5 px-1 text-xs ${panel.type === 'transactions' ? 'font-semibold' : ''}`}
+                          >
+                              Txns
+                          </Button>
+                      </div>
                       <button
                           onClick={(e) => {
                               e.stopPropagation();
@@ -127,13 +158,13 @@ export default function ProPage() {
                           onMouseDown={(e) => {
                               e.stopPropagation(); // Prevent drag start
                           }}
-                          className="p-0.5 rounded-full text-muted-foreground hover:text-primary hover:bg-secondary opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="cursor-pointer p-0.5 rounded-full text-muted-foreground hover:text-primary hover:bg-secondary opacity-0 group-hover:opacity-100 transition-opacity"
                           aria-label={`Remove ${panel.type}`}
                       >
                           <X size={16} />
                       </button>
                   </div>
-                  <div className="flex-grow h-full relative pb-2 bg-muted">
+                  <div className="flex-grow h-full relative pb-2 bg-muted group-hover:mt-7 transition-all duration-300">
                     {panel.type === 'chart' ? (
                       <TokenChart
                           networkId={panel.networkId}

@@ -13,11 +13,13 @@ import {
     ResolveCallback,
     HistoryCallback,
     SubscribeBarsCallback,
+    SearchSymbolResultItem,
 } from './charting_library/charting_library';
 import { useCodexSdk } from '@/hooks/useCodexSdk';
 import { Codex, CleanupFunction } from '@codex-data/sdk';
-import { OnTokenBarsUpdatedSubscription } from '@codex-data/sdk/dist/sdk/generated/graphql';
+import { OnTokenBarsUpdatedSubscription, TokenWithMetadata } from '@codex-data/sdk/dist/sdk/generated/graphql';
 import { ExecutionResult } from 'graphql';
+import { RankingDirection, TokenRankingAttribute } from '../gql/graphql';
 
 const convertResolutionToBarPayload = (resolution: ResolutionString) => {
   switch (resolution) {
@@ -123,7 +125,57 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
         },
         searchSymbols: async (userInput: string, exchange: string, symbolType: string, onResultReadyCallback: SearchSymbolsCallback) => {
             console.log('[TradingViewChart Datafeed] searchSymbols called', {userInput, exchange, symbolType});
-            onResultReadyCallback([]);
+            const currentSdk = sdkRef.current;
+            if (!currentSdk) {
+                console.warn('[TradingViewChart Datafeed searchSymbols] SDK not available.');
+                onResultReadyCallback([]);
+                return;
+            }
+
+            if (!userInput) {
+                onResultReadyCallback([]);
+                return;
+            }
+
+            try {
+                console.log(`[TradingViewChart Datafeed searchSymbols] Searching for: "${userInput}"`);
+                const searchResults = await currentSdk.queries.filterTokens({
+                  phrase: userInput, limit: 30,
+                  rankings: [{ attribute: TokenRankingAttribute.Volume24, direction: RankingDirection.Desc }],
+                 });
+                const results = searchResults.filterTokens?.results;
+
+                if (results && results.length > 0) {
+                    // Map over results, each item has a 'token' property
+                    const tvSymbols = results.map(result => {
+                        const token = result?.token as TokenWithMetadata; // Assert type and access token
+                        if (!token || !token.address || typeof token.networkId !== 'number') {
+                            return null; // Skip if essential data is missing
+                        }
+                        // Construct display names. Network name might not be directly on TokenWithMetadata.
+                        // resolveSymbol will fetch full details including network name later.
+                        const networkIdentifier = token.networkId; // Use networkId as a fallback
+
+                        return {
+                            symbol: `${token.address}:${token.networkId}`, // This is the ticker for resolveSymbol
+                            full_name: `${token.symbol || token.name || token.address} / Network ${networkIdentifier}`,
+                            description: `${token.name || token.symbol || token.id} on Network ${networkIdentifier}`,
+                            exchange: 'Codex',
+                            ticker: `${token.address}:${token.networkId}`, // Unique ID for TradingView
+                            type: 'crypto',
+                        };
+                    }).filter(Boolean) as SearchSymbolResultItem[]; // Filter out nulls and assert type
+
+                    console.log(`[TradingViewChart Datafeed searchSymbols] Found ${tvSymbols.length} symbols.`);
+                    onResultReadyCallback(tvSymbols);
+                } else {
+                    console.log(`[TradingViewChart Datafeed searchSymbols] No symbols found for "${userInput}".`);
+                    onResultReadyCallback([]);
+                }
+            } catch (error) {
+                console.error('[TradingViewChart Datafeed searchSymbols] Error searching symbols:', error);
+                onResultReadyCallback([]);
+            }
         },
         resolveSymbol: async (symbolName: string, onSymbolResolvedCallback: ResolveCallback) => {
             console.log('[TradingViewChart Datafeed] resolveSymbol called for:', symbolName);

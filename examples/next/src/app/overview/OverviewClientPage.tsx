@@ -53,21 +53,21 @@ export default function OverviewClientPage({ initialData }: OverviewClientPagePr
             id="hide-stables"
             checked={hideStables}
             onChange={handleCheckboxChange}
-            className="form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out"
+            className="form-checkbox h-4 w-4 text-primary/70 transition duration-150 ease-in-out focus:ring-primary/50"
           />
-          <label htmlFor="hide-stables" className="block text-sm leading-5 text-gray-900 dark:text-gray-100">
+          <label htmlFor="hide-stables" className="block text-sm leading-5 text-foreground/80">
             Hide Stablecoins (USD)
           </label>
         </div>
       </div>
 
       {/* Chart Area */}
-      <div className="flex-grow border rounded-md overflow-hidden"> {/* Added border & overflow */}
+      <div className="flex-grow border border-border/70 rounded-md overflow-hidden"> {/* Adjusted border & overflow */}
         {displayedData.length === 0 && hideStables && (
-          <div className="flex items-center justify-center h-full text-gray-500">No non-stablecoin data matching filters.</div>
+          <div className="flex items-center justify-center h-full text-muted-foreground">No non-stablecoin data matching filters.</div>
         )}
         {displayedData.length === 0 && !hideStables && (
-          <div className="flex items-center justify-center h-full text-gray-500">No data matching filters.</div>
+          <div className="flex items-center justify-center h-full text-muted-foreground">No data matching filters.</div>
         )}
         {displayedData.length > 0 && (
           <OverviewTreemap data={displayedData} />
