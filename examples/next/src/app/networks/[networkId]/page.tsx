@@ -4,6 +4,31 @@ import React from "react";
 
 import { TokensPageDocument, TokensPageQuery, TokensPageQueryVariables, Network, TokenPageItemFragment, RankingDirection, TokenRankingAttribute } from "@/gql/graphql"; // Import directly from graphql.ts
 
+export const revalidate = 60; // Revalidate at most every 60 seconds
+
+export async function generateStaticParams() {
+  const apiKey = process.env.CODEX_API_KEY;
+  if (!apiKey) {
+    console.warn("CODEX_API_KEY environment variable is not set for generateStaticParams. Codex SDK might not work, and no paths will be pre-rendered.");
+    return [];
+  }
+  const codexClient = new Codex(apiKey || '');
+
+  try {
+    const networksResult = await codexClient.queries.getNetworks({});
+    if (networksResult && networksResult.getNetworks) {
+      return networksResult.getNetworks.map((network: Pick<Network, 'id'>) => ({
+        networkId: String(network.id),
+      }));
+    }
+    console.warn("Failed to fetch networks for generateStaticParams. No paths will be pre-rendered.");
+    return [];
+  } catch (error) {
+    console.error("Error in generateStaticParams:", error);
+    return []; // Return empty array on error to prevent build failure
+  }
+}
+
 interface NetworkPageProps {
   params: Promise<{
     networkId: string;
