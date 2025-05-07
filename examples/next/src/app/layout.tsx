@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     url: "https://tokedex.chromat.xyz", // Replace with your actual domain
     images: [
       {
-        url: "https://tokedex.chromat.xyz/og-image.png", // Replace with your actual image URL
+        url: "https://tokedex.chromat.xyz/tokedex.png", // Replace with your actual image URL
         width: 1200,
         height: 630,
         alt: "Tokedex - A terminal-inspired crypto token screener",
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Tokedex",
     description: "A terminal-inspired crypto token screener",
-    images: ["https://tokedex.chromat.xyz/og-image.png"], // Replace with your actual image URL
+    images: ["https://tokedex.chromat.xyz/tokedex.png"], // Replace with your actual image URL
   },
 };
 

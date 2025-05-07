@@ -191,7 +191,7 @@ export default async function NetworkPage({ params }: NetworkPageProps) {
         <Link href="/" className="hover:underline">&lt; Back to Networks</Link>
       </div>
 
-      <div className="w-full max-w-6xl">
+      <div className="w-full max-w-6xl border-b border-dashed border-border">
         {fetchError && <p className="text-destructive mb-4">{fetchError}</p>}
 
         {!fetchError || tokenListItems.length > 0 ? (
