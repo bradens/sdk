@@ -47,31 +47,33 @@ interface RechartsProvidedCellProps {
 
 // Function to calculate color based on change percentage
 function calculateColor(change: number | null | undefined): string {
-  const defaultFill = '#8884d8'; // Default Recharts fill or a neutral gray
+  const defaultFill = 'hsl(0, 0%, 10%)'; // Even darker default gray (e.g., #1a1a1a)
   if (change == null) {
     return defaultFill;
   }
 
-  const maxAbsChange = 1; // Consider 10% change as max intensity
+  const maxAbsChange = 1;
   const intensityFactor = Math.min(Math.abs(change), maxAbsChange) / maxAbsChange;
 
+  if (change === 0) {
+    return 'hsl(0, 0%, 15%)'; // Distinct, very dark gray for zero change
+  }
+
   let hue: number;
-  let saturation: number = 40; // Keep saturation constant for simplicity
-  // Adjust lightness: 65% (low intensity) down to 45% (high intensity)
-  let lightness: number = 60 - intensityFactor * 40;
+  const saturationForColor: number = 35; // Desaturated further
+
+  // Even darker lightness range: e.g., 25% (low intensity) down to 10% (high intensity)
+  const baseLightness = 25; // Max lightness for low intensity changes
+  const lightnessVariation = 25; // Total variation from low to high intensity
+  const lightness: number = baseLightness - intensityFactor * lightnessVariation;
 
   if (change > 0) {
     hue = 120; // Green
-  } else if (change < 0) {
+  } else { // change < 0
     hue = 0; // Red
-  } else {
-    // Zero change - make it gray
-    hue = 0;
-    saturation = 0;
-    lightness = 50; // Neutral gray lightness
   }
 
-  return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+  return `hsl(${hue}, ${saturationForColor}%, ${lightness}%)`;
 }
 
 // Custom Cell Component for Treemap
@@ -90,9 +92,26 @@ const CustomTreemapCell: React.FC<RechartsProvidedCellProps> = (props) => {
 
   return (
     <g onClick={handleCellClick} style={{ cursor: 'pointer' }}>
-      <Rectangle x={x} y={y} width={width} height={height} fill={cellFill} stroke="#fff" />
+      <Rectangle
+        x={x}
+        y={y}
+        width={width}
+        height={height}
+        fill={cellFill}
+        stroke={'hsl(0, 0%, 15%)'} // Very dark border color
+        strokeWidth={1} // Ensure stroke is visible
+        strokeDasharray="3 3" // Dashed border pattern
+      />
       {depth === 1 && width > 60 && height > 25 ? (
-        <text x={x + width / 2} y={y + height / 2 + 7} textAnchor="middle" fill="#fff" fontSize={14} pointerEvents="none">
+        <text
+          x={x + width / 2}
+          y={y + height / 2 + 7}
+          textAnchor="middle"
+          fill="#fff"
+          fontSize={14}
+          pointerEvents="none"
+          style={{ fontFamily: 'var(--font-geist-mono), monospace', fontWeight: 100, letterSpacing: '0.08em' }}
+        >
           {cellName} {/* Use cellName (from props.name) for display */}
         </text>
       ) : null}
@@ -103,10 +122,21 @@ const CustomTreemapCell: React.FC<RechartsProvidedCellProps> = (props) => {
 // Custom Tooltip for more details
 const CustomTooltip = ({ active, payload }: TooltipProps<ValueType, NameType>) => {
   if (active && payload && payload.length) {
-    const { name, payload: data } = payload[0];
+    const { payload: data } = payload[0];
+    // If name already includes symbol (e.g. from nameKey logic), avoid double printing symbol
+    // This logic assumes nameKey (props.name) is usually symbol if symbol exists.
+    let title = data.name; // Prefer the full name
+    if (data.symbol && data.name !== data.symbol) { // Add symbol if it's different from name
+        title = `${data.name} (${data.symbol})`;
+    } else if (!data.name && data.symbol) { // Only symbol available
+        title = data.symbol;
+    } else if (!title) { // Fallback if name is also null/undefined
+        title = 'Unknown Token';
+    }
+
     return (
       <div className="bg-background border border-border p-2 rounded shadow-lg text-sm">
-        <p className="font-bold">{data.symbol || name} ({data.symbol})</p>
+        <p className="font-bold">{title}</p>
         <p>Market Cap: ${data.marketCap?.toLocaleString()}</p>
         {data.change24 != null && <p>Change (24h): {data.change24.toFixed(2)}%</p>}
         {data.priceUSD != null && <p>Price: ${data.priceUSD?.toLocaleString()}</p>}

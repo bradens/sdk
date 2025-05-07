@@ -41,12 +41,9 @@ export default function OverviewClientPage({ initialData }: OverviewClientPagePr
   };
 
   return (
-    // Use flexbox for the main layout
     <main className="flex flex-col w-full h-[calc(100vh-45px)] p-4">
-      {/* Header Row: Title and Checkbox */}
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold">Token Overview Treemap</h1>
-        {/* Checkbox Control */}
+        <h1 className="text-2xl font-bold">Tokens by Market Cap</h1>
         <div className="flex items-center space-x-2">
           <input
             type="checkbox"
@@ -61,7 +58,6 @@ export default function OverviewClientPage({ initialData }: OverviewClientPagePr
         </div>
       </div>
 
-      {/* Chart Area */}
       <div className="flex-grow border border-border/70 rounded-md overflow-hidden"> {/* Adjusted border & overflow */}
         {displayedData.length === 0 && hideStables && (
           <div className="flex items-center justify-center h-full text-muted-foreground">No non-stablecoin data matching filters.</div>
