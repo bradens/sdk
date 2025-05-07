@@ -33,7 +33,7 @@ export default function NetworkList({
   // If there's an initial error, display it instead of the command list
   if (initialError) {
     return (
-      <div className="w-full h-full border border-border p-4 flex flex-col items-center justify-center">
+      <div className="w-full h-full border-dashed border border-border p-4 flex flex-col items-center justify-center">
         <p className="text-destructive">{initialError}</p>
       </div>
     );
@@ -42,7 +42,7 @@ export default function NetworkList({
   // If no networks loaded at all (e.g., API issue but no specific error string)
   if (topNetworks.length === 0 && restNetworks.length === 0) {
      return (
-      <div className="w-full h-full border border-border p-4 flex flex-col items-center justify-center">
+      <div className="w-full h-full border-dashed border border-border p-4 flex flex-col items-center justify-center">
         <p>No networks available.</p>
       </div>
     );
@@ -50,7 +50,7 @@ export default function NetworkList({
 
   return (
     // Command component takes full height and uses flex column layout internally
-    <Command className="border h-full">
+    <Command className="border-dashed border border-border h-full">
       <CommandInput placeholder="Search networks..." />
       <CommandList className="h-full"> {/* Ensure list itself can take height */}
         <CommandEmpty>No networks found.</CommandEmpty>

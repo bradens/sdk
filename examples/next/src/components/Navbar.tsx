@@ -7,7 +7,7 @@ export const Navbar = () => {
   const { ready, authenticated, login, logout } = usePrivy();
 
   return (
-    <nav className="flex items-center justify-between px-4 py-2 bg-card text-card-foreground border-b border-border">
+    <nav className="flex items-center justify-between px-4 py-2 bg-card text-card-foreground border-b border-border border-dashed">
       {/* Left side: Logo/Home link */}
       <Link href="/" className="text-lg font-bold hover:text-primary transition-colors">
         Tokedex

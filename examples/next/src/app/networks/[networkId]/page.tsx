@@ -1,6 +1,7 @@
 import { Codex } from "@codex-data/sdk";
 import Link from "next/link";
 import React from "react";
+import type { Metadata } from "next";
 
 import { TokensPageDocument, TokensPageQuery, TokensPageQueryVariables, Network, TokenPageItemFragment, RankingDirection, TokenRankingAttribute } from "@/gql/graphql"; // Import directly from graphql.ts
 
@@ -33,6 +34,63 @@ interface NetworkPageProps {
   params: Promise<{
     networkId: string;
   }>;
+}
+
+// --- Metadata Generation ---
+export async function generateMetadata({ params }: NetworkPageProps): Promise<Metadata> {
+  const { networkId } = await params;
+  const networkIdNum = parseInt(networkId, 10);
+  let networkName: string | null = null;
+
+  if (isNaN(networkIdNum)) {
+    return {
+      title: "Invalid Network",
+      description: "The requested network ID is invalid.",
+    };
+  }
+
+  const apiKey = process.env.CODEX_API_KEY;
+  const codexClient = new Codex(apiKey || "");
+
+  try {
+    const networksResult = await codexClient.queries.getNetworks({});
+    if (networksResult?.getNetworks) {
+      const currentNetwork = networksResult.getNetworks.find(
+        (net: Pick<Network, "id" | "name">) => net.id === networkIdNum
+      );
+      networkName = currentNetwork?.name || null;
+    }
+  } catch (error) {
+    console.error("Error fetching network name for metadata (ID: " + networkIdNum + "):", error);
+  }
+
+  const pageTitle = networkName ? networkName + " Network Details | Tokedex" : "Network " + networkId + " | Tokedex";
+  const pageDescription = networkName
+    ? "Explore tokens, trading activity, and analytics for the " + networkName + " network on Tokedex."
+    : "Explore tokens, trading activity, and analytics for network " + networkId + " on Tokedex.";
+
+  const siteUrl = "https://tokedex.chromat.xyz";
+  const pageUrl = siteUrl + "/networks/" + networkId;
+
+  return {
+    title: pageTitle,
+    description: pageDescription,
+    openGraph: {
+      title: pageTitle,
+      description: pageDescription,
+      url: pageUrl,
+      siteName: "Tokedex",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: pageTitle,
+      description: pageDescription,
+    },
+    alternates: {
+      canonical: pageUrl,
+    },
+  };
 }
 
 // Restore helper functions
@@ -140,9 +198,9 @@ export default async function NetworkPage({ params }: NetworkPageProps) {
           <>
             {tokenListItems.length === 0 && !fetchError && <p>Loading tokens or no tokens found for {networkName}...</p>}
             {tokenListItems.length > 0 && (
-              <table className="w-full table-fixed border-collapse border border-border text-sm">
+              <table className="w-full table-fixed border-collapse border-dashed border-border border !border-bottom text-sm">
                 <thead>
-                  <tr className="border-b border-border bg-muted/50">
+                  <tr className="border-b border-border border-dashed bg-muted/50">
                     <th className="p-2 text-left font-semibold w-[50px]">Icon</th>
                     <th className="p-2 text-left font-semibold">Name</th>
                     <th className="p-2 text-left font-semibold w-[10%]">Symbol</th>
