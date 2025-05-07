@@ -239,7 +239,7 @@ export function useProPageState() {
       }
       return layoutsModified ? newLayouts : prevLayouts;
     });
-  }, [selectedPanels]); // selectedPanels is a dependency because we use it to find the panel for dimension toggling
+  }, []); // selectedPanels is a dependency because we use it to find the panel for dimension toggling
 
   return {
     selectedPanels,

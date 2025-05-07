@@ -17,9 +17,8 @@ import {
 } from './charting_library/charting_library';
 import { useCodexSdk } from '@/hooks/useCodexSdk';
 import { Codex, CleanupFunction } from '@codex-data/sdk';
-import { OnTokenBarsUpdatedSubscription, TokenWithMetadata } from '@codex-data/sdk/dist/sdk/generated/graphql';
+import { OnTokenBarsUpdatedSubscription, RankingDirection, TokenRankingAttribute, TokenWithMetadata } from '@codex-data/sdk/dist/sdk/generated/graphql';
 import { ExecutionResult } from 'graphql';
-import { RankingDirection, TokenRankingAttribute } from '../gql/graphql';
 
 const convertResolutionToBarPayload = (resolution: ResolutionString) => {
   switch (resolution) {
