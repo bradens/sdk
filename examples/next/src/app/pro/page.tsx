@@ -95,7 +95,7 @@ export default function ProPage() {
           >
               {selectedPanels.map((panel) => (
                 <div key={panel.id} style={{ transitionProperty: 'all' }} className="transition-all duration-500 hover:border-primary/50 bg-card overflow-hidden flex flex-col group relative  border-dashed border-1 border-bg/50">
-                  <div className="drag-handle bg-muted cursor-move flex justify-between items-center absolute top-0 left-0 right-0 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-1">
+                  <div className="drag-handle bg-muted cursor-move flex justify-between items-center p-1">
                       <Popover
                           open={openPopoverId === panel.id}
                           onOpenChange={(isOpen) => {
@@ -133,7 +133,7 @@ export default function ProPage() {
                                   if (panel.type !== 'chart') togglePanelType(panel.id);
                               }}
                               onMouseDown={(e) => e.stopPropagation()}
-                              className={`cursor-pointer h-5 px-1 text-xs ${panel.type === 'chart' ? 'font-semibold' : ''}`}
+                              className={`cursor-pointer h-5 px-1 text-xs ${panel.type === 'chart' ? 'font-semibold text-muted' : 'text-muted-foreground'}`}
                           >
                               Chart
                           </Button>
@@ -145,7 +145,7 @@ export default function ProPage() {
                                   if (panel.type !== 'transactions') togglePanelType(panel.id);
                               }}
                               onMouseDown={(e) => e.stopPropagation()}
-                              className={`cursor-pointer h-5 px-1 text-xs ${panel.type === 'transactions' ? 'font-semibold' : ''}`}
+                              className={`cursor-pointer h-5 px-1 text-xs ${panel.type === 'transactions' ? 'font-semibold text-muted' : 'text-muted-foreground'}`}
                           >
                               Txns
                           </Button>
@@ -158,13 +158,13 @@ export default function ProPage() {
                           onMouseDown={(e) => {
                               e.stopPropagation(); // Prevent drag start
                           }}
-                          className="cursor-pointer p-0.5 rounded-full text-muted-foreground hover:text-primary hover:bg-secondary opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="cursor-pointer p-0.5 rounded-full text-muted-foreground hover:text-primary hover:bg-secondary transition-opacity"
                           aria-label={`Remove ${panel.type}`}
                       >
                           <X size={16} />
                       </button>
                   </div>
-                  <div className="flex-grow h-full relative pb-2 bg-muted group-hover:mt-7 transition-all duration-300">
+                  <div className="flex-grow h-full relative pb-2 bg-muted transition-all duration-300">
                     {panel.type === 'chart' ? (
                       <TokenChart
                           networkId={panel.networkId}
