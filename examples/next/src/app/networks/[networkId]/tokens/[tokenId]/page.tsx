@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader} from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TokenDetailView } from "@/components/TokenDetailView";
 
+export const revalidate = 60; // Revalidate at most every 60 seconds
+
 // --- Type Definitions ---
 // Keep TokenDetails definition (needed for fetching & props)
 type TokenDetails = {
