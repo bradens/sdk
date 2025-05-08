@@ -75,7 +75,7 @@ export default async function Home() {
   return (
     <main className="flex min-h-screen flex-col p-12 md:p-24">
       <div className="w-full max-w-md mx-auto">
-        <h1 className="text-4xl font-bold mb-4 text-center">Tokedex</h1>
+        <h1 className="text-4xl font-bold mb-4 text-center justify-center items-center flex"><img src="/tokedex.png" alt="Tokedex" className="w-20 align-center" />Tokedex</h1>
         <p className="text-lg text-center mb-8">
           Welcome to Tokedex! Your terminal-inspired crypto token screener.
           <br />

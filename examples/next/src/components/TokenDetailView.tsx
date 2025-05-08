@@ -121,7 +121,6 @@ export function TokenDetailView({
           <Card>
             <CardHeader className="flex flex-row items-center space-x-4">
               {details?.info?.imageThumbUrl ? (
-                 // eslint-disable-next-line @next/next/no-img-element
                  <img src={details.info.imageThumbUrl} alt={`${tokenName} icon`} width={40} height={40} className="rounded-full" />
               ) : (
                   <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-lg font-semibold">

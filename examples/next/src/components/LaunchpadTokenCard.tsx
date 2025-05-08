@@ -38,7 +38,6 @@ export const LaunchpadTokenCard: React.FC<TokenCardProps> = ({ token }) => {
             <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 flex-shrink min-w-0">
                     {imageUrl &&
-                        // eslint-disable-next-line @next/next/no-img-element
                         <img
                             key={imageUrl}
                             src={imageUrl}
