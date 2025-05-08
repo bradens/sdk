@@ -86,7 +86,7 @@ export default function ProPage() {
               rowHeight={100}
               onLayoutChange={onLayoutChange}
               containerPadding={[0,10]}
-              resizeHandles={['nw', 'ne', 'se', 'sw']}
+              resizeHandles={['e', 'w', 'se', 'sw']}
               draggableHandle=".drag-handle"
               margin={[0,0]}
               isDraggable
