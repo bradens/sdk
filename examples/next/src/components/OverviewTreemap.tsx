@@ -151,7 +151,15 @@ const CustomTooltip = ({ active, payload }: TooltipProps<ValueType, NameType>) =
 export const OverviewTreemap: React.FC<OverviewTreemapProps> = ({ data }) => {
   const router = useRouter();
 
-  const treemapChartData = data.map(token => ({
+  // Reduce the data to a single token per symbol, summing the market cap
+  const treemapChartData = Object.values(data.reduce((acc, curr) => {
+    if (acc[curr.symbol]) {
+      acc[curr.symbol].marketCap += curr.marketCap;
+    } else {
+      acc[curr.symbol] = curr;
+    }
+    return acc
+  }, {} as Record<string, TokenData>)).map(token => ({
     ...token,
     name: token.symbol || token.name || 'Unknown',
     size: token.marketCap != null ? Math.max(token.marketCap, 0) : 0,

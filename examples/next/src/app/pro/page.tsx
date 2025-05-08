@@ -133,7 +133,7 @@ export default function ProPage() {
                                   if (panel.type !== 'chart') togglePanelType(panel.id);
                               }}
                               onMouseDown={(e) => e.stopPropagation()}
-                              className={`cursor-pointer h-5 px-1 text-xs ${panel.type === 'chart' ? 'font-semibold text-muted' : 'text-muted-foreground'}`}
+                              className={`cursor-pointer h-5 px-1 text-xs ${panel.type === 'chart' ? 'font-semibold text-accent-foreground' : 'text-muted-foreground'}`}
                           >
                               Chart
                           </Button>
@@ -145,7 +145,7 @@ export default function ProPage() {
                                   if (panel.type !== 'transactions') togglePanelType(panel.id);
                               }}
                               onMouseDown={(e) => e.stopPropagation()}
-                              className={`cursor-pointer h-5 px-1 text-xs ${panel.type === 'transactions' ? 'font-semibold text-muted' : 'text-muted-foreground'}`}
+                              className={`cursor-pointer h-5 px-1 text-xs ${panel.type === 'transactions' ? 'font-semibold text-accent-foreground' : 'text-muted-foreground'}`}
                           >
                               Txns
                           </Button>
