@@ -31,7 +31,7 @@ export const LaunchpadTokenCard: React.FC<TokenCardProps> = ({ token }) => {
         <Link
             href={linkHref}
             passHref
-            className={`transition-all bg-muted/50 hover:border-primary/60 border p-2 flex flex-col gap-1.5 ${isLinkDisabled ? 'opacity-50 pointer-events-none' : 'cursor-pointer'}`}
+            className={`transition-all bg-muted/50 border-dashed hover:border-primary/60 border p-2 flex flex-col gap-1.5 ${isLinkDisabled ? 'opacity-50 pointer-events-none' : 'cursor-pointer'}`}
             aria-disabled={isLinkDisabled}
             onClick={(e) => { if (isLinkDisabled) e.preventDefault(); }}
         >
